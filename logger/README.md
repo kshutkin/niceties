@@ -162,7 +162,9 @@ type LogMessage<ErrorContext = Error> = {
 
 Same appender function without arguments can be used to get current appender.
 
-## Extending loglevels
+# FAQ
+
+## Can I use more than 4 log levels
 
 Despite the fact loglevel defined as an enum it is just a number. Logger does not make assumptions about loglevels besides defining default loglevel as 1 (LogLevel.info).
 
@@ -178,7 +180,34 @@ log('some message', -1);
 
 will send a log message with finer loglevel than verbose through appender but default appender will ignore it.
 
-## Subpackages
+## Can I use multiple appenders?
+
+It is possible using combuneAppenders and appender functions:
+
+```javascript
+import { createLogger, appender } from "@niceties/logger";
+import { combineAppenders } from "@niceties/logger/appender-utils";
+
+appender(combineAppenders(appender(), appender2));
+```
+
+## Can I set filter for certain loglevel
+
+It is possible using filterMessages and appender functions:
+
+```javascript
+import { filterMessages } from "@niceties/logger/appender-utils";
+
+let desiredLoglevel = 0;
+
+appender(filterMessages((msg) => msg.loglevel >= desiredLoglevel, appender()));
+
+function setLoglevel(loglevel) {
+    desiredLoglevel = loglevel;
+}
+```
+
+# Subpackages
 
 Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory and `setAppender()` function.
 
