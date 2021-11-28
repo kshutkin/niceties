@@ -17,6 +17,10 @@
       "require": "./dist/core.js",
       "default": "./dist/core.mjs"
     },
+    "./simple": {
+      "require": "./dist/simple.js",
+      "default": "./dist/simple.mjs"
+    },
     "./console-appender": {
       "require": "./dist/console-appender.js",
       "default": "./dist/console-appender.mjs"
@@ -41,7 +45,8 @@
     "console-appender",
     "format-utils",
     "appender-utils",
-    "types"
+    "types",
+    "simple"
   ],
   "engines": {
     "node": ">=14.8"
