@@ -9,7 +9,7 @@
   "author": "Konstantin Shutkin",
   "license": "MIT",
   "dependencies": {
-    "@niceties/logger": "^0.1.0",
-    "@niceties/draftlog-appender": "^0.1.0"
+    "@niceties/logger": "^1.0.0",
+    "@niceties/draftlog-appender": "^1.0.0"
   }
 }
