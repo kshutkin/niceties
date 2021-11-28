@@ -1,6 +1,10 @@
 # Draftlog Appender
 
-Appender for `'@niceites/logger'` implemented using draftlog package
+Appender for `'@niceites/logger'` implemented using draftlog package.
+
+- Uses animation in the console to display log messages
+
+- Small size
 
 # Installation
 
@@ -31,6 +35,13 @@ Default subpackage `'@niceties/draftlog-appender'` exports nothing.
 Subpackage `'@niceties/draftlog-appender/core'` exports `createDraftlogAppender()` factory.
 
 Subpackage `'@niceties/draftlog-appender/spinners'` exports `spinners` const definition used in default config.
+
+## Prior art
+
+- [draftlog](https://github.com/ivanseidel/node-draftlog)
+- [dreidels](https://github.com/SweetMNM/dreidels)
+- [ora](https://github.com/sindresorhus/ora)
+- [Spinnies](https://github.com/jcarpanelli/spinnies)
 
 # License
 

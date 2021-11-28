@@ -2,9 +2,13 @@
 
 Experimental logger/reporter for async tasks.
 
-Provides API for reporting async events that can be later handled by cutom appender.
+- Provides API for reporting async events that can be later handled by custom appender.
 
-Provides default appender that uses console for output.
+- Provides default appender that uses console for output.
+
+- Modular and configurable
+
+- Small size
 
 # Installation
 
@@ -220,6 +224,10 @@ Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender(
 Subpackage `'@niceties/logger/format-utils'` exports `formatMessage()` function.
 
 Subpackage `'@niceties/logger/appender-utils'` exports `filterMessages()` and `combineAppenders()` functions.
+
+# Prior art
+
+- [loglevel](https://github.com/pimterry/loglevel)
 
 # License
 
