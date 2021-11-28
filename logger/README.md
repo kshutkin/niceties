@@ -102,6 +102,13 @@ finish(message: string, loglevel?: LogLevel | undefined): void;
 
 Emits finish event. Can be used to inform user that task finished. loglevel is optional and equals initial loglevel if omitted.
 
+```typescript
+const log = createLogger()
+                .withAppender(someFancyAppender);
+```
+
+Adds new appender for the specific inctance of logger. It is not mandatory to use the return value because no new instance of logger created and appender added to the existing instance.
+
 ## Log levels
 
 ```typescript
@@ -118,13 +125,13 @@ const enum LogLevel {
 User or another library can set another appender by calling:
 
 ```typescript
-function setAppender(appender: Appender);
+function appender<ErrorContext = Error>(appender?: Appender<ErrorContext>): Appender<any>;
 ```
 
 where appender is a function with following type
 
 ```typescript
-(message: LogMessage) => void
+(message: LogMessage<ErrorContext>) => void;
 
 const enum Action {
     start,
@@ -152,6 +159,8 @@ type LogMessage<ErrorContext = Error> = {
     context?: ErrorContext;
 };
 ```
+
+Same appender function without arguments can be used to get current appender.
 
 ## Extending loglevels
 

@@ -1,18 +1,8 @@
 import { combineAppenders } from './appender-utils';
+import { globalAppender, appender } from './details/global-appender';
 import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
 
 let globalInputId = 0;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let globalAppender: Appender<any>;
-
-export function setAppender<ErrorContext = Error>(appender: Appender<ErrorContext>) {
-    globalAppender = appender;
-}
-
-export function getAppender<ErrorContext = Error>(): Appender<ErrorContext> {
-    return globalAppender;
-}
 
 export function createLogger<ErrorContext = Error>(...args: [] | [string | Identity] | [string, Identity]) {
     let initialLogLevel: number = LogLevel.info;
@@ -21,7 +11,7 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
     
     const { tag, parentId } = getOptions(args);
     
-    let myAppender = (message: LogMessage<ErrorContext>) => globalAppender(message);
+    let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
 
     const loggerInstance = Object.assign(
         function log(message: string, loglevel: LogLevel = LogLevel.info, context?: ErrorContext) {
@@ -86,3 +76,5 @@ function getOptions(options: [] | [string | Identity] | [string, Identity]): { t
     }
     return { parentId, tag };
 }
+
+export { appender };
