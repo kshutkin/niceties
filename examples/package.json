@@ -8,6 +8,7 @@
   },
   "author": "Konstantin Shutkin",
   "license": "MIT",
+  "private": "true",
   "dependencies": {
     "@niceties/logger": "^1.0.0",
     "@niceties/draftlog-appender": "^1.0.0"
