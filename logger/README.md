@@ -36,7 +36,7 @@ try {
     ...
     logger.finish('finished something');
 } catch(e) {
-    logger.finish('finished something', 4);
+    logger.finish('finished something', 3);
 }
 ```
 

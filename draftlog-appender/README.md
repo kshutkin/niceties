@@ -6,6 +6,10 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 
 - Small size
 
+- Doesn't hold your event loop on exit
+
+- Creates maximum one active interval (timer) at a time
+
 # Installation
 
 ```
