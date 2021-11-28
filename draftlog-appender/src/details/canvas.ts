@@ -21,21 +21,26 @@ export function createCanvas(spinner: Spinner, formatting: Formatting) {
     const updaters: Array<(message?: any, ...optionalParams: any[]) => void> = [];
 
     return (model: Model) => {
-        if (model.skipLines) {
-            updaters.splice(0, model.skipLines);
-            model.skipLines = 0;
+        if (model.skipLines_) {
+            updaters.splice(0, model.skipLines_);
+            model.skipLines_ = 0;
         }
-        while (model.items.length > updaters.length) {
-            updaters.push(console.draft(' '));
-        }
-        for (const [key, item] of Object.entries(model.items)) {
-            const updater = updaters[Number(key)];
-            const [color, prefix] = getMessageFormat(item, model.tick);
-            updater(formatMessage(color, prefix, item.text));
+        let item = model.head_, key = 0;
+        while (item) {
+            let updater = updaters[Number(key)];
+            if (!updater) {
+                updater = console.draft(' ');
+                updaters.push(updater);
+            }
+            const [color, prefix] = getMessageFormat(item, model.tick_);
+            updater('  '.repeat(item.ident_) + formatMessage(color, prefix, item.text_));
+            // iterate
+            item = item.next_;
+            ++key;
         }
     };
 
-    function getMessageFormat({loglevel, status}: ModelItem, tick: number): [((message: string) => string) | undefined, string] {
+    function getMessageFormat({loglevel_: loglevel, status_: status}: ModelItem, tick: number): [((message: string) => string) | undefined, string] {
         // status is truthy when it is inprogress
         const prefix = status ? (spinner.frames[tick] + ' ') :
             // status not null when it is finished

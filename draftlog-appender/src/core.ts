@@ -24,8 +24,7 @@ export function createDraftlogAppender(options: DraftlogAppenderOptions, spinner
     };
 
     function checkTimeout() {
-        const model = getModel();
-        const spinning = model.items.some(item => item.status);
+        let spinning = getModel().spinning_;
         if (spinning && !interval) {
             interval = setInterval(updateSpinners, spinner.interval);
             interval.unref(); // unref immidiately just in case
@@ -37,8 +36,8 @@ export function createDraftlogAppender(options: DraftlogAppenderOptions, spinner
 
     function updateSpinners() {
         const model = getModel();
-        model.tick++;
-        model.tick %= spinner.frames.length;
+        model.tick_++;
+        model.tick_ %= spinner.frames.length;
         renderModel(model);
     }
 }
