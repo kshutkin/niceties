@@ -1,0 +1,15 @@
+{
+  "name": "test-niceties",
+  "version": "1.0.0",
+  "description": "Test niceties with or without appenders",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --expose-gc ./index.mjs"
+  },
+  "author": "Konstantin Shutkin",
+  "license": "MIT",
+  "dependencies": {
+    "@niceties/logger": "^0.1.0",
+    "@niceties/draftlog-appender": "^0.1.0"
+  }
+}
