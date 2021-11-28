@@ -28,7 +28,7 @@
     "spinners"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=14.8"
   },
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
