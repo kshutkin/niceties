@@ -36,7 +36,9 @@ export function createCanvas(spinner: Spinner, formatting: Formatting) {
     };
 
     function getMessageFormat({loglevel, status}: ModelItem, tick: number): [((message: string) => string) | undefined, string] {
+        // status is truthy when it is inprogress
         const prefix = status ? (spinner.frames[tick] + ' ') :
+            // status not null when it is finished
             (status != null ? formatting.finishedPrefixes[loglevel] : '');
         const color = formatting.colors[loglevel];
         return [ color, prefix ];
