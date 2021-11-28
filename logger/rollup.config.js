@@ -153,7 +153,13 @@ export default [{
         dir: dest,
         entryFileNames: '[name].umd.js',
         name: getGlobalName(currentInput),
-        plugins: [terser()],
+        plugins: [terser({
+            mangle: {
+                properties: {
+                    regex: /_$/
+                }
+            }
+        })],
         sourcemap: true,
         globals: getExternalGlobalName
     },
