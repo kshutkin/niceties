@@ -231,4 +231,4 @@ Subpackage `'@niceties/logger/appender-utils'` exports `filterMessages()` and `c
 
 # License
 
-[MIT](./LICENCE)
+[MIT](./LICENSE)

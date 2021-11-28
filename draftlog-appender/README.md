@@ -1,6 +1,6 @@
 # Draftlog Appender
 
-Appender for `'@niceites/logger'` implemented using draftlog package.
+Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draftlog package.
 
 - Uses animation in the console to display log messages
 
@@ -45,4 +45,4 @@ Subpackage `'@niceties/draftlog-appender/spinners'` exports `spinners` const def
 
 # License
 
-[MIT](./LICENCE)
+[MIT](./LICENSE)
