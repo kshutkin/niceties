@@ -18,7 +18,7 @@ export type LogMessage<ErrorContext = Error> = {
     message: string;
     action: Action.start | Action.update | Action.finish;
     tag?: string;
-    parentId?: string;
+    parentId?: number;
     ref: WeakRef<never>;
 } | {
     inputId?: number;
@@ -26,7 +26,7 @@ export type LogMessage<ErrorContext = Error> = {
     message: string;
     action: Action.log;
     tag?: string;
-    parentId?: string;
+    parentId?: number;
     ref?: WeakRef<never>;
     context?: ErrorContext;
 };
