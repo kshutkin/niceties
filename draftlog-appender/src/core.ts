@@ -9,8 +9,6 @@ interface DraftlogAppenderOptions {
     fallbackSpinner: string;
 }
 
-// TODO sort/ident items on screen by parent/child relationship between loggers
-
 export function createDraftlogAppender(options: DraftlogAppenderOptions, spinners: Spinners, formatting: Formatting) {
     let interval: NodeJS.Timer | undefined;
     const spinner = spinners[terminalSupportsUnicode() ? options.defaultSpinner : options.fallbackSpinner];
@@ -24,7 +22,7 @@ export function createDraftlogAppender(options: DraftlogAppenderOptions, spinner
     };
 
     function checkTimeout() {
-        let spinning = getModel().spinning_;
+        const spinning = getModel().spinning_;
         if (spinning && !interval) {
             interval = setInterval(updateSpinners, spinner.interval);
             interval.unref(); // unref immidiately just in case

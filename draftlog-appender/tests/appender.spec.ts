@@ -22,7 +22,7 @@ const testOptions = {
 const testSpinners = {
     test: {
         frames: ['-'],
-        interval: 1000
+        interval: 500
     }
 };
 
@@ -37,6 +37,8 @@ describe('draftlog appender', () => {
 
     let appender: Appender;
     let draftLogDefaults: DraftlogDefaults;
+    let interval: NodeJS.Timer;
+    let setIntervalCopy: typeof global.setInterval;
     let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
     let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
     const ref = new WeakRef(testFormatting) as WeakRef<never>;
@@ -46,7 +48,16 @@ describe('draftlog appender', () => {
         draftLogDefaults = (draftlog as never as DraftlogConfig).defaults;
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));
+        setIntervalCopy = global.setInterval;
+        global.setInterval = Object.assign(function (callback: (...args: any[]) => void, ms?: number, ...args: any[]) {
+            return interval = setIntervalCopy(callback, ms, ...args);
+        }, setIntervalCopy);
     });
+
+    afterEach(() => {
+        global.setInterval = setIntervalCopy;
+        clearInterval(interval);
+    })
 
     it('smoke', () => {
         expect(console.draft).toBeDefined();
@@ -141,6 +152,87 @@ describe('draftlog appender', () => {
         expect(consoleUpdateMock).toBeCalledWith('test2');
         
         expect(consoleDraftMock).toBeCalledTimes(2);
+    });
+
+    it('gc test 2 (don\'t remove lines when children still has refs)', async () => {
+        appender({loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
+        appender({loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref, parentId: 0});
+    
+        await waitFor(50);
+
+        (global as never as any).gc();
+        
+        await waitFor(50);
+
+        appender({loglevel: LogLevel.verbose, message: 'test3', action: Action.update, inputId: 2, ref});
+        
+        expect(consoleUpdateMock).toBeCalledTimes(6);
+    });
+
+    it('gc test 3 (remove lines when children are freed as well and not spinning)', async () => {
+        appender({loglevel: LogLevel.info, message: 'test1', action: Action.update, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
+        appender({loglevel: LogLevel.info, message: 'test2', action: Action.update, inputId: 1, ref: new WeakRef({}) as WeakRef<never>, parentId: 0});
+    
+        await waitFor(50);
+
+        (global as never as any).gc();
+        
+        await waitFor(50);
+
+        appender({loglevel: LogLevel.verbose, message: 'test3', action: Action.update, inputId: 2, ref});
+        
+        expect(consoleUpdateMock).toBeCalledTimes(4);
+    });
+
+    it('setInterval finishes (moving active parent)', async () => {
+        appender({loglevel: LogLevel.info, message: '+test2', action: Action.start, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3', action: Action.start, inputId: 3, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test4', action: Action.start, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test0', action: Action.start, inputId: 0, ref});
+        appender({loglevel: LogLevel.info, message: '+test4_f', action: Action.finish, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test5', action: Action.start, inputId: 5, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: '+test2_f', action: Action.finish, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 3, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 5, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 0, ref});
+            
+        await waitFor(550);
+
+        expect(consoleUpdateMock).toBeCalledTimes(44);
+    });
+
+    it('setInterval finishes 2 (moving static parent)', async () => {
+        appender({loglevel: LogLevel.info, message: '+test2', action: Action.start, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3', action: Action.start, inputId: 3, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test4', action: Action.start, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test0', action: Action.start, inputId: 0, ref});
+        appender({loglevel: LogLevel.info, message: '+test4_f', action: Action.finish, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test5', action: Action.update, inputId: 5, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: '+test2_f', action: Action.finish, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 3, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 5, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 0, ref});
+            
+        await waitFor(550);
+
+        expect(consoleUpdateMock).toBeCalledTimes(44);
+    });
+
+    it('multilevel output', () => {
+        appender({loglevel: LogLevel.info, message: '+test2', action: Action.start, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3', action: Action.start, inputId: 3, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test4', action: Action.start, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test0', action: Action.start, inputId: 0, ref});
+        appender({loglevel: LogLevel.info, message: '+test4_f', action: Action.finish, inputId: 4, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test5', action: Action.start, inputId: 5, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: '+test2_f', action: Action.finish, inputId: 2, ref, parentId: 5});
+        appender({loglevel: LogLevel.info, message: '+test3_f', action: Action.finish, inputId: 3, ref, parentId: 5});
+        
+        expect(consoleUpdateMock).toBeCalledWith('    ok +test3_f');
+        expect(consoleUpdateMock).toBeCalledWith('    ok +test2_f');
+        expect(consoleUpdateMock).toBeCalledWith('    ok +test4_f');
+        expect(consoleUpdateMock).toBeCalledWith('  - +test5');
+        expect(consoleUpdateMock).toBeCalledWith('- +test0');
     });
 });
 

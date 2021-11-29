@@ -10,6 +10,10 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 
 - Creates maximum one active interval (timer) at a time
 
+- Supports multilevel spinners
+
+![Example](./example.gif "In terminal")
+
 # Installation
 
 ```

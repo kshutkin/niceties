@@ -1,11 +1,22 @@
 import "@niceties/draftlog-appender";
 import { createLogger } from "@niceties/logger";
+import kleur from "kleur";
 
-setTimeout(() => {
-    const logger = createLogger();
+const waitFor = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-    logger.start('test1');
-}, 500);
+const logger = createLogger();
+
+logger.start('I am going to be freed soon');
+
+await waitFor(500);
+
+logger(`${kleur.blue(kleur.bgWhite(kleur.bold('just a log line')))}`);
+
+await waitFor(200);
+
+console.log('I am from console.log');
+
+await waitFor(200);
 
 const logger2 = createLogger();
 const logger3 = createLogger(logger2);
@@ -13,27 +24,37 @@ const logger4 = createLogger(logger3);
 const logger5 = createLogger(logger3);
 const logger6 = createLogger(logger3);
 
-setTimeout(() => {
-    logger4.start('444444444');
-    logger5.update('555555555');
-    logger6.start('666666666');
-}, 600);
+logger4.start('I have parent missing');
 
-setTimeout(() => {
-    
-}, 550);
+await waitFor(500);
 
-setTimeout(() => {
-    logger2.start('asdsadasdas');
-    logger6.finish('error', 3);
-    logger3.start('!!!!!!!!!');
-}, 700);
+logger5.update('I have parent missing');
 
-setTimeout(() => {
-    global.gc();
-}, 1000);
+await waitFor(500);
 
-setTimeout(() => {
-    logger2.finish('finished second logger');
-    logger3.finish('++++++++++++++++');
-}, 2000);
+logger6.start('I have parent missing');
+
+await waitFor(500);
+
+logger2.start('I am the another missing parent');
+logger6.finish('I am finished with some error', 3);
+logger3.start('I am the missing parent');
+
+logger4.start('I found the parent');
+logger5.start('I found the parent');
+
+await waitFor(500);
+
+global.gc();
+
+await waitFor(500);
+
+logger2.finish('Job finished');
+logger3.finish('Ok');
+logger4.finish('Ok !');
+logger5.finish('Ok !!');
+
+await waitFor(500);
+
+console.log('\n');
+

@@ -10,17 +10,13 @@ export interface ModelItem {
     status_?: ItemStatus; // undefined means static
     loglevel_: LogLevel;
     ref_?: WeakRef<never>;
-    // new fields
-    leafs_: number;
     parentId_?: number;
     next_?: ModelItem;
-    prev_?: ModelItem;
-    ident_: number;
+    children_: ModelItem[];
 }
 
 export type Model = {
-    head_?: ModelItem;
-    tail_?: ModelItem;
+    items_: ModelItem[];
     skipLines_: number;
     tick_: number;
     spinning_: number;
@@ -30,13 +26,13 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
     const model: Model = {
         skipLines_: 0,
         tick_: 0,
-        spinning_: 0
+        spinning_: 0,
+        items_: []
     };
     const itemById: {[key: number]: ModelItem} = Object.create(null);
-    const lostChildren: {[key: number]: ModelItem[]} = Object.create(null);
     return [({ message: text, inputId, action, loglevel, ref, parentId }: LogMessage): Model => {
         // item has status undefined, so it is static by default
-        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, leafs_: 0, parentId_: parentId, ident_: 0 };
+        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, children_: [] };
         if (action === Action.start) {
             item.status_ = ItemStatus.inprogress;
         }
@@ -58,21 +54,7 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
     }];
 
     function append(item: ModelItem, head: boolean) {
-        if (!model.tail_) {
-            model.tail_ = model.head_ = item;
-        } else if (head) {
-            if (model.head_) {
-                item.next_ = model.head_;
-                model.head_.prev_ = item;
-            }
-            model.head_ = item;
-        } else {
-            if (model.tail_) {
-                item.prev_ = model.tail_;
-                model.tail_.next_ = item;
-            }
-            model.tail_ = item;
-        }
+        model.items_[head ? 'unshift' : 'push'](item);
         model.spinning_ += (item.status_ || 0);
     }
 
@@ -83,91 +65,48 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
             itemById[inputId] = item;
             const itemParentId = item.parentId_;
             if (itemParentId != null) {
-                const parent = itemById[itemParentId];
-                if (parent) {
-                    let child = parent, n = 0;
-                    while (n < parent.leafs_) {
-                        child = child.next_ as ModelItem;
-                        ++n;
-                        n -= child.leafs_;
-                    }
-                    ++parent.leafs_;
-                    item.next_ = child.next_;
-                    child.next_ = item;
-                    item.prev_ = child;
-                    if (!item.next_) {
-                        model.tail_ = item;
-                    }
-                    item.ident_ = parent.ident_ + 1;
-                    return;
-                } else {
-                    // lostChildren[itemParentId] = [...lostChildren[itemParentId] || [], item];
-                    const siblings = lostChildren[itemParentId];
-                    if (siblings) {
-                        siblings.push(item);
-                    } else {
-                        lostChildren[itemParentId] = [item];
-                    }
-                }
-            }
-            append(item, false);
-            if (item.inputId_ != null) {
-                const lost = lostChildren[item.inputId_];
-                if (lost) {
-                    for (let child of lost) {
-                        // TODO second etc lost should be inserted after prev items...
-                        const beginCut = child.prev_;
-                        const itemNext = item.next_;
-                        item.next_ = child;
-                        child.prev_ = item;
-                        child.ident_ = item.ident_ + 1;
-                        let remaining = child.leafs_;
-                        while (remaining--) {
-                            child = child.next_ as ModelItem;
-                            ++child.ident_;
-                            remaining += child.leafs_;
-                        }
-                        if (beginCut) {
-                            beginCut.next_ = child.next_;
-                        } else {
-                            model.head_ = child.next_;
-                        }
-                        if (child.next_) {
-                            child.next_.prev_ = beginCut;
-                        } else {
-                            model.tail_ = child;
-                        }
-                        child.next_ = itemNext;
-                        ++item.leafs_;
-                    }
-                }
-                delete lostChildren[item.inputId_];
+                putIntoChildren(itemParentId, item);
+            } else {
+                append(item, false);
             }
         } else {
             const statusDiff = (options.status_ || 0) - (modelItem.status_ || 0);
-            delete (options as any).ident_;
-            delete (options as any).leafs_;
+            delete (options as Partial<ModelItem>).children_;
+            const moveIntoParent = options.parentId_ != null && modelItem.parentId_ == null;
             Object.assign(modelItem, options);
             model.spinning_ += statusDiff;
+            if (moveIntoParent) {
+                model.items_ = model.items_.filter(item => item !== modelItem);
+                model.spinning_ -= (modelItem.status_ || 0);
+                putIntoChildren(modelItem.parentId_ as number, modelItem);
+            }
         }
     }
 
+    function putIntoChildren(itemParentId: number, item: ModelItem) {
+        let parent = itemById[itemParentId];
+        if (!parent) {
+            parent = { inputId_: itemParentId, text_: '', children_: [], loglevel_: 0, ref_: new WeakRef(model) as WeakRef<never> };
+            append(parent, false);
+            itemById[itemParentId] = parent;
+        }
+        parent.children_.push(item);
+        model.spinning_ += (item.status_ || 0);
+    }
+
     function cleanupModel() {
-        let item = model.head_;
-        while (item) {
-            if (!item.ref_?.deref()) {
-                ++model.skipLines_;
-                model.head_ = item.next_;
-                if (!model.head_) {
-                    model.tail_ = model.head_;
-                }
-                item.inputId_ != null && delete itemById[item.inputId_];
-                // delete only child from bucket?
-                item.parentId_ != null && delete lostChildren[item.parentId_];
+        for (const item of model.items_) {
+            if (!item.ref_?.deref() && !item.children_.some(item => item.ref_?.deref())) {
+                model.skipLines_ += 1 + item.children_.length;
+                model.items_.shift();
+                let currentItem: ModelItem | undefined = item;
+                do {
+                    currentItem.inputId_ != null && delete itemById[currentItem.inputId_];
+                    model.spinning_ -= (currentItem.status_ || 0);
+                } while ((currentItem = item.children_.pop()));
             } else {
                 break;
             }
-            item = item.next_;
         }
     }
 }
