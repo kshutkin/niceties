@@ -37,7 +37,7 @@ logger6.start('I have parent missing');
 await waitFor(500);
 
 logger2.start('I am the another missing parent');
-logger6.finish('I am finished with some error', 3);
+logger6.finish('I am finished with error', 3);
 logger3.start('I am the missing parent');
 
 logger4.start('I found the parent');
@@ -52,7 +52,7 @@ await waitFor(500);
 logger2.finish('Job finished');
 logger3.finish('Ok');
 logger4.finish('Ok !');
-logger5.finish('Ok !!');
+logger5.finish('Kind of Ok !!', 2);
 
 await waitFor(500);
 
