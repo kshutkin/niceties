@@ -34,7 +34,7 @@
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
     "dev": "rimraf ./dist && rollup -c -w",
-    "test": "node --expose-gc ../node_modules/.bin/jest --collectCoverage",
+    "test": "node --expose-gc ../node_modules/jest-cli/bin/jest.js --collectCoverage",
     "lint": "eslint ./src",
     "semantic-release": "npx semantic-release"
   },
