@@ -1,6 +1,7 @@
 import { green, red, yellow } from 'kleur';
 import { createConsoleAppender } from '../src/console-appender';
-import { formatting } from '../src/default-formatting';
+import { colors, unicodePrefixes } from '../src/default-formatting';
+import { createFormatter } from '../src/format-utils';
 import { Action, LogLevel, Appender } from '../src/types';
 
 describe('console appender', () => {
@@ -11,7 +12,8 @@ describe('console appender', () => {
 
     beforeEach(() => {
         consoleLogMock = jest.spyOn(global.console, 'log').mockImplementation();
-        consoleAppender = createConsoleAppender(formatting);
+        const formatter = createFormatter(colors, unicodePrefixes);
+        consoleAppender = createConsoleAppender(formatter);
     });
 
     afterEach(() => {
