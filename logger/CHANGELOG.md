@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.0-alpha.5](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.4...@niceties/logger-v1.0.0-alpha.5) (2021-12-01)
+
+
+### Features
+
+* use node >= 15 ([c27cb3c](https://github.com/kshutkin/niceties/commit/c27cb3c43d2df7e7cf7c90cc77f39c2452235b90))
+
 # [@niceties/logger-v1.0.0-alpha.4](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.3...@niceties/logger-v1.0.0-alpha.4) (2021-12-01)
 
 
