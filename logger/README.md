@@ -230,8 +230,6 @@ Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender(
 
 Subpackage `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
 
-Subpackage `'@niceties/logger/appender-utils'` exports `filterMessages()` and `combineAppenders()` functions.
-
 # Prior art
 
 - [loglevel](https://github.com/pimterry/loglevel)
