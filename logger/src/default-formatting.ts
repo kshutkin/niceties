@@ -1,9 +1,8 @@
 import kleur from 'kleur';
-import { Formatting } from '.';
+import { ColorFormatters, Prefixes } from './types';
 const { green, red, yellow } = kleur;
 
-export const formatting: Formatting = {
-    finishedPrefixes: [`${green('✓')} `, `${green('✓')} `, '⚠ ', '✕ '],
-    // eslint-disable-next-line no-sparse-arrays
-    colors: [,,yellow, red]
-};
+export const unicodePrefixes: Prefixes = [`${green('✓')}`, `${green('✓')}`, '⚠', '✕'];
+export const asciiPrefixes: Prefixes = [`${green('+')}`, `${green('+')}`, '!', 'x'];
+// eslint-disable-next-line no-sparse-arrays
+export const colors: ColorFormatters = [,,yellow, red];

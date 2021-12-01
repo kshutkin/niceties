@@ -1,10 +1,12 @@
 import { appender } from '@niceties/logger/core';
-import { formatting } from '@niceties/logger/default-formatting';
+import { terminalSupportsUnicode, createFormatter } from '@niceties/logger/format-utils';
+import { colors, unicodePrefixes, asciiPrefixes } from '@niceties/logger/default-formatting';
 import { createDraftlogAppender } from './core';
-import { spinners } from './spinners';
+import { dots, line } from './spinners';
 
-appender(createDraftlogAppender({
-    logAboveSpinners: false,
-    defaultSpinner: 'dots',
-    fallbackSpinner: 'line'
-}, spinners, formatting));
+const supportsUnicode = terminalSupportsUnicode();
+const spinner = supportsUnicode ? dots : line;
+const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes);
+
+appender(createDraftlogAppender(spinner, formatter, false, 2));
+

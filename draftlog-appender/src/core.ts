@@ -1,20 +1,13 @@
-import { Formatting, LogMessage } from '@niceties/logger/types';
+import { Formatter, LogMessage } from '@niceties/logger/types';
 import { createCanvas } from './details/canvas';
 import { createModel } from './details/model';
-import { Spinners } from './spinners';
+import { Spinner } from './spinners';
 
-interface DraftlogAppenderOptions {
-    logAboveSpinners: boolean;
-    defaultSpinner: string;
-    fallbackSpinner: string;
-}
-
-export function createDraftlogAppender(options: DraftlogAppenderOptions, spinners: Spinners, formatting: Formatting) {
+export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
     let interval: NodeJS.Timer | undefined;
-    const spinner = spinners[terminalSupportsUnicode() ? options.defaultSpinner : options.fallbackSpinner];
 
-    const [updateModel, getModel] = createModel(options.logAboveSpinners);
-    const renderModel = createCanvas(spinner, formatting);
+    const [updateModel, getModel] = createModel(logAboveSpinners);
+    const renderModel = createCanvas(spinner, formatter, ident);
 
     return function draftlogAppender(message: LogMessage) {
         renderModel(updateModel(message));
@@ -40,11 +33,4 @@ export function createDraftlogAppender(options: DraftlogAppenderOptions, spinner
     }
 }
 
-// from dreidels/utils
-function terminalSupportsUnicode() {
-    // The default command prompt and powershell in Windows do not support Unicode characters.
-    // However, the VSCode integrated terminal and the Windows Terminal both do.
-    return process.platform !== 'win32'
-      || process.env.TERM_PROGRAM === 'vscode'
-      || !!process.env.WT_SESSION;
-}
+

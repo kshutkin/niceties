@@ -56,5 +56,5 @@ logger5.finish('Kind of Ok !!', 2);
 
 await waitFor(500);
 
-console.log('\n');
+console.log('');
 

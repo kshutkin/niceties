@@ -35,15 +35,12 @@ export type Appender<ErrorContext = Error> = (message: LogMessage<ErrorContext>)
 
 export type Identity = {id?: number};
 
-type Prefixes = {
+export type Prefixes = {
     [index in LogLevel]: string;
 };
 
-type ColorFormatters = {
+export type ColorFormatters = {
     [index in LogLevel]: (((text: string) => string) | undefined);
 };
 
-export type Formatting = {
-    finishedPrefixes: Prefixes
-    colors: ColorFormatters
-};
+export type Formatter = (message: string, loglevel: LogLevel, usePrefix?: string | boolean, identation?: number) => string;

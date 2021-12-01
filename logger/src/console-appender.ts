@@ -1,15 +1,7 @@
-import { Action, Formatting, LogLevel, LogMessage } from './types';
-import { formatMessage } from './format-utils';
+import { Action, Formatter, LogMessage } from './types';
 
-export function createConsoleAppender(formatting: Formatting) {
+export function createConsoleAppender(formatter: Formatter) {
     return function consoleAppender({loglevel, action, message}: LogMessage) {
-        const [ color, prefix ] = getMessageFormat(action === Action.finish, loglevel);
-        console.log(formatMessage(color, prefix, message));
+        console.log(formatter(message, loglevel, action === Action.finish));
     };
-
-    function getMessageFormat(finished: boolean, loglevel: LogLevel): [((message: string) => string) | undefined, string] {
-        const prefix = finished ? formatting.finishedPrefixes[loglevel] : '';
-        const color = formatting.colors[loglevel];
-        return [ color, prefix ];
-    }
 }

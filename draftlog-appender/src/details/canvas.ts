@@ -1,9 +1,8 @@
 import draftlog from 'draftlog';
 
-import { formatMessage } from '@niceties/logger/format-utils';
-import { Formatting } from '@niceties/logger/types';
+import { Formatter } from '@niceties/logger/types';
 
-import { Model, ModelItem } from './model';
+import { ItemStatus, Model, ModelItem } from './model';
 import { Spinner } from '../spinners';
 
 interface DraftlogConfig {
@@ -13,7 +12,7 @@ interface DraftlogConfig {
     }
 }
 
-export function createCanvas(spinner: Spinner, formatting: Formatting) {
+export function createCanvas(spinner: Spinner, formatter: Formatter, ident: number) {
     draftlog(console);
     (draftlog as never as DraftlogConfig).defaults.canReWrite = false;
 
@@ -34,8 +33,8 @@ export function createCanvas(spinner: Spinner, formatting: Formatting) {
                 updater = console.draft(' ');
                 updaters.push(updater);
             }
-            const [color, prefix] = getMessageFormat(item, model.tick_);
-            updater('  '.repeat(stack.length - 1) + formatMessage(color, prefix, item.text_));
+            const prefix = getMessageFormat(item.status_ as ItemStatus, model.tick_);
+            updater(formatter(item.text_, item.loglevel_, prefix, ident * (stack.length - 1)));
             // iterate
             ++key;
             if (item.children_.length) {
@@ -47,12 +46,11 @@ export function createCanvas(spinner: Spinner, formatting: Formatting) {
         }
     };
 
-    function getMessageFormat({loglevel_: loglevel, status_: status}: ModelItem, tick: number): [((message: string) => string) | undefined, string] {
+    function getMessageFormat(status: ItemStatus, tick: number): string | boolean {
         // status is truthy when it is inprogress
-        const prefix = status ? (spinner.frames[tick] + ' ') :
+        const prefix = status ? (spinner.frames[tick]) :
             // status not null when it is finished
-            (status != null ? formatting.finishedPrefixes[loglevel] : '');
-        const color = formatting.colors[loglevel];
-        return [ color, prefix ];
+            status != null;
+        return prefix;
     }
 }

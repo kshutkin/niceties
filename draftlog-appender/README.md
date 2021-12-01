@@ -13,6 +13,7 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 - Supports multilevel spinners
 
 ![Example](./example.gif "In terminal")
+![Example](./cmdexe.gif "In windows terminal")
 
 # Installation
 

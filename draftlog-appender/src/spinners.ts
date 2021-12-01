@@ -3,15 +3,12 @@ export interface Spinner {
 	frames: string[];
 }
 
-export type Spinners = { [key: string]: Spinner };
+export const dots = {
+    interval: 50,
+    frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+};
 
-export const spinners: Spinners = {
-    dots: {
-        interval: 50,
-        frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-    },
-    line: {
-        interval: 130,
-        frames: ['-', '\\', '|', '/']
-    }
+export const line = {
+    interval: 130,
+    frames: ['-', '\\', '|', '/']
 };
