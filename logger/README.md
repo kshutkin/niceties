@@ -213,15 +213,15 @@ function setLoglevel(loglevel) {
 
 # Subpackages
 
-Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory and `setAppender()` function.
+Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory and `appender()` function.
 
-Subpackage `'@niceties/logger/default-formatting'` exports formatting constant that is part of default configuration of the console appender.
+Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that is part of default configuration of the console appender.
 
-Subpackage `'@niceties/logger/core'` exports `createLogger()` factory and `setAppender()`/`getAppender()` functions.
+Subpackage `'@niceties/logger/core'` exports `createLogger()` factory and `appender()` function.
 
 Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender()` factory.
 
-Subpackage `'@niceties/logger/format-utils'` exports `formatMessage()` function.
+Subpackage `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
 
 Subpackage `'@niceties/logger/appender-utils'` exports `filterMessages()` and `combineAppenders()` functions.
 

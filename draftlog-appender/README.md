@@ -43,7 +43,7 @@ Default subpackage `'@niceties/draftlog-appender'` exports nothing.
 
 Subpackage `'@niceties/draftlog-appender/core'` exports `createDraftlogAppender()` factory.
 
-Subpackage `'@niceties/draftlog-appender/spinners'` exports `spinners` const definition used in default config.
+Subpackage `'@niceties/draftlog-appender/spinners'` exports spinners definitions used in default config.
 
 ## Prior art
 
