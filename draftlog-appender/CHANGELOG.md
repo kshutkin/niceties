@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.0-beta.3](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-beta.2...@niceties/draftlog-appender-v1.0.0-beta.3) (2021-12-01)
+
+
+### Bug Fixes
+
+* update plugin version again (nicer package.json formatting) ([87c04fb](https://github.com/kshutkin/niceties/commit/87c04fbdf0aadbf6b8489969e5f87b6eb1e42848))
+
 # [@niceties/draftlog-appender-v1.0.0-beta.2](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-beta.1...@niceties/draftlog-appender-v1.0.0-beta.2) (2021-12-01)
 
 
