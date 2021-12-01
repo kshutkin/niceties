@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.0-alpha.3](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.2...@niceties/logger-v1.0.0-alpha.3) (2021-12-01)
+
+
+### Bug Fixes
+
+* umd and commonjs imports in index ([8d1036d](https://github.com/kshutkin/niceties/commit/8d1036d180d0ffe971a3a93621ae4e7b997e2d5c))
+
 # [@niceties/logger-v1.0.0-alpha.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.1...@niceties/logger-v1.0.0-alpha.2) (2021-12-01)
 
 
