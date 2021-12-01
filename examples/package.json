@@ -10,8 +10,8 @@
   "license": "MIT",
   "private": "true",
   "dependencies": {
-    "@niceties/logger": "^0.1.0",
-    "@niceties/draftlog-appender": "^0.1.0",
+    "@niceties/logger": "^1.0.0-alpha.2",
+    "@niceties/draftlog-appender": "^1.0.0-alpha.2",
     "kleur": "^4.1.4"
   }
 }
