@@ -50,6 +50,7 @@
         }
       }
     ],
+    "update-monorepo-package-json",
     "@semantic-release/npm",
     "@semantic-release/git"
   ]
