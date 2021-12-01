@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.0-beta.4](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-beta.3...@niceties/draftlog-appender-v1.0.0-beta.4) (2021-12-01)
+
+
+### Bug Fixes
+
+* final update of update-monorepo-package-json for beta release ([a001b14](https://github.com/kshutkin/niceties/commit/a001b148b1b8869b4056cbbd09587870cbe7fe42))
+
 # [@niceties/draftlog-appender-v1.0.0-beta.3](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-beta.2...@niceties/draftlog-appender-v1.0.0-beta.3) (2021-12-01)
 
 
