@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.0-alpha.4](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-alpha.3...@niceties/draftlog-appender-v1.0.0-alpha.4) (2021-12-01)
+
+
+### Features
+
+* use node >= 15 ([c27cb3c](https://github.com/kshutkin/niceties/commit/c27cb3c43d2df7e7cf7c90cc77f39c2452235b90))
+
 # [@niceties/draftlog-appender-v1.0.0-alpha.3](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-alpha.2...@niceties/draftlog-appender-v1.0.0-alpha.3) (2021-12-01)
 
 
