@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.0-alpha.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.1...@niceties/logger-v1.0.0-alpha.2) (2021-12-01)
+
+
+### Features
+
+* add withFilter method to filter messages before passing them to appender(s) ([6bf74f7](https://github.com/kshutkin/niceties/commit/6bf74f7758311eb1295e36da67aed30613b1d3b8))
+
 # @niceties/logger-v1.0.0-alpha.1 (2021-12-01)
 
 
