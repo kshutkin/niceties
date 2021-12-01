@@ -24,6 +24,9 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             updaters.splice(0, model.skipLines_);
             model.skipLines_ = 0;
         }
+        if (!model.items_.length) {
+            return;
+        }
         let key = 0;
         const stack = [[...model.items_]];
         while (stack.length) {

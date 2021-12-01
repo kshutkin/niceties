@@ -4,17 +4,19 @@ import kleur from "kleur";
 
 const waitFor = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-const logger = createLogger();
+setTimeout(() => {
+    const logger = createLogger();
 
-logger.start('I am going to be freed soon');
+    logger.start('I am going to be freed soon');
 
-await waitFor(500);
-
-logger(`${kleur.blue(kleur.bgWhite(kleur.bold('just a log line')))}`);
+    logger(`${kleur.blue(kleur.bgWhite(kleur.bold('just a log line')))}`);
+}, 0);
 
 await waitFor(200);
 
 console.log('I am from console.log');
+
+global.gc();
 
 await waitFor(200);
 

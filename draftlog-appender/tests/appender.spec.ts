@@ -176,6 +176,24 @@ describe('draftlog appender', () => {
         expect(consoleUpdateMock).toBeCalledTimes(4);
     });
 
+    it('gc test for log items', async () => {
+        appender({loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
+        appender({loglevel: LogLevel.info, message: 'test2', action: Action.log, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
+    
+        expect(consoleDraftMock).toBeCalledWith(' ');
+        
+        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('test2');
+
+        await waitFor(50);
+
+        (global as never as any).gc();
+
+        await waitFor(1050); // wait for 2 cycles after gc
+                
+        expect(consoleDraftMock).toBeCalledTimes(2);
+    });
+
     it('setInterval finishes (moving active parent)', async () => {
         appender({loglevel: LogLevel.info, message: '+test2', action: Action.start, inputId: 2, ref, parentId: 5});
         appender({loglevel: LogLevel.info, message: '+test3', action: Action.start, inputId: 3, ref, parentId: 5});
