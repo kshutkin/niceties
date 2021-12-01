@@ -1,10 +1,9 @@
-import { createLogger } from './core';
+import { createLogger, filterMessages, combineAppenders } from './core';
 import { appender } from './details/global-appender';
 import { LogLevel, LogMessage } from './types';
 /* @ifdef umd
 import { asciiPrefixes, colors, unicodePrefixes } from './default-formatting';
 import { createConsoleAppender } from './console-appender';
-import { filterMessages } from './appender-utils';
 import { createFormatter, terminalSupportsUnicode } from './format-utils';
 // @endif */
 
@@ -13,19 +12,16 @@ if (!appender()) {
     const [
         { asciiPrefixes, colors, unicodePrefixes },
         { createConsoleAppender },
-        { filterMessages },
         { createFormatter, terminalSupportsUnicode }
     ] = await Promise.all([
         import('./default-formatting'),
         import('./console-appender'),
-        import('./appender-utils'),
         import('./format-utils')
     ]);
     // @endif
     /* @ifdef cjs
     const { asciiPrefixes, colors, unicodePrefixes } = require('./default-formatting');
     const { createConsoleAppender } = require('./console-appender');
-    const { filterMessages } = require('./appender-utils');
     const { createFormatter, terminalSupportsUnicode } = require('./format-utils');
     // @endif */
     const formatter = createFormatter(colors, terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes);
@@ -33,4 +29,4 @@ if (!appender()) {
 }
 
 export * from './types';
-export { createLogger, appender };
+export { createLogger, appender, filterMessages, combineAppenders };
