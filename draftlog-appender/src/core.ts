@@ -1,0 +1,36 @@
+import { Formatter, LogMessage } from '@niceties/logger/types';
+import { createCanvas } from './details/canvas';
+import { createModel } from './details/model';
+import { Spinner } from './spinners';
+
+export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
+    let interval: NodeJS.Timer | undefined;
+
+    const [updateModel, getModel] = createModel(logAboveSpinners);
+    const renderModel = createCanvas(spinner, formatter, ident);
+
+    return function draftlogAppender(message: LogMessage) {
+        renderModel(updateModel(message));
+        checkTimeout();
+    };
+
+    function checkTimeout() {
+        const spinning = getModel().spinning_;
+        if (spinning && !interval) {
+            interval = setInterval(updateSpinners, spinner.interval);
+            interval.unref(); // unref immidiately just in case
+        } else if (!spinning && interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
+    }
+
+    function updateSpinners() {
+        const model = getModel();
+        model.tick_++;
+        model.tick_ %= spinner.frames.length;
+        renderModel(model);
+    }
+}
+
+
