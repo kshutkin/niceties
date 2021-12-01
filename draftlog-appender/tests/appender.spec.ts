@@ -1,4 +1,5 @@
-import { Action, Appender, Formatting, LogLevel } from '@niceties/logger/types';
+import { Action, Appender, ColorFormatters, LogLevel, Prefixes } from '@niceties/logger/types';
+import { createFormatter } from '@niceties/logger/format-utils';
 import draftlog from 'draftlog';
 import { createDraftlogAppender } from '../src/core';
 
@@ -13,23 +14,13 @@ interface DraftlogConfig {
     defaults: DraftlogDefaults
 }
 
-const testOptions = {
-    defaultSpinner: 'test',
-    fallbackSpinner: 'test',
-    logAboveSpinners: false
+const testSpinner = {
+    frames: ['-'],
+    interval: 500
 };
 
-const testSpinners = {
-    test: {
-        frames: ['-'],
-        interval: 500
-    }
-};
-
-const testFormatting: Formatting = {
-    finishedPrefixes: ['', 'ok ', 'warn ', 'error '],
-    colors: [,,,,]
-};
+const finishedPrefixes: Prefixes = ['', 'ok', 'warn', 'error'];
+const colors: ColorFormatters = [,,,,];
 
 const waitFor = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -41,10 +32,11 @@ describe('draftlog appender', () => {
     let setIntervalCopy: typeof global.setInterval;
     let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
     let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testFormatting) as WeakRef<never>;
+    const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        appender = createDraftlogAppender(testOptions, testSpinners, testFormatting);
+        const formatter = createFormatter(colors, finishedPrefixes);
+        appender = createDraftlogAppender(testSpinner, formatter, false, 2);
         draftLogDefaults = (draftlog as never as DraftlogConfig).defaults;
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));
@@ -236,11 +228,9 @@ describe('draftlog appender', () => {
     });
 });
 
-const testSpinners2 = {
-    test: {
-        frames: ['-', '+'],
-        interval: 10
-    }
+const testSpinner2 = {
+    frames: ['-', '+'],
+    interval: 10
 };
 
 describe('draftlog appender animation', () => {
@@ -248,10 +238,11 @@ describe('draftlog appender animation', () => {
     let appender: Appender;
     let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
     let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testFormatting) as WeakRef<never>;
+    const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        appender = createDraftlogAppender(testOptions, testSpinners2, testFormatting);
+        const formatter = createFormatter(colors, finishedPrefixes);
+        appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));
     });
@@ -275,10 +266,11 @@ describe('prepend config', () => {
     let appender: Appender;
     let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
     let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testFormatting) as WeakRef<never>;
+    const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        appender = createDraftlogAppender({...testOptions, logAboveSpinners: true}, testSpinners, testFormatting);
+        const formatter = createFormatter(colors, finishedPrefixes);
+        appender = createDraftlogAppender(testSpinner, formatter, true, 2);
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));
     });
