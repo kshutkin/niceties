@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.0-alpha.4](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.3...@niceties/logger-v1.0.0-alpha.4) (2021-12-01)
+
+
+### Features
+
+* only publish as umd packages what makes sense ([7feccf3](https://github.com/kshutkin/niceties/commit/7feccf359670205aa224b391482ec898ae2048ec))
+
 # [@niceties/logger-v1.0.0-alpha.3](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-alpha.2...@niceties/logger-v1.0.0-alpha.3) (2021-12-01)
 
 
