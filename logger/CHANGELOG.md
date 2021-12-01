@@ -1,0 +1,17 @@
+Changelog
+
+# @niceties/logger-v1.0.0-alpha.1 (2021-12-01)
+
+
+### Bug Fixes
+
+* fixed parentId type ([231e61e](https://github.com/kshutkin/niceties/commit/231e61e592dd08ff6b89f8cb4082d7d89d122d06))
+* set versions to 0.1.0 for npm ([b94f4aa](https://github.com/kshutkin/niceties/commit/b94f4aa230cc3ee720a67cae41539a023b18d41b))
+
+
+### Features
+
+* added simple logger submodule ([14ca1ae](https://github.com/kshutkin/niceties/commit/14ca1aec55eb6497554cd1d209503ed72ea76925))
+* changed API to set/get global appender ([3d17cc6](https://github.com/kshutkin/niceties/commit/3d17cc68f1b1a2cec4688a0e1623dde27dc94736))
+* initial commit ([6812bb1](https://github.com/kshutkin/niceties/commit/6812bb1d7f4f5d9f543c5784c9aeb3c070deed53))
+* support windows terminal ([70609fb](https://github.com/kshutkin/niceties/commit/70609fb51b4faebc5a7b6ab13ca323cba6635e0f))
