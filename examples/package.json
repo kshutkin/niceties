@@ -1,0 +1,17 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "Examples for @liceties/logger and basic integration tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs"
+  },
+  "author": "Konstantin Shutkin",
+  "license": "MIT",
+  "private": "true",
+  "dependencies": {
+    "@niceties/logger": "^0.1.0",
+    "@niceties/draftlog-appender": "^0.1.0",
+    "kleur": "^4.1.4"
+  }
+}
