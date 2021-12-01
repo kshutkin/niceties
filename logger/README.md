@@ -22,6 +22,8 @@ or
 npm install --save @niceties/logger
 ```
 
+### [Changlelog](./CHANGELOG.md)
+
 # Example
 
 ```javascript

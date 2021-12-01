@@ -15,6 +15,8 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 ![Example](./example.gif "In terminal")
 ![Example](./cmdexe.gif "In windows terminal")
 
+### [Changlelog](./CHANGELOG.md)
+
 # Installation
 
 ```
