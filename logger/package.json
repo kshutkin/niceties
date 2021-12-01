@@ -29,10 +29,6 @@
     "./format-utils": {
       "require": "./dist/format-utils.js",
       "default": "./dist/format-utils.mjs"
-    },
-    "./appender-utils": {
-      "require": "./dist/appender-utils.js",
-      "default": "./dist/appender-utils.mjs"
     }
   },
   "main": "./dist/index.js",
@@ -45,7 +41,6 @@
     "core",
     "console-appender",
     "format-utils",
-    "appender-utils",
     "types",
     "simple"
   ],

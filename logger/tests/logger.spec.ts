@@ -289,6 +289,31 @@ describe('api tests', () => {
         );
     });
 
+    describe('withFilter', () => {
+        const appenderMock = jest.fn();
+        appender(appenderMock);
+        const logger = createLogger()
+            .withFilter((logMessage) => logMessage.loglevel === LogLevel.info);
+        logger('test message');
+        logger('test message2', LogLevel.error);
+        expect(appenderMock).toBeCalledWith(
+            expect.objectContaining({
+                action: Action.log,
+                inputId: expect.any(Number),
+                loglevel: LogLevel.info,
+                message: 'test message'
+            })
+        );
+        expect(appenderMock).not.toBeCalledWith(
+            expect.objectContaining({
+                action: Action.log,
+                inputId: expect.any(Number),
+                loglevel: LogLevel.error,
+                message: 'test message2'
+            })
+        );
+    });
+
     describe('id is not writable', () => {
         const logger = createLogger();
         expect(() => (logger as never as any)['id'] = 123).toThrow();

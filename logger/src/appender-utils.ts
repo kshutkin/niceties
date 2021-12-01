@@ -1,7 +1,7 @@
 import { Appender, LogMessage } from './types';
 
-export function filterMessages(predicate: (logMessage: LogMessage) => boolean, appender: Appender ): Appender {
-    return function(logMessage: LogMessage) {
+export function filterMessages<ErrorContext = Error>(predicate: (logMessage: LogMessage<ErrorContext>) => boolean, appender: Appender<ErrorContext> ): Appender<ErrorContext> {
+    return function(logMessage: LogMessage<ErrorContext>) {
         if (predicate(logMessage)) {
             appender(logMessage);
         }

@@ -113,6 +113,13 @@ const log = createLogger()
 
 Adds new appender for the specific inctance of logger. It is not mandatory to use the return value because no new instance of logger created and appender added to the existing instance.
 
+```typescript
+const log = createLogger()
+                .withFilter(predicate);
+```
+
+Install filter on previosly installed appenders. It is not mandatory to use the return value because no new instance of logger created and filter added to the existing instance.
+
 ## Log levels
 
 ```typescript

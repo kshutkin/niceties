@@ -91,4 +91,27 @@ describe('simple logger api tests', () => {
         );
     });
 
+    describe('withFilter', () => {
+        const appenderMock = jest.fn();
+        appender(appenderMock);
+        const logger = createLogger()
+            .withFilter((logMessage) => logMessage.loglevel === LogLevel.info);
+        logger('test message');
+        logger('test message2', LogLevel.error);
+        expect(appenderMock).toBeCalledWith(
+            expect.objectContaining({
+                action: Action.log,
+                loglevel: LogLevel.info,
+                message: 'test message'
+            })
+        );
+        expect(appenderMock).not.toBeCalledWith(
+            expect.objectContaining({
+                action: Action.log,
+                loglevel: LogLevel.error,
+                message: 'test message2'
+            })
+        );
+    });
+
 });

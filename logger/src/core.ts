@@ -1,4 +1,4 @@
-import { combineAppenders } from './appender-utils';
+import { combineAppenders, filterMessages } from './appender-utils';
 import { globalAppender, appender } from './details/global-appender';
 import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
 
@@ -31,6 +31,10 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
             // Fine to be finished multiple times
             finish(message: string, loglevel?: LogLevel) {
                 append(message, Action.finish, loglevel || initialLogLevel);
+            },
+            withFilter(predicate: (logMessage: LogMessage<ErrorContext>) => boolean) {
+                myAppender = filterMessages(predicate, myAppender);
+                return loggerInstance;
             },
             withAppender(appender: Appender<ErrorContext>) {
                 myAppender = combineAppenders(myAppender, appender);
@@ -77,4 +81,4 @@ function getOptions(options: [] | [string | Identity] | [string, Identity]): { t
     return { parentId, tag };
 }
 
-export { appender };
+export { appender, combineAppenders, filterMessages };
