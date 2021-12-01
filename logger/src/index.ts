@@ -1,5 +1,5 @@
 import { createLogger } from './core';
-import { appender } from "./details/global-appender";
+import { appender } from './details/global-appender';
 import { LogLevel, LogMessage } from './types';
 /* @ifdef umd
 import { asciiPrefixes, colors, unicodePrefixes } from './default-formatting';
