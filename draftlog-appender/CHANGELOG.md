@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.0-alpha.2](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0-alpha.1...@niceties/draftlog-appender-v1.0.0-alpha.2) (2021-12-01)
+
+
+### Bug Fixes
+
+* fix versions one more time (also trigger publish in the draftlog-appender) ([3ab1059](https://github.com/kshutkin/niceties/commit/3ab10590096c55a721fe72d96499bee892d60c97))
+
 # @niceties/draftlog-appender-v1.0.0-alpha.1 (2021-12-01)
 
 
