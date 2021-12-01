@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.0-beta.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0-beta.1...@niceties/logger-v1.0.0-beta.2) (2021-12-01)
+
+
+### Bug Fixes
+
+* new plugin to update package.json ([d0fd5a7](https://github.com/kshutkin/niceties/commit/d0fd5a7a1b49c4fc333a6b49a1e02f36e87703f3))
+
 # @niceties/logger-v1.0.0-beta.1 (2021-12-01)
 
 
