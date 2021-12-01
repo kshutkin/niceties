@@ -34,7 +34,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./dist/index.d.ts",
-  "unpkg": "./dist/index.umd.js",
+  "unpkg": "./dist/simple.umd.js",
   "files": [
     "dist",
     "default-formatting",

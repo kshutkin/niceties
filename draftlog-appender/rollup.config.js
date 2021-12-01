@@ -16,6 +16,8 @@ const twoPartsFilenameTest = /(.*)\.(.*)/g;
 
 const dest = 'dist';
 
+const umdFilter = () => false;
+
 if (typeof pkg.name !== 'string') {
     console.error(`expecting name to be a string in package.json`);
     process.exit(-1);
@@ -102,14 +104,16 @@ if (pkg.module !== pkg.exports['.']?.default) {
     console.warn(`expecting module field to be the same as exports['.'].default in package.json`);
 }
 
-if (typeof pkg.unpkg !== 'string') {
-    console.error(`expecting unpkg to be a string in package.json`);
-    process.exit(-1);
-}
+if (umdFilter('index')) {
+    if (typeof pkg.unpkg !== 'string') {
+        console.error(`expecting unpkg to be a string in package.json`);
+        process.exit(-1);
+    }
 
-if (pkg.unpkg !== './dist/index.umd.js') {
-    console.error(`expecting unpkg to be ./dist/index.umd.js`);
-    process.exit(-1);
+    if (pkg.unpkg !== './dist/index.umd.js') {
+        console.error(`expecting unpkg to be ./dist/index.umd.js`);
+        process.exit(-1);
+    }
 }
 
 const globalName = camelCase(pkg.name);
@@ -146,7 +150,7 @@ export default [{
 	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { cjs: true } }), ...plugins],
 
     external
-}, ...input.map(currentInput => ({
+}, ...input.filter(umdFilter).map(currentInput => ({
     input: currentInput,
     output: {
         format: 'umd',

@@ -224,11 +224,15 @@ Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory 
 
 Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that is part of default configuration of the console appender.
 
-Subpackage `'@niceties/logger/core'` exports `createLogger()` factory and `appender()` function.
+Subpackage `'@niceties/logger/core'` exports `createLogger()` factory and `appender()`, `combineAppenders()`, `filterMessages()` functions.
+
+Subpackage `'@niceties/logger/simple'` exports `createLogger()` factory and `appender()`, `combineAppenders()`, `filterMessages()` function.
 
 Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender()` factory.
 
 Subpackage `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
+
+`simple` (default), `core` and `console-appender` exists as umd packages as well but probably require some effort to consume them.
 
 # Prior art
 

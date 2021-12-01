@@ -27,6 +27,8 @@ or
 npm install --save @niceties/draftlog-appender
 ```
 
+No umd packages published because draftlog appender does not exists in umd format.
+
 # Example
 
 To install appender use next import:
