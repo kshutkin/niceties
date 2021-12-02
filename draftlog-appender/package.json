@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "MIT",
   "name": "@niceties/draftlog-appender",
   "author": {
@@ -74,7 +74,7 @@
     "update-monorepo-package-json": "0.1.6"
   },
   "dependencies": {
-    "@niceties/logger": "^1.0.0",
+    "@niceties/logger": "^1.0.1",
     "draftlog": "^1.0.13"
   },
   "readme": "ERROR: No README data found!"
