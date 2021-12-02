@@ -109,6 +109,21 @@ describe('api tests', () => {
                 })
             );
         });
+
+        it('with overriden log level', () => {
+            const appenderMock = jest.fn();
+            appender(appenderMock);
+            createLogger().start('test message', LogLevel.info);
+            createLogger().start('test message2', LogLevel.verbose);
+            expect(appenderMock).toBeCalledWith(
+                expect.objectContaining({
+                    action: Action.start, 
+                    inputId: expect.any(Number), 
+                    loglevel: LogLevel.verbose, 
+                    message: 'test message2'
+                })
+            );
+        });
     });
 
     describe('update', () => {

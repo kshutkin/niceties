@@ -26,11 +26,11 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
             },
             // Fine to be updated multiple times
             update(message: string, loglevel?: LogLevel) {
-                append(message, Action.update, loglevel || initialLogLevel);
+                append(message, Action.update, loglevel ?? initialLogLevel);
             },
             // Fine to be finished multiple times
             finish(message: string, loglevel?: LogLevel) {
-                append(message, Action.finish, loglevel || initialLogLevel);
+                append(message, Action.finish, loglevel ?? initialLogLevel);
             },
             withFilter(predicate: (logMessage: LogMessage<ErrorContext>) => boolean) {
                 myAppender = filterMessages(predicate, myAppender);
