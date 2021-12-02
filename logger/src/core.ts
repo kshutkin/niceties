@@ -4,7 +4,7 @@ import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
 
 let globalInputId = 0;
 
-export function createLogger<ErrorContext = Error>(...args: [] | [string | Identity] | [string, Identity]) {
+export function createLogger<ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]) {
     let initialLogLevel: number = LogLevel.info;
     
     const inputId = globalInputId++;
@@ -66,7 +66,7 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
     }
 }
 
-function getOptions(options: [] | [string | Identity] | [string, Identity]): { tag?: string, parentId?: number } {
+function getOptions(options: [] | [string | Identity | undefined] | [string, Identity]): { tag?: string, parentId?: number } {
     let parentId, tag;
     if (options.length === 1) {
         if (typeof options[0] === 'string') {
