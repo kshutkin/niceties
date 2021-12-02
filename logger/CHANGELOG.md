@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.3](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.2...@niceties/logger-v1.0.3) (2021-12-02)
+
+
+### Bug Fixes
+
+* widen type for logger tag ([7b2b936](https://github.com/kshutkin/niceties/commit/7b2b936b3ed84f3a485023db5f9c3cf559fdf50b))
+
 # [@niceties/logger-v1.0.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.1...@niceties/logger-v1.0.2) (2021-12-02)
 
 
