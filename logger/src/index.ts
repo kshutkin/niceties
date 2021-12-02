@@ -20,9 +20,9 @@ if (!appender()) {
     ]);
     // @endif
     /* @ifdef cjs
-    const { asciiPrefixes, colors, unicodePrefixes } = require('./default-formatting');
-    const { createConsoleAppender } = require('./console-appender');
-    const { createFormatter, terminalSupportsUnicode } = require('./format-utils');
+    const { asciiPrefixes, colors, unicodePrefixes } = require('./default-formatting.cjs');
+    const { createConsoleAppender } = require('./console-appender.cjs');
+    const { createFormatter, terminalSupportsUnicode } = require('./format-utils.cjs');
     // @endif */
     const formatter = createFormatter(colors, terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes);
     appender(filterMessages((message: LogMessage) => (message.loglevel as number) > LogLevel.verbose, createConsoleAppender(formatter)));
