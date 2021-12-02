@@ -50,7 +50,12 @@
         }
       }
     ],
-    "update-monorepo-package-json",
+    [
+      "update-monorepo-package-json",
+      {
+        "prefix": "^"
+      }
+    ],
     "@semantic-release/npm",
     "@semantic-release/git"
   ]
