@@ -1,4 +1,4 @@
-# slimlib
+# niceties
 
 ## Packages
 
