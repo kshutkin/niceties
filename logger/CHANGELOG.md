@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.1...@niceties/logger-v1.0.2) (2021-12-02)
+
+
+### Bug Fixes
+
+* commonjs imports in logger/index ([8f6af4e](https://github.com/kshutkin/niceties/commit/8f6af4e9e8351bf90a1c5cdcb076e72ad0d186c5))
+
 # [@niceties/logger-v1.0.1](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.0...@niceties/logger-v1.0.1) (2021-12-02)
 
 
