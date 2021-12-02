@@ -1,5 +1,13 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.5](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.4...@niceties/draftlog-appender-v1.0.5) (2021-12-02)
+
+
+### Bug Fixes
+
+* add line listener to mitigate duplicates in log ([840955f](https://github.com/kshutkin/niceties/commit/840955fdde325af1b6704fc90132bba7a3d62a69))
+* draftlog appender tests ([654608f](https://github.com/kshutkin/niceties/commit/654608fa79f848888d2494123d68ec78895b4ef5))
+
 # [@niceties/draftlog-appender-v1.0.4](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.3...@niceties/draftlog-appender-v1.0.4) (2021-12-02)
 
 
