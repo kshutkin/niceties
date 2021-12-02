@@ -37,6 +37,10 @@
     "type": "git",
     "url": "git+https://github.com/kshutkin/niceties.git"
   },
+  "bugs": {
+    "url": "https://github.com/kshutkin/niceties/issues"
+  },
+  "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
     "dev": "rimraf ./dist && rollup -c -w",
@@ -73,10 +77,5 @@
   "dependencies": {
     "@niceties/logger": "^1.0.0",
     "draftlog": "^1.0.13"
-  },
-  "bugs": {
-    "url": "https://github.com/kshutkin/niceties/issues"
-  },
-  "readme": "ERROR: No README data found!",
-  "homepage": "https://github.com/kshutkin/niceties#readme"
+  }
 }

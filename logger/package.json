@@ -51,6 +51,10 @@
     "type": "git",
     "url": "git+https://github.com/kshutkin/niceties.git"
   },
+  "bugs": {
+    "url": "https://github.com/kshutkin/niceties/issues"
+  },
+  "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
     "dev": "rimraf ./dist && rollup -c -w",
