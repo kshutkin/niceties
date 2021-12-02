@@ -135,7 +135,8 @@ export default [{
     output: {
         format: 'es',
         dir: dest,
-        entryFileNames: '[name].mjs'
+        entryFileNames: '[name].mjs',
+        chunkFileNames: '[name].mjs'
     },
 
 	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { esm: true } }), ...plugins],
@@ -147,7 +148,8 @@ export default [{
     output: {
         format: 'cjs',
         dir: dest,
-        entryFileNames: '[name].js'
+        entryFileNames: '[name].cjs',
+        chunkFileNames: '[name].cjs'
     },
 
 	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { cjs: true } }), ...plugins],

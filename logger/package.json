@@ -7,31 +7,31 @@
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
     },
     "./default-formatting": {
-      "require": "./dist/default-formatting.js",
+      "require": "./dist/default-formatting.cjs",
       "default": "./dist/default-formatting.mjs"
     },
     "./core": {
-      "require": "./dist/core.js",
+      "require": "./dist/core.cjs",
       "default": "./dist/core.mjs"
     },
     "./simple": {
-      "require": "./dist/simple.js",
+      "require": "./dist/simple.cjs",
       "default": "./dist/simple.mjs"
     },
     "./console-appender": {
-      "require": "./dist/console-appender.js",
+      "require": "./dist/console-appender.cjs",
       "default": "./dist/console-appender.mjs"
     },
     "./format-utils": {
-      "require": "./dist/format-utils.js",
+      "require": "./dist/format-utils.cjs",
       "default": "./dist/format-utils.mjs"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "typings": "./dist/index.d.ts",
   "unpkg": "./dist/simple.umd.js",
