@@ -13,7 +13,8 @@ interface DraftlogConfig {
 }
 
 export function createCanvas(spinner: Spinner, formatter: Formatter, ident: number) {
-    draftlog(console);
+    draftlog(console)
+        .addLineListener(process.stdin);
     (draftlog as never as DraftlogConfig).defaults.canReWrite = false;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
