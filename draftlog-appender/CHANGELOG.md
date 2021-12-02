@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.2](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.1...@niceties/draftlog-appender-v1.0.2) (2021-12-02)
+
+
+### Bug Fixes
+
+* remove unpkg field in draftlog-appender ([a86ac02](https://github.com/kshutkin/niceties/commit/a86ac02b691858c6c2b1a8dff1c782a308e068fb))
+
 # [@niceties/draftlog-appender-v1.0.1](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.0...@niceties/draftlog-appender-v1.0.1) (2021-12-02)
 
 
