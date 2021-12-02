@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.0.4](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.3...@niceties/logger-v1.0.4) (2021-12-02)
+
+
+### Bug Fixes
+
+* verbose level ignored on update / finish ([b6023e3](https://github.com/kshutkin/niceties/commit/b6023e39ad2290f27343baba4c5a979aff5e705a))
+
 # [@niceties/logger-v1.0.3](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.2...@niceties/logger-v1.0.3) (2021-12-02)
 
 
