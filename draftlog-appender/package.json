@@ -9,19 +9,19 @@
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
+      "require": "./dist/index.js",
       "default": "./dist/index.mjs"
     },
     "./core": {
-      "require": "./dist/core.cjs",
+      "require": "./dist/core.js",
       "default": "./dist/core.mjs"
     },
     "./spinners": {
-      "require": "./spinners/dist/spinners.cjs",
+      "require": "./spinners/dist/spinners.js",
       "default": "./spinners/dist/spinners.mjs"
     }
   },
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./dist/index.d.ts",
   "files": [
