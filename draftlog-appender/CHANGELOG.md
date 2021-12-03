@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.0.7](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.6...@niceties/draftlog-appender-v1.0.7) (2021-12-03)
+
+
+### Bug Fixes
+
+* removed line count, optimized rendering instead (fixes duplicates in case stdout used after finished items) ([4f8cfbf](https://github.com/kshutkin/niceties/commit/4f8cfbfd8aa069238e1bf65fb6093fcc650e471c))
+
 # [@niceties/draftlog-appender-v1.0.6](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.5...@niceties/draftlog-appender-v1.0.6) (2021-12-02)
 
 
