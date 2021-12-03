@@ -13,7 +13,7 @@ interface DraftlogConfig {
 }
 
 export function createCanvas(spinner: Spinner, formatter: Formatter, ident: number) {
-    draftlog(console).addLineListener(process.stdin);
+    draftlog(console);
     (draftlog as never as DraftlogConfig).defaults.canReWrite = false;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,7 +27,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         if (!model.items_.length) {
             return;
         }
-        let key = 0;
+        let key = 0, dirty = false;
         const stack = [[...model.items_]];
         while (stack.length) {
             const item = stack[stack.length - 1].shift() as ModelItem;
@@ -36,8 +36,14 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
                 updater = console.draft(' ');
                 updaters.push(updater);
             }
-            const prefix = getMessageFormat(item.status_ as ItemStatus, model.tick_);
-            updater(formatter(item.text_, item.loglevel_, prefix, ident * (stack.length - 1)));
+            if (dirty || item.dirty_ || item.status_) {
+                const prefix = getMessageFormat(item.status_ as ItemStatus, model.tick_);
+                updater(formatter(item.text_, item.loglevel_, prefix, ident * (stack.length - 1)));
+                if (item.dirty_) {
+                    item.dirty_ = false;
+                    dirty = true;
+                }
+            }
             // iterate
             ++key;
             if (item.children_.length) {

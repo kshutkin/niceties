@@ -173,7 +173,7 @@ describe('draftlog appender', () => {
 
         appender({loglevel: LogLevel.verbose, message: 'test3', action: Action.update, inputId: 2, ref});
         
-        expect(consoleUpdateMock).toBeCalledTimes(4);
+        expect(consoleUpdateMock).toBeCalledTimes(3);
     });
 
     it('gc test for log items', async () => {
@@ -208,7 +208,7 @@ describe('draftlog appender', () => {
             
         await waitFor(550);
 
-        expect(consoleUpdateMock).toBeCalledTimes(44);
+        expect(consoleUpdateMock).toBeCalledTimes(38);
     });
 
     it('setInterval finishes 2 (moving static parent)', async () => {
@@ -225,7 +225,7 @@ describe('draftlog appender', () => {
             
         await waitFor(550);
 
-        expect(consoleUpdateMock).toBeCalledTimes(44);
+        expect(consoleUpdateMock).toBeCalledTimes(36);
     });
 
     it('multilevel output', () => {

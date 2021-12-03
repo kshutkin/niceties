@@ -13,6 +13,7 @@ export interface ModelItem {
     parentId_?: number;
     next_?: ModelItem;
     children_: ModelItem[];
+    dirty_?: boolean;
 }
 
 export type Model = {
@@ -32,7 +33,7 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
     const itemById: {[key: number]: ModelItem} = Object.create(null);
     return [({ message: text, inputId, action, loglevel, ref, parentId }: LogMessage): Model => {
         // item has status undefined, so it is static by default
-        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, children_: [] };
+        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, children_: [], dirty_: true };
         if (action === Action.start) {
             item.status_ = ItemStatus.inprogress;
         }
@@ -78,6 +79,7 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
             if (moveIntoParent) {
                 model.items_ = model.items_.filter(item => item !== modelItem);
                 model.spinning_ -= (modelItem.status_ || 0);
+                modelItem.dirty_ = true;
                 putIntoChildren(modelItem.parentId_ as number, modelItem);
             }
         }
