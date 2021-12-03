@@ -37,7 +37,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
                 updaters.push(updater);
             }
             if (dirty || item.dirty_ || item.status_) {
-                const prefix = getMessageFormat(item.status_ as ItemStatus, model.tick_);
+                const prefix = getPrefix(item.status_ as ItemStatus, model.tick_);
                 updater(formatter(item.text_, item.loglevel_, prefix, ident * (stack.length - 1)));
                 if (item.dirty_) {
                     item.dirty_ = false;
@@ -55,9 +55,9 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         }
     };
 
-    function getMessageFormat(status: ItemStatus, tick: number): string | boolean {
+    function getPrefix(status: ItemStatus, tick: number): string | boolean {
         // status is truthy when it is inprogress
-        const prefix = status ? (spinner.frames[tick]) :
+        const prefix = status ? spinner.frames[tick] :
             // status not null when it is finished
             status != null;
         return prefix;
