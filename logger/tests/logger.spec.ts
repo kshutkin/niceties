@@ -1,4 +1,6 @@
-import { createLogger, appender } from '../src/core';
+import { createLogger } from '../src/core';
+import { appender } from '../src/global-appender';
+import { filterMessages } from '../src/appender-utils';
 import { Action, Appender, LogLevel } from '../src/types';
 
 describe('api tests', () => {
@@ -145,7 +147,7 @@ describe('api tests', () => {
             const appenderMock = jest.fn();
             appender(appenderMock);
             const instance = createLogger();
-            instance.start('start', LogLevel.verbose)
+            instance.start('start', LogLevel.verbose);
             instance.update('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
@@ -161,7 +163,7 @@ describe('api tests', () => {
             const appenderMock = jest.fn();
             appender(appenderMock);
             const instance = createLogger();
-            instance.start('start', LogLevel.verbose)
+            instance.start('start', LogLevel.verbose);
             instance.update('test message', LogLevel.warn);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
@@ -193,7 +195,7 @@ describe('api tests', () => {
             const appenderMock = jest.fn();
             appender(appenderMock);
             const instance = createLogger();
-            instance.start('start', LogLevel.verbose)
+            instance.start('start', LogLevel.verbose);
             instance.finish('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
@@ -209,7 +211,7 @@ describe('api tests', () => {
             const appenderMock = jest.fn();
             appender(appenderMock);
             const instance = createLogger();
-            instance.start('start', LogLevel.verbose)
+            instance.start('start', LogLevel.verbose);
             instance.finish('test message', LogLevel.warn);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
@@ -279,13 +281,11 @@ describe('api tests', () => {
         );
     });
 
-    describe('withAppender', () => {
+    describe('appender', () => {
         const appenderMock = jest.fn();
-        const appender2Mock = jest.fn();
-        appender(appenderMock);
-        createLogger()
-            .withAppender(appender2Mock)
-            ('test message');
+        const logger = createLogger();
+        logger.appender(appenderMock);
+        logger('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
@@ -294,43 +294,43 @@ describe('api tests', () => {
                 message: 'test message'
             })
         );
-        expect(appender2Mock).toBeCalledWith(
-            expect.objectContaining({
-                action: Action.log,
-                inputId: expect.any(Number),
-                loglevel: LogLevel.info,
-                message: 'test message'
-            })
-        );
+        expect(logger.appender()).toBe(appenderMock);
     });
 
-    describe('withFilter', () => {
+    describe('appender API', () => {
         const appenderMock = jest.fn();
-        appender(appenderMock);
-        const logger = createLogger()
-            .withFilter((logMessage) => logMessage.loglevel === LogLevel.info);
+        const logger = createLogger();
+        let filter = false;
+        logger.appender(filterMessages<Error, { setFilter(value: boolean): void; }>(
+            () => filter,
+            appenderMock, // eslint-disable-line indent
+            { setFilter(value: boolean) { filter = value; } } // eslint-disable-line indent
+        ));
         logger('test message');
-        logger('test message2', LogLevel.error);
-        expect(appenderMock).toBeCalledWith(
-            expect.objectContaining({
-                action: Action.log,
-                inputId: expect.any(Number),
-                loglevel: LogLevel.info,
-                message: 'test message'
-            })
-        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (logger.appender() as any).setFilter(true);
+        logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
                 inputId: expect.any(Number),
-                loglevel: LogLevel.error,
-                message: 'test message2'
+                loglevel: LogLevel.info,
+                message: 'test message'
+            })
+        );
+        expect(appenderMock).toBeCalledWith(
+            expect.objectContaining({
+                action: Action.log,
+                inputId: expect.any(Number),
+                loglevel: LogLevel.info,
+                message: 'another test message'
             })
         );
     });
 
     describe('id is not writable', () => {
         const logger = createLogger();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect(() => (logger as never as any)['id'] = 123).toThrow();
     });
 

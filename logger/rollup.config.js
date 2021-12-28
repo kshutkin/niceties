@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import fs from 'fs';
 import path from 'path';
 import camelCase from 'lodash/camelCase';
@@ -18,16 +19,16 @@ const dest = 'dist';
 
 const umdFilter = (filename) => {
     const id = path.basename(filename, '.ts');
-    return ['simple', 'core', 'console-appender'].includes(id);
-}
+    return ['simple', 'core', 'console-appender', 'global-appender', 'appender-utils'].includes(id);
+};
 
 if (typeof pkg.name !== 'string') {
-    console.error(`expecting name to be a string in package.json`);
+    console.error('expecting name to be a string in package.json');
     process.exit(-1);
 }
 
 if (!Array.isArray(pkg.files)) {
-    console.error(`expecting files to be an array in package.json`);
+    console.error('expecting files to be an array in package.json');
     process.exit(-1);
 }
 
@@ -41,7 +42,7 @@ if (typeof pkg.exports !== 'object') {
 }
 
 if (typeof pkg.umd !== 'string' && new RegExp(threePartsFilenameTest, 'g').test(pkg.umd)) {
-    console.warn(`expecting module field as a string in format name.extension.js in package.json`);
+    console.warn('expecting module field as a string in format name.extension.js in package.json');
 }
 
 for (const id in pkg.exports) {
@@ -92,34 +93,32 @@ for (const id in pkg.exports) {
 }
 
 if (typeof pkg.main !== 'string') {
-    console.warn(`expecting main field as a string in package.json`);
+    console.warn('expecting main field as a string in package.json');
 }
 
 if (pkg.main !== pkg.exports['.']?.require) {
-    console.warn(`expecting main field to be the same as exports['.'].require in package.json`);
+    console.warn('expecting main field to be the same as exports[\'.\'].require in package.json');
 }
 
 if (typeof pkg.module !== 'string') {
-    console.warn(`expecting module field as a string in package.json`);
+    console.warn('expecting module field as a string in package.json');
 }
 
 if (pkg.module !== pkg.exports['.']?.default) {
-    console.warn(`expecting module field to be the same as exports['.'].default in package.json`);
+    console.warn('expecting module field to be the same as exports[\'.\'].default in package.json');
 }
 
 if (umdFilter('index')) {
     if (typeof pkg.unpkg !== 'string') {
-        console.error(`expecting unpkg to be a string in package.json`);
+        console.error('expecting unpkg to be a string in package.json');
         process.exit(-1);
     }
 
     if (pkg.unpkg !== './dist/index.umd.js') {
-        console.error(`expecting unpkg to be ./dist/index.umd.js`);
+        console.error('expecting unpkg to be ./dist/index.umd.js');
         process.exit(-1);
     }
 }
-
-const globalName = camelCase(pkg.name);
 
 const plugins = [
     resolve(),
@@ -130,7 +129,7 @@ const plugins = [
 const external = (id) => id.indexOf('node_modules') >= 0 || id.indexOf('@niceties') >= 0;
 
 export default [{
-	input,
+    input,
 
     output: {
         format: 'es',
@@ -139,11 +138,11 @@ export default [{
         chunkFileNames: '[name].mjs'
     },
 
-	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { esm: true } }), ...plugins],
+    plugins: [preprocess({ include: [ 'src/index.ts' ], context: { esm: true } }), ...plugins],
 
     external
 }, {
-	input,
+    input,
 
     output: {
         format: 'cjs',
@@ -152,7 +151,7 @@ export default [{
         chunkFileNames: '[name].cjs'
     },
 
-	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { cjs: true } }), ...plugins],
+    plugins: [preprocess({ include: [ 'src/index.ts' ], context: { cjs: true } }), ...plugins],
 
     external
 }, ...input.filter(umdFilter).map(currentInput => ({
@@ -173,7 +172,7 @@ export default [{
         globals: getExternalGlobalName
     },
 
-	plugins: [preprocess({ include: [ 'src/index.ts' ], context: { umd: true } }), ...plugins],
+    plugins: [preprocess({ include: [ 'src/index.ts' ], context: { umd: true } }), ...plugins],
 
     external: (id) => external(id) || isExternalInput(id, input, currentInput)
 }))];

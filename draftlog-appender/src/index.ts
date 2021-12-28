@@ -1,4 +1,5 @@
-import { appender, filterMessages } from '@niceties/logger/core';
+import { filterMessages } from '@niceties/logger/appender-utils';
+import { appender } from '@niceties/logger/global-appender';
 import { terminalSupportsUnicode, createFormatter } from '@niceties/logger/format-utils';
 import { colors, unicodePrefixes, asciiPrefixes } from '@niceties/logger/default-formatting';
 import { createDraftlogAppender } from './core';
@@ -9,4 +10,9 @@ const supportsUnicode = terminalSupportsUnicode();
 const spinner = supportsUnicode ? dots : line;
 const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes);
 
-appender(filterMessages((message: LogMessage) => message.loglevel !== LogLevel.verbose || message.action !== Action.log, createDraftlogAppender(spinner, formatter, false, 2)));
+let minLogLevel = LogLevel.info;
+appender(filterMessages<Error, { setMinLevel(logLevel: LogLevel): void; }>(
+    (message: LogMessage) => message.loglevel >= minLogLevel || message.action !== Action.log,
+    createDraftlogAppender(spinner, formatter, false, 2), // eslint-disable-line indent
+    { setMinLevel(logLevel: LogLevel) { minLogLevel = logLevel; } } // eslint-disable-line indent
+));

@@ -44,3 +44,14 @@ export type ColorFormatters = {
 };
 
 export type Formatter = (message: string, loglevel: LogLevel, usePrefix?: string | boolean, identation?: number) => string;
+
+export type Logger<ErrorContext = Error> = (...args: [] | [string | Identity | undefined] | [string, Identity]) => ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
+    start(message: string, loglevel?: LogLevel | undefined): void;
+    update(message: string, loglevel?: LogLevel | undefined): void;
+    finish(message: string, loglevel?: LogLevel | undefined): void;
+    appender(appender: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
+};
+
+export type MinLogLevelApi = {
+    setMinLevel(logLevel: LogLevel): void;
+};
