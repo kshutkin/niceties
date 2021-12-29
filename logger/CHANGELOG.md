@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.0](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.4...@niceties/logger-v1.1.0) (2021-12-29)
+
+
+### Features
+
+* better filters / appenders API ([#4](https://github.com/kshutkin/niceties/issues/4)) ([9f0ab27](https://github.com/kshutkin/niceties/commit/9f0ab2747056ff78aec52c0f6355eb386d130223))
+
 # [@niceties/logger-v1.0.4](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.3...@niceties/logger-v1.0.4) (2021-12-02)
 
 
