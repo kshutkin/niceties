@@ -1,5 +1,4 @@
-import { combineAppenders, filterMessages } from './appender-utils';
-import { globalAppender, appender } from './details/global-appender';
+import { globalAppender } from './global-appender';
 import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
 
 let globalInputId = 0;
@@ -18,27 +17,25 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
             append(message, Action.log, loglevel, context);
         }, {
             // Fine to be started multiple times
-            start(message: string, loglevel?: LogLevel) {
+            start(message: string, loglevel?: LogLevel, context?: ErrorContext) {
                 if (loglevel !== undefined) {
                     initialLogLevel = loglevel;
                 }
-                append(message, Action.start, initialLogLevel);
+                append(message, Action.start, initialLogLevel, context);
             },
             // Fine to be updated multiple times
-            update(message: string, loglevel?: LogLevel) {
-                append(message, Action.update, loglevel ?? initialLogLevel);
+            update(message: string, loglevel?: LogLevel, context?: ErrorContext) {
+                append(message, Action.update, loglevel ?? initialLogLevel, context);
             },
             // Fine to be finished multiple times
-            finish(message: string, loglevel?: LogLevel) {
-                append(message, Action.finish, loglevel ?? initialLogLevel);
+            finish(message: string, loglevel?: LogLevel, context?: ErrorContext) {
+                append(message, Action.finish, loglevel ?? initialLogLevel, context);
             },
-            withFilter(predicate: (logMessage: LogMessage<ErrorContext>) => boolean) {
-                myAppender = filterMessages(predicate, myAppender);
-                return loggerInstance;
-            },
-            withAppender(appender: Appender<ErrorContext>) {
-                myAppender = combineAppenders(myAppender, appender);
-                return loggerInstance;
+            appender(appender?: Appender<ErrorContext>) {
+                if (appender !== undefined) {
+                    myAppender = appender;
+                }
+                return myAppender;
             }
         }
     );
@@ -53,7 +50,7 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
     return loggerInstance;
 
     function append(message: string, action: Action, loglevel: LogLevel, context?: ErrorContext) {
-        myAppender({
+        myAppender && myAppender({
             action,
             inputId,
             message,
@@ -80,5 +77,3 @@ function getOptions(options: [] | [string | Identity | undefined] | [string, Ide
     }
     return { parentId, tag };
 }
-
-export { appender, combineAppenders, filterMessages };

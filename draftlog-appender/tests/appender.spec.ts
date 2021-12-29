@@ -21,6 +21,7 @@ const testSpinner = {
 
 const finishedPrefixes: Prefixes = ['', 'ok', 'warn', 'error'];
 const colors: ColorFormatters = [,,,,];
+const tagFactory = (tag: string) => tag;
 
 const waitFor = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -35,7 +36,7 @@ describe('draftlog appender', () => {
     const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        const formatter = createFormatter(colors, finishedPrefixes);
+        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, false, 2);
         draftLogDefaults = (draftlog as never as DraftlogConfig).defaults;
         consoleUpdateMock = jest.fn<void, any[]>();
@@ -259,7 +260,7 @@ describe('draftlog appender animation', () => {
     const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        const formatter = createFormatter(colors, finishedPrefixes);
+        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));
@@ -287,7 +288,7 @@ describe('prepend config', () => {
     const ref = new WeakRef(testSpinner) as WeakRef<never>;
 
     beforeEach(() => {
-        const formatter = createFormatter(colors, finishedPrefixes);
+        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, true, 2);
         consoleUpdateMock = jest.fn<void, any[]>();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(() => (...args: any[]) => consoleUpdateMock(...args));

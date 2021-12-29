@@ -4,6 +4,7 @@ import { Formatter } from '@niceties/logger/types';
 
 import { ItemStatus, Model, ModelItem } from './model';
 import { Spinner } from '../spinners';
+import { Action } from '@niceties/logger';
 
 interface DraftlogConfig {
     defaults: {
@@ -38,7 +39,14 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             }
             if (dirty || item.dirty_ || item.status_) {
                 const prefix = getPrefix(item.status_ as ItemStatus, model.tick_);
-                updater(formatter(item.text_, item.loglevel_, prefix, ident * (stack.length - 1)));
+                updater(formatter({
+                    loglevel: item.loglevel_,
+                    message: item.text_,
+                    context: item.context_,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    action: (item.status_ === undefined ? Action.log : undefined) as unknown as any,
+                    tag: item.tag_
+                }, prefix, ident * (stack.length - 1)));
                 if (item.dirty_) {
                     item.dirty_ = false;
                     dirty = true;

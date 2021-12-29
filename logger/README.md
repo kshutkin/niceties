@@ -13,12 +13,6 @@ Experimental logger/reporter for async tasks.
 # Installation
 
 ```
-yarn add @niceties/logger
-```
-
-or
-
-```
 npm install --save @niceties/logger
 ```
 
@@ -47,11 +41,11 @@ try {
 Logger factory:
 
 ```typescript
-function createLogger<ErrorContext = Error>(...args: [] | [string | Identity] | [string, Identity]): ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
-    start(message: string, loglevel?: LogLevel | undefined): void;
-    update(message: string, loglevel?: LogLevel | undefined): void;
-    finish(message: string, loglevel?: LogLevel | undefined): void;
-    withAppender(appender: Appender<ErrorContext>): ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & any;
+function createLogger<ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]): ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
+    start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    appender(appender?: Appender<ErrorContext> | undefined): (message: LogMessage<ErrorContext>) => void;
 };
 ```
 
@@ -91,36 +85,36 @@ try {
 ```
 
 ```typescript
-start(message: string, loglevel?: LogLevel | undefined): void;
+start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
 Emits start event inside a logger. If loglevel provided it will be remembered and used as default loglevel in subsequent events in the same logger instance. Default loglevel (if argument is not provided) is `info`.
 
 ```typescript
-update(message: string, loglevel?: LogLevel | undefined): void;
+update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
 Emits update event. Can be used to inform user that we are doing something else in the same async task. loglevel used to redefine default loglevel.
 
 ```typescript
-finish(message: string, loglevel?: LogLevel | undefined): void;
+finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
 Emits finish event. Can be used to inform user that task finished. loglevel is optional and equals initial loglevel if omitted.
 
 ```typescript
-const log = createLogger()
-                .withAppender(someFancyAppender);
+const logger = createLogger();
+logger.appender(someFancyAppender);
 ```
 
-Adds new appender for the specific inctance of logger. It is not mandatory to use the return value because no new instance of logger created and appender added to the existing instance.
+Sets different appender for the specific instance of the logger.
 
 ```typescript
-const log = createLogger()
-                .withFilter(predicate);
+const logger = createLogger();
+const appender = logger.appender();
 ```
 
-Install filter on previosly installed appenders. It is not mandatory to use the return value because no new instance of logger created and filter added to the existing instance.
+Returns current appender for the specific instance of the logger.
 
 ## Log levels
 
@@ -226,13 +220,17 @@ Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory 
 
 Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that is part of default configuration of the console appender.
 
-Subpackage `'@niceties/logger/core'` exports `createLogger()` factory and `appender()`, `combineAppenders()`, `filterMessages()` functions.
+Subpackage `'@niceties/logger/core'` exports `createLogger()` factory.
 
-Subpackage `'@niceties/logger/simple'` exports `createLogger()` factory and `appender()`, `combineAppenders()`, `filterMessages()` function.
+Subpackage `'@niceties/logger/simple'` exports `createLogger()` factory.
 
 Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender()` factory.
 
 Subpackage `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
+
+Subpackage `'@niceties/logger/global-appender'` exports `appender()` and `globalAppender`.
+
+Subpackage `'@niceties/logger/appender-utils'` exports `combineAppenders()` and `filterMessages()`.
 
 `simple` (default), `core` and `console-appender` exists as umd packages as well but probably require some effort to consume them.
 

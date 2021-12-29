@@ -1,6 +1,6 @@
-import { green, red, yellow } from 'kleur';
+import { blue, green, red, yellow } from 'kleur';
 import { createConsoleAppender } from '../src/console-appender';
-import { colors, unicodePrefixes } from '../src/default-formatting';
+import { colors, unicodePrefixes, tagFactory } from '../src/default-formatting';
 import { createFormatter } from '../src/format-utils';
 import { Action, LogLevel, Appender } from '../src/types';
 
@@ -12,7 +12,7 @@ describe('console appender', () => {
 
     beforeEach(() => {
         consoleLogMock = jest.spyOn(global.console, 'log').mockImplementation();
-        const formatter = createFormatter(colors, unicodePrefixes);
+        const formatter = createFormatter(colors, unicodePrefixes, tagFactory);
         consoleAppender = createConsoleAppender(formatter);
     });
 
@@ -72,5 +72,17 @@ describe('console appender', () => {
         consoleAppender({loglevel: LogLevel.error, message: 'test', action: Action.log, inputId: 0, ref: ref as WeakRef<never>});
 
         expect(consoleLogMock).toBeCalledWith(`${red('test')}`);
+    });
+
+    it('log with visible tag', () => {
+        consoleAppender({loglevel: LogLevel.verbose, message: 'test', action: Action.log, inputId: 0, tag: 'atag', ref: ref as WeakRef<never>});
+
+        expect(consoleLogMock).toBeCalledWith(`[${blue('atag')}] test`);
+    });
+
+    it('log with context', () => {
+        consoleAppender({loglevel: LogLevel.error, message: 'test', action: Action.log, inputId: 0, context: Error('error'), ref: ref as WeakRef<never>});
+
+        expect(consoleLogMock).toBeCalledWith(`${red('test Error: error')}`);
     });
 });

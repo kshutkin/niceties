@@ -1,11 +1,15 @@
 import "@niceties/draftlog-appender";
-import { createLogger } from "@niceties/logger";
+import { createLogger, appender } from "@niceties/logger";
 import kleur from "kleur";
+
+appender().setMinLevel(0);
 
 const waitFor = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 setTimeout(() => {
-    const logger = createLogger();
+    const logger = createLogger('test tag');
+
+    logger('test', 0);
 
     logger.start('I am going to be freed soon');
 
