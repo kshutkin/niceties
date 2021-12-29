@@ -46,7 +46,7 @@ export type ColorFormatters = {
 
 export type Formatter<ErrorContext = Error> = (message: LogMessage<ErrorContext>, usePrefix?: string | boolean, identation?: number) => string;
 
-export type Logger<ErrorContext = Error> = (...args: [] | [string | Identity | undefined] | [string, Identity]) => ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
+export type Logger<ErrorContext = Error> = ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
     start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
     update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
     finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
