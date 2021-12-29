@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.1.0](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.7...@niceties/draftlog-appender-v1.1.0) (2021-12-29)
+
+
+### Features
+
+* better filters / appenders API ([#4](https://github.com/kshutkin/niceties/issues/4)) ([9f0ab27](https://github.com/kshutkin/niceties/commit/9f0ab2747056ff78aec52c0f6355eb386d130223))
+
 # [@niceties/draftlog-appender-v1.0.7](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.6...@niceties/draftlog-appender-v1.0.7) (2021-12-03)
 
 

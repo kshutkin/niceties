@@ -1,5 +1,5 @@
 {
-  "version": "1.0.7",
+  "version": "1.1.0",
   "license": "MIT",
   "name": "@niceties/draftlog-appender",
   "author": {
@@ -75,9 +75,10 @@
     "update-monorepo-package-json": "0.2.0"
   },
   "peerDependencies": {
-    "@niceties/logger": "^1.0.4"
+    "@niceties/logger": "^1.1.0"
   },
   "dependencies": {
     "draftlog": "^1.0.13"
-  }
+  },
+  "description": "README.md"
 }
