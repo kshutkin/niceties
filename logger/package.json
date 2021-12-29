@@ -66,6 +66,7 @@
   },
   "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
   "readme": "REAMDE.md",
+  "description": "Experimental logger/reporter for async tasks.",
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
     "dev": "rimraf ./dist && rollup -c -w",
