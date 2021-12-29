@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.1](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.0...@niceties/logger-v1.1.1) (2021-12-29)
+
+
+### Bug Fixes
+
+* correct Logger type ([786f67b](https://github.com/kshutkin/niceties/commit/786f67b18ea6423b07b024f98b2290eeb3a3564b))
+
 # [@niceties/logger-v1.1.0](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.0.4...@niceties/logger-v1.1.0) (2021-12-29)
 
 
