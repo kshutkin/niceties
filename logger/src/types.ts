@@ -20,6 +20,7 @@ export type LogMessage<ErrorContext = Error> = {
     tag?: string;
     parentId?: number;
     ref: WeakRef<never>;
+    context?: ErrorContext;
 } | {
     inputId?: number;
     loglevel: LogLevel;
@@ -43,13 +44,13 @@ export type ColorFormatters = {
     [index in LogLevel]: (((text: string) => string) | undefined);
 };
 
-export type Formatter = (message: string, loglevel: LogLevel, usePrefix?: string | boolean, identation?: number) => string;
+export type Formatter<ErrorContext = Error> = (message: LogMessage<ErrorContext>, usePrefix?: string | boolean, identation?: number) => string;
 
 export type Logger<ErrorContext = Error> = (...args: [] | [string | Identity | undefined] | [string, Identity]) => ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
-    start(message: string, loglevel?: LogLevel | undefined): void;
-    update(message: string, loglevel?: LogLevel | undefined): void;
-    finish(message: string, loglevel?: LogLevel | undefined): void;
-    appender(appender: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
+    start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
+    appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
 };
 
 export type MinLogLevelApi = {

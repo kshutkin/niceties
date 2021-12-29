@@ -11,9 +11,12 @@ export interface ModelItem {
     loglevel_: LogLevel;
     ref_?: WeakRef<never>;
     parentId_?: number;
+    tag_?: string;
     next_?: ModelItem;
     children_: ModelItem[];
     dirty_?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    context_?: any;
 }
 
 export type Model = {
@@ -31,9 +34,9 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
         items_: []
     };
     const itemById: {[key: number]: ModelItem} = Object.create(null);
-    return [({ message: text, inputId, action, loglevel, ref, parentId }: LogMessage): Model => {
+    return [({ message: text, inputId, action, loglevel, ref, parentId, context, tag }: LogMessage): Model => {
         // item has status undefined, so it is static by default
-        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, children_: [], dirty_: true };
+        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, children_: [], dirty_: true, context_: context, tag_: tag };
         if (action === Action.start) {
             item.status_ = ItemStatus.inprogress;
         }

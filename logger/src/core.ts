@@ -17,19 +17,19 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
             append(message, Action.log, loglevel, context);
         }, {
             // Fine to be started multiple times
-            start(message: string, loglevel?: LogLevel) {
+            start(message: string, loglevel?: LogLevel, context?: ErrorContext) {
                 if (loglevel !== undefined) {
                     initialLogLevel = loglevel;
                 }
-                append(message, Action.start, initialLogLevel);
+                append(message, Action.start, initialLogLevel, context);
             },
             // Fine to be updated multiple times
-            update(message: string, loglevel?: LogLevel) {
-                append(message, Action.update, loglevel ?? initialLogLevel);
+            update(message: string, loglevel?: LogLevel, context?: ErrorContext) {
+                append(message, Action.update, loglevel ?? initialLogLevel, context);
             },
             // Fine to be finished multiple times
-            finish(message: string, loglevel?: LogLevel) {
-                append(message, Action.finish, loglevel ?? initialLogLevel);
+            finish(message: string, loglevel?: LogLevel, context?: ErrorContext) {
+                append(message, Action.finish, loglevel ?? initialLogLevel, context);
             },
             appender(appender?: Appender<ErrorContext>) {
                 if (appender !== undefined) {
