@@ -17,8 +17,8 @@
       "default": "./dist/core.mjs"
     },
     "./spinners": {
-      "require": "./spinners/dist/spinners.cjs",
-      "default": "./spinners/dist/spinners.mjs"
+      "require": "./dist/spinners.cjs",
+      "default": "./dist/spinners.mjs"
     }
   },
   "main": "./dist/index.cjs",
