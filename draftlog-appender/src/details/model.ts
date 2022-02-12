@@ -14,8 +14,8 @@ export interface ModelItem extends Partial<ListNode> {
     parentId_?: number;
     dirty_?: boolean;
     lastLeaf_?: ModelItem;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tag_?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context_?: any;
 }
 
