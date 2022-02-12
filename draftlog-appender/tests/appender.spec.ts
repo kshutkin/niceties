@@ -50,7 +50,7 @@ describe('draftlog appender', () => {
     afterEach(() => {
         global.setInterval = setIntervalCopy;
         clearInterval(interval);
-    })
+    });
 
     it('smoke', () => {
         expect(console.draft).toBeDefined();
@@ -147,9 +147,9 @@ describe('draftlog appender', () => {
         expect(consoleDraftMock).toBeCalledTimes(2);
     });
 
-    it('gc test 2 (don\'t remove lines when children still has refs)', async () => {
+    it('gc test 2 (empty ref)', async () => {
         appender({loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
-        appender({loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref: null as any, parentId: 0});
     
         await waitFor(50);
 
@@ -159,7 +159,7 @@ describe('draftlog appender', () => {
 
         appender({loglevel: LogLevel.verbose, message: 'test3', action: Action.update, inputId: 2, ref});
         
-        expect(consoleUpdateMock).toBeCalledTimes(6);
+        expect(consoleUpdateMock).toBeCalledTimes(4);
     });
 
     it('gc test 3 (remove lines when children are freed as well and not spinning)', async () => {

@@ -25,13 +25,9 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             updaters.splice(0, model.skipLines_);
             model.skipLines_ = 0;
         }
-        if (!model.items_.length) {
-            return;
-        }
         let key = 0, dirty = false;
-        const stack = [[...model.items_]];
-        while (stack.length) {
-            const item = stack[stack.length - 1].shift() as ModelItem;
+        const stack: (ModelItem | null)[] = [];
+        for (const item of model) {
             let updater = updaters[Number(key)];
             if (!updater) {
                 updater = console.draft(' ');
@@ -46,7 +42,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     action: (item.status_ === undefined ? Action.log : undefined) as unknown as any,
                     tag: item.tag_
-                }, prefix, ident * (stack.length - 1)));
+                }, prefix, ident * stack.length));
                 if (item.dirty_) {
                     item.dirty_ = false;
                     dirty = true;
@@ -54,10 +50,13 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             }
             // iterate
             ++key;
-            if (item.children_.length) {
-                stack.push([...item.children_]);
+            if (stack[stack.length - 1] === item) {
+                stack[stack.length - 1] = null;
             }
-            while (stack.length && stack[stack.length - 1].length === 0) {
+            if (item.lastLeaf_) {
+                stack.push(item.lastLeaf_);
+            }
+            while (stack.length && stack[stack.length - 1] == null) {
                 stack.pop();
             }
         }
