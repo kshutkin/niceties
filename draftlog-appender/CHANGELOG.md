@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.0](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.1.0...@niceties/draftlog-appender-v1.2.0) (2022-02-12)
+
+
+### Features
+
+* use list instead of array, updated packages ([#5](https://github.com/kshutkin/niceties/issues/5)) ([64f8978](https://github.com/kshutkin/niceties/commit/64f8978e11042eb56bd4979d626a94580bc30b3b))
+
 # [@niceties/draftlog-appender-v1.1.0](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.0.7...@niceties/draftlog-appender-v1.1.0) (2021-12-29)
 
 
