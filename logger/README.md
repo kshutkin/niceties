@@ -237,6 +237,10 @@ Subpackage `'@niceties/logger/appender-utils'` exports `combineAppenders()` and 
 # Prior art
 
 - [loglevel](https://github.com/pimterry/loglevel)
+- [winston](https://github.com/winstonjs/winston)
+- [node-bunyan](https://github.com/trentm/node-bunyan)
+- [log4js](https://github.com/log4js-node/log4js-node)
+- [pino](https://github.com/pinojs/pino)
 
 # License
 
