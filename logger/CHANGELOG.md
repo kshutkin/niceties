@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.1...@niceties/logger-v1.1.2) (2022-03-23)
+
+
+### Bug Fixes
+
+* export package.json, use arrow functions ([4dd85df](https://github.com/kshutkin/niceties/commit/4dd85df6211c7477dd54b0a3551a6c81d82a7eca))
+
 # [@niceties/logger-v1.1.1](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.0...@niceties/logger-v1.1.1) (2021-12-29)
 
 
