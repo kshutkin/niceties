@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.3](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.2...@niceties/logger-v1.1.3) (2022-03-23)
+
+
+### Bug Fixes
+
+* use pkgbld for logger ([df30187](https://github.com/kshutkin/niceties/commit/df301877d5842e62772a234557030cfb4a416e13))
+
 # [@niceties/logger-v1.1.2](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.1...@niceties/logger-v1.1.2) (2022-03-23)
 
 
