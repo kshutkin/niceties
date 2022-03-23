@@ -3,17 +3,45 @@ import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
 
 let globalInputId = 0;
 
-export function createLogger<ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]) {
+const getOptions = (options: [] | [string | Identity | undefined] | [string, Identity]): { tag?: string, parentId?: number } => {
+    let parentId, tag;
+    if (options.length === 1) {
+        if (typeof options[0] === 'string') {
+            tag = options[0];
+        } else {
+            parentId = options[0]?.id;
+        }
+    } else if (options.length === 2) {
+        tag = options[0];
+        parentId = options[1]?.id;
+    }
+    return { parentId, tag };
+};
+
+export const createLogger = <ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]) => {
     let initialLogLevel: number = LogLevel.info;
+
+    let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
     
     const inputId = globalInputId++;
     
     const { tag, parentId } = getOptions(args);
     
-    let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
+    const append = (message: string, action: Action, loglevel: LogLevel, context?: ErrorContext) => {
+        myAppender && myAppender({
+            action,
+            inputId,
+            message,
+            loglevel,
+            tag,
+            parentId,
+            ref,
+            context
+        } as LogMessage<ErrorContext>);
+    };
 
     const loggerInstance = Object.assign(
-        function log(message: string, loglevel: LogLevel = LogLevel.info, context?: ErrorContext) {
+        (message: string, loglevel: LogLevel = LogLevel.info, context?: ErrorContext) => {
             append(message, Action.log, loglevel, context);
         }, {
             // Fine to be started multiple times
@@ -48,32 +76,4 @@ export function createLogger<ErrorContext = Error>(...args: [] | [string | Ident
     const ref = new WeakRef(loggerInstance);
 
     return loggerInstance;
-
-    function append(message: string, action: Action, loglevel: LogLevel, context?: ErrorContext) {
-        myAppender && myAppender({
-            action,
-            inputId,
-            message,
-            loglevel,
-            tag,
-            parentId,
-            ref,
-            context
-        } as LogMessage<ErrorContext>);
-    }
-}
-
-function getOptions(options: [] | [string | Identity | undefined] | [string, Identity]): { tag?: string, parentId?: number } {
-    let parentId, tag;
-    if (options.length === 1) {
-        if (typeof options[0] === 'string') {
-            tag = options[0];
-        } else {
-            parentId = options[0]?.id;
-        }
-    } else if (options.length === 2) {
-        tag = options[0];
-        parentId = options[1]?.id;
-    }
-    return { parentId, tag };
-}
+};

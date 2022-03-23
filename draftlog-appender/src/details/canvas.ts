@@ -13,12 +13,20 @@ interface DraftlogConfig {
     }
 }
 
-export function createCanvas(spinner: Spinner, formatter: Formatter, ident: number) {
+export const createCanvas = (spinner: Spinner, formatter: Formatter, ident: number) => {
     draftlog(console);
     (draftlog as never as DraftlogConfig).defaults.canReWrite = false;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updaters: Array<(message?: any, ...optionalParams: any[]) => void> = [];
+
+    const getPrefix = (status: ItemStatus, tick: number): string | boolean => {
+        // status is truthy when it is inprogress
+        const prefix = status ? spinner.frames[tick] :
+            // status not null when it is finished
+            status != null;
+        return prefix;
+    };
 
     return (model: Model) => {
         if (model.skipLines_) {
@@ -61,12 +69,4 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             }
         }
     };
-
-    function getPrefix(status: ItemStatus, tick: number): string | boolean {
-        // status is truthy when it is inprogress
-        const prefix = status ? spinner.frames[tick] :
-            // status not null when it is finished
-            status != null;
-        return prefix;
-    }
-}
+};

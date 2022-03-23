@@ -25,43 +25,20 @@ export type Model = List<ModelItem> & {
     spinning_: number;
 }
 
-export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage) => Model, () => Model] {
+export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage) => Model, () => Model] => {
     const model: Model = new List<ModelItem>() as Model;
-    model.tick_ = model.skipLines_ = model.spinning_ = 0;
     const itemById: {[key: number]: ModelItem} = Object.create(null);
-    return [({ message: text, inputId, action, loglevel, ref, parentId, context, tag }: LogMessage): Model => {
-        // item has status undefined, so it is static by default
-        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, dirty_: true, context_: context, tag_: tag };
-        if (action === Action.start) {
-            item.status_ = ItemStatus.inprogress;
-        }
-        if (action === Action.finish) {
-            item.status_ = ItemStatus.finished;
-        }
-        if (action !== Action.log) {
-            // if status still empty in the original item or item does not exists it will remain empty and static
-            updateModel(inputId as number, item);
-        }
-        cleanupModel();
-        if (action === Action.log) {
-            appendToModel(item, logAboveSpinners);
-        }
-        return model;
-    }, () => {
-        cleanupModel();
-        return model;
-    }];
 
-    function appendToModel(item: ModelItem, head: boolean) {
+    const appendToModel = (item: ModelItem, head: boolean) => {
         if (head) {
             prepend(model, item);
         } else {
             append(model, item);
         }
         model.spinning_ += (item.status_ || 0);
-    }
+    };
 
-    function updateModel(inputId: number, options: ModelItem): void {
+    const updateModel = (inputId: number, options: ModelItem): void => {
         const modelItem = itemById[inputId];
         if (!modelItem) {
             const item: ModelItem = {inputId_: inputId, ...options};
@@ -88,9 +65,9 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
                 putIntoChildren(modelItem.parentId_ as number, modelItem, lastLeaf);
             }
         }
-    }
+    };
 
-    function putIntoChildren(itemParentId: number, begin: ModelItem, end: ModelItem) {
+    const putIntoChildren = (itemParentId: number, begin: ModelItem, end: ModelItem) => {
         let parent = itemById[itemParentId];
         if (!parent) {
             parent = { inputId_: itemParentId, text_: '', loglevel_: 0, ref_: new WeakRef(model) as WeakRef<never> } as ModelItem;
@@ -100,9 +77,9 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
         appendRange((parent.lastLeaf_ || parent) as ListNode, begin as ListNode, end as ListNode);
         parent.lastLeaf_ = begin;
         model.spinning_ += (begin.status_ || 0);
-    }
+    };
 
-    function cleanupModel() {
+    const cleanupModel = () => {
         for (const item of model) {
             if (!item.ref_?.deref()) {
                 model.skipLines_ += 1;
@@ -112,5 +89,30 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
                 break;
             }
         }
-    }
-}
+    };
+
+    model.tick_ = model.skipLines_ = model.spinning_ = 0;
+
+    return [({ message: text, inputId, action, loglevel, ref, parentId, context, tag }: LogMessage): Model => {
+        // item has status undefined, so it is static by default
+        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, dirty_: true, context_: context, tag_: tag };
+        if (action === Action.start) {
+            item.status_ = ItemStatus.inprogress;
+        }
+        if (action === Action.finish) {
+            item.status_ = ItemStatus.finished;
+        }
+        if (action !== Action.log) {
+            // if status still empty in the original item or item does not exists it will remain empty and static
+            updateModel(inputId as number, item);
+        }
+        cleanupModel();
+        if (action === Action.log) {
+            appendToModel(item, logAboveSpinners);
+        }
+        return model;
+    }, () => {
+        cleanupModel();
+        return model;
+    }];
+};

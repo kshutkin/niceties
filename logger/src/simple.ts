@@ -1,7 +1,7 @@
 import { globalAppender } from './global-appender';
 import { Action, Appender, LogLevel, LogMessage } from './types';
 
-export function createLogger<ErrorContext = Error>(tag?: string) {
+export const createLogger = <ErrorContext = Error>(tag?: string) => {
     let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
 
     const loggerInstance = Object.assign(
@@ -24,4 +24,4 @@ export function createLogger<ErrorContext = Error>(tag?: string) {
     );
 
     return loggerInstance;
-}
+};
