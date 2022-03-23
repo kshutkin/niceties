@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.1](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.0...@niceties/draftlog-appender-v1.2.1) (2022-03-23)
+
+
+### Bug Fixes
+
+* export package.json, use arrow functions ([4dd85df](https://github.com/kshutkin/niceties/commit/4dd85df6211c7477dd54b0a3551a6c81d82a7eca))
+
 # [@niceties/draftlog-appender-v1.2.0](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.1.0...@niceties/draftlog-appender-v1.2.0) (2022-02-12)
 
 
