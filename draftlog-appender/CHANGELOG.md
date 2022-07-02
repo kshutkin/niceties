@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.3](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.2...@niceties/draftlog-appender-v1.2.3) (2022-07-02)
+
+
+### Bug Fixes
+
+* remove funding ([c7bf3ab](https://github.com/kshutkin/niceties/commit/c7bf3ab58c7dd6d296027f8a7f07ca65a928decf))
+
 # [@niceties/draftlog-appender-v1.2.2](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.1...@niceties/draftlog-appender-v1.2.2) (2022-03-23)
 
 
