@@ -3,7 +3,6 @@
   "license": "MIT",
   "name": "@niceties/logger",
   "author": "Konstantin Shutkin",
-  "funding": "https://www.donationalerts.com/r/excitingcode",
   "type": "module",
   "exports": {
     ".": {
