@@ -191,7 +191,7 @@ will send a log message with finer loglevel than verbose through appender but de
 
 ## Can I use multiple appenders?
 
-It is possible using combuneAppenders and appender functions:
+It is possible using combineAppenders and appender functions:
 
 ```javascript
 import { createLogger, appender } from "@niceties/logger";
