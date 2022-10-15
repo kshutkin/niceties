@@ -66,7 +66,7 @@
   },
   "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
   "readme": "REAMDE.md",
-  "description": "Experimental logger/reporter for async tasks.",
+  "description": "Logger that supports async tasks",
   "scripts": {
     "build": "pkgbld --umd=core,simple,console-appender,global-appender,appender-utils --preprocess=index",
     "test": "jest --collectCoverage",

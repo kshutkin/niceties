@@ -1,6 +1,8 @@
 # Logger
 
-Experimental logger/reporter for async tasks.
+Logger that can handle async tasks.
+
+- Provides normal logging API: log level, tag logger instance, custom log data
 
 - Provides API for reporting async events that can be later handled by custom appender.
 
@@ -67,7 +69,7 @@ try {
     // some code
     log('some message');
 } catch (e) {
-    log('some message', 1, e);
+    log('some message', 1 /* LogLevel.info */, e);
 }
 ```
 
@@ -189,7 +191,7 @@ will send a log message with finer loglevel than verbose through appender but de
 
 ## Can I use multiple appenders?
 
-It is possible using combuneAppenders and appender functions:
+It is possible using combineAppenders and appender functions:
 
 ```javascript
 import { createLogger, appender } from "@niceties/logger";
