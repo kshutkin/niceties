@@ -4,7 +4,7 @@ import { Action, Appender, LogLevel, LogMessage } from './types';
 export const createLogger = <ErrorContext = Error>(tag?: string) => {
     let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
 
-    const loggerInstance = Object.assign(
+    return Object.assign(
         function log(message: string, loglevel: LogLevel = LogLevel.info, context?: ErrorContext) {
             myAppender && myAppender({
                 action: Action.log,
@@ -22,6 +22,4 @@ export const createLogger = <ErrorContext = Error>(tag?: string) => {
             }
         }
     );
-
-    return loggerInstance;
 };

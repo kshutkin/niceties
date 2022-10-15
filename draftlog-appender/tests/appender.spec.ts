@@ -20,7 +20,7 @@ const testSpinner = {
 };
 
 const finishedPrefixes: Prefixes = ['', 'ok', 'warn', 'error'];
-const colors: ColorFormatters = [,,,,];
+const colors: ColorFormatters = [,,,,]; // eslint-disable-line no-sparse-arrays
 const tagFactory = (tag: string) => tag;
 
 const waitFor = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));

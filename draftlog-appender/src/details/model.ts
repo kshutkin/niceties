@@ -104,7 +104,7 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
         }
         if (action !== Action.log) {
             // if status still empty in the original item or item does not exists it will remain empty and static
-            updateModel(inputId as number, item);
+            updateModel(inputId, item);
         }
         cleanupModel();
         if (action === Action.log) {

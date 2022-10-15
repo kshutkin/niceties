@@ -22,10 +22,9 @@ export const createCanvas = (spinner: Spinner, formatter: Formatter, ident: numb
 
     const getPrefix = (status: ItemStatus, tick: number): string | boolean => {
         // status is truthy when it is inprogress
-        const prefix = status ? spinner.frames[tick] :
+        return status ? spinner.frames[tick] :
             // status not null when it is finished
             status != null;
-        return prefix;
     };
 
     return (model: Model) => {
