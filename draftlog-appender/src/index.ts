@@ -12,7 +12,7 @@ const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : as
 
 let minLogLevel = LogLevel.info;
 appender(filterMessages<Error, { setMinLevel(logLevel: LogLevel): void; }>(
-    (message: LogMessage) => message.loglevel >= minLogLevel || message.action !== Action.log,
+    (message: LogMessage) => message.loglevel >= minLogLevel && message.action !== Action.log,
     createDraftlogAppender(spinner, formatter, false, 2), // eslint-disable-line indent
     { setMinLevel(logLevel: LogLevel) { minLogLevel = logLevel; } } // eslint-disable-line indent
 ));
