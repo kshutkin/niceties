@@ -68,7 +68,7 @@
   "readme": "REAMDE.md",
   "description": "Logger that supports async tasks",
   "scripts": {
-    "build": "pkgbld --umd=core,simple,console-appender,global-appender,appender-utils --preprocess=index",
+    "build": "pkgbld-internal --umd=core,simple,console-appender,global-appender,appender-utils --preprocess=index",
     "test": "jest --collectCoverage",
     "lint": "eslint ./src",
     "semantic-release": "npx semantic-release"
@@ -91,7 +91,7 @@
     "ts-jest": "27.1.2",
     "tslib": "2.3.1",
     "typescript": "4.6.x",
-    "pkgbld": "1.2.1"
+    "pkgbld-internal": "1.0.2"
   },
   "dependencies": {
     "kleur": "^4.1.4"

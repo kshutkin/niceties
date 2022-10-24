@@ -1,3 +1,5 @@
 {
-  "types": "../dist/console-appender.d.ts"
+  "type": "module",
+  "types": "../dist/console-appender.d.ts",
+  "main": "../dist/console-appender.mjs"
 }

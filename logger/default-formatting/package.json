@@ -1,3 +1,5 @@
 {
-  "types": "../dist/default-formatting.d.ts"
+  "type": "module",
+  "types": "../dist/default-formatting.d.ts",
+  "main": "../dist/default-formatting.mjs"
 }

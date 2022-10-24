@@ -1,3 +1,5 @@
 {
-  "types": "../dist/appender-utils.d.ts"
+  "type": "module",
+  "types": "../dist/appender-utils.d.ts",
+  "main": "../dist/appender-utils.mjs"
 }

@@ -1,3 +1,5 @@
 {
-  "types": "../dist/global-appender.d.ts"
+  "type": "module",
+  "types": "../dist/global-appender.d.ts",
+  "main": "../dist/global-appender.mjs"
 }

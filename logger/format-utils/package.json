@@ -1,3 +1,5 @@
 {
-  "types": "../dist/format-utils.d.ts"
+  "type": "module",
+  "types": "../dist/format-utils.d.ts",
+  "main": "../dist/format-utils.mjs"
 }

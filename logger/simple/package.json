@@ -1,3 +1,5 @@
 {
-  "types": "../dist/simple.d.ts"
+  "type": "module",
+  "types": "../dist/simple.d.ts",
+  "main": "../dist/simple.mjs"
 }

@@ -43,7 +43,7 @@
   "readme": "README.md",
   "description": "Appender for '@niceites/logger' implemented using draftlog package.",
   "scripts": {
-    "build": "pkgbld",
+    "build": "pkgbld-internal",
     "test": "node --expose-gc ../node_modules/jest-cli/bin/jest.js --collectCoverage",
     "lint": "eslint ./src",
     "semantic-release": "npx semantic-release"
@@ -65,7 +65,7 @@
     "ts-jest": "27.1.3",
     "typescript": "4.6.x",
     "update-monorepo-package-json": "0.2.0",
-    "pkgbld": "1.2.1"
+    "pkgbld-internal": "1.0.2"
   },
   "peerDependencies": {
     "@niceties/logger": "^1.1.4"
