@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.5](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.4...@niceties/logger-v1.1.5) (2022-10-24)
+
+
+### Bug Fixes
+
+* subpackage exports / imports ([1e97aa4](https://github.com/kshutkin/niceties/commit/1e97aa46671b87c896c718f06ea681647acb1f40))
+
 # [@niceties/logger-v1.1.4](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.3...@niceties/logger-v1.1.4) (2022-07-02)
 
 

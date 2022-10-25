@@ -1,5 +1,13 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.4](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.3...@niceties/draftlog-appender-v1.2.4) (2022-10-24)
+
+
+### Bug Fixes
+
+* bug in the default filter ([8054397](https://github.com/kshutkin/niceties/commit/8054397dbdda8933d40c9fe0a38083c72fb52738))
+* subpackage exports / imports ([1e97aa4](https://github.com/kshutkin/niceties/commit/1e97aa46671b87c896c718f06ea681647acb1f40))
+
 # [@niceties/draftlog-appender-v1.2.3](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.2...@niceties/draftlog-appender-v1.2.3) (2022-07-02)
 
 
