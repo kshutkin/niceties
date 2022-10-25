@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.5](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.4...@niceties/draftlog-appender-v1.2.5) (2022-10-25)
+
+
+### Bug Fixes
+
+* correctly bundle externals ([75da642](https://github.com/kshutkin/niceties/commit/75da642c0c4d8dec6f126bdd78857b55812d9681))
+
 # [@niceties/draftlog-appender-v1.2.4](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.3...@niceties/draftlog-appender-v1.2.4) (2022-10-24)
 
 
