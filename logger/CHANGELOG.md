@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.6](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.5...@niceties/logger-v1.1.6) (2022-10-25)
+
+
+### Bug Fixes
+
+* correctly bundle externals ([75da642](https://github.com/kshutkin/niceties/commit/75da642c0c4d8dec6f126bdd78857b55812d9681))
+
 # [@niceties/logger-v1.1.5](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.4...@niceties/logger-v1.1.5) (2022-10-24)
 
 
