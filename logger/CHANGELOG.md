@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.7](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.6...@niceties/logger-v1.1.7) (2022-10-29)
+
+
+### Bug Fixes
+
+* logger shoud have Identity type ([e7cb325](https://github.com/kshutkin/niceties/commit/e7cb32583dee0716512b4adb05ba12b1b39c05c6))
+
 # [@niceties/logger-v1.1.6](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.5...@niceties/logger-v1.1.6) (2022-10-25)
 
 
