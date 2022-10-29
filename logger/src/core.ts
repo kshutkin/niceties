@@ -75,5 +75,5 @@ export const createLogger = <ErrorContext = Error>(...args: [] | [string | Ident
 
     const ref = new WeakRef(loggerInstance);
 
-    return loggerInstance;
+    return loggerInstance as typeof loggerInstance & Identity;
 };
