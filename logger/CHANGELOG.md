@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.8](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.7...@niceties/logger-v1.1.8) (2022-10-30)
+
+
+### Bug Fixes
+
+* use arrow function in simple logger ([59a923b](https://github.com/kshutkin/niceties/commit/59a923b2b0bf591cc477b8cc9bb5904f50c5b8ce))
+
 # [@niceties/logger-v1.1.7](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.6...@niceties/logger-v1.1.7) (2022-10-29)
 
 
