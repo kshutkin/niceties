@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.6](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.5...@niceties/draftlog-appender-v1.2.6) (2022-10-31)
+
+
+### Bug Fixes
+
+* added keywords ([d48d908](https://github.com/kshutkin/niceties/commit/d48d90831c30d249ec3abf39e56160d182e5ad7c))
+
 # [@niceties/draftlog-appender-v1.2.5](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.4...@niceties/draftlog-appender-v1.2.5) (2022-10-25)
 
 
