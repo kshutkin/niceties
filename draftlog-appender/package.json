@@ -42,6 +42,12 @@
   "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
   "readme": "README.md",
   "description": "Appender for '@niceites/logger' implemented using draftlog package.",
+  "keywords": [
+    "@niceties",
+    "draftlog-appender",
+    "draftlog",
+    "appender"
+  ],
   "scripts": {
     "build": "pkgbld-internal",
     "test": "node --expose-gc ../node_modules/jest-cli/bin/jest.js --collectCoverage",
