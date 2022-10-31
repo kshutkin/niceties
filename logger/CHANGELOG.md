@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/logger-v1.1.9](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.8...@niceties/logger-v1.1.9) (2022-10-31)
+
+
+### Bug Fixes
+
+* added keywords ([d48d908](https://github.com/kshutkin/niceties/commit/d48d90831c30d249ec3abf39e56160d182e5ad7c))
+
 # [@niceties/logger-v1.1.8](https://github.com/kshutkin/niceties/compare/@niceties/logger-v1.1.7...@niceties/logger-v1.1.8) (2022-10-30)
 
 
