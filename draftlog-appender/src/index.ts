@@ -6,13 +6,15 @@ import { createDraftlogAppender } from './core';
 import { dots, line } from './spinners';
 import { Action, LogLevel, LogMessage } from '@niceties/logger';
 
-const supportsUnicode = terminalSupportsUnicode();
-const spinner = supportsUnicode ? dots : line;
-const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes, tagFactory);
+if (!process.env.CI) {
+    const supportsUnicode = terminalSupportsUnicode();
+    const spinner = supportsUnicode ? dots : line;
+    const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes, tagFactory);
 
-let minLogLevel = LogLevel.info;
-appender(filterMessages<Error, { setMinLevel(logLevel: LogLevel): void; }>(
-    (message: LogMessage) => message.loglevel >= minLogLevel && message.action !== Action.log,
-    createDraftlogAppender(spinner, formatter, false, 2), // eslint-disable-line indent
-    { setMinLevel(logLevel: LogLevel) { minLogLevel = logLevel; } } // eslint-disable-line indent
-));
+    let minLogLevel = LogLevel.info;
+    appender(filterMessages<Error, { setMinLevel(logLevel: LogLevel): void; }>(
+        (message: LogMessage) => message.loglevel >= minLogLevel && message.action !== Action.log,
+        createDraftlogAppender(spinner, formatter, false, 2), // eslint-disable-line indent
+        { setMinLevel(logLevel: LogLevel) { minLogLevel = logLevel; } } // eslint-disable-line indent
+    ));
+}
