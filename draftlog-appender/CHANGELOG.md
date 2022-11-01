@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.7](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.6...@niceties/draftlog-appender-v1.2.7) (2022-11-01)
+
+
+### Bug Fixes
+
+* disable appender by default in CI environment ([849906c](https://github.com/kshutkin/niceties/commit/849906c25658e783eca45087b3bcd0c49593296e))
+
 # [@niceties/draftlog-appender-v1.2.6](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.5...@niceties/draftlog-appender-v1.2.6) (2022-10-31)
 
 
