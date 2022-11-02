@@ -51,7 +51,7 @@ export type Logger<ErrorContext = Error> = ((message: string, loglevel?: LogLeve
     update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
     finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
     appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
-};
+} & Identity;
 
 export type MinLogLevelApi = {
     setMinLevel(logLevel: LogLevel): void;
