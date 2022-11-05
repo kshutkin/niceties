@@ -1,5 +1,5 @@
 {
-  "version": "1.2.7",
+  "version": "1.2.8",
   "license": "MIT",
   "name": "@niceties/draftlog-appender",
   "author": {
@@ -74,7 +74,7 @@
     "pkgbld-internal": "1.0.4"
   },
   "peerDependencies": {
-    "@niceties/logger": "^1.1.9"
+    "@niceties/logger": "^1.1.10"
   },
   "dependencies": {
     "draftlog": "^1.0.13",
