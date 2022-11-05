@@ -29,25 +29,36 @@ const logger3 = createLogger(logger2);
 const logger4 = createLogger(logger3);
 const logger5 = createLogger(logger3);
 const logger6 = createLogger(logger3);
+const logger3_1 = createLogger(logger2);
+const logger4_1 = createLogger(logger3_1);
+const logger5_1 = createLogger(logger3_1);
+const logger6_1 = createLogger(logger3_1);
 
 logger4.start('I have parent missing');
+logger4_1.start('I have parent missing');
 
 await waitFor(500);
 
 logger5.update('I have parent missing');
+logger5_1.update('I have parent missing');
 
 await waitFor(500);
 
 logger6.start('I have parent missing');
+logger6_1.start('I have parent missing');
 
 await waitFor(500);
 
 logger2.start('I am the another missing parent');
 logger6.finish('I am finished with error', 3);
+logger6_1.finish('I am finished with error', 3);
 logger3.start('I am the missing parent');
+logger3_1.start('I am the missing parent');
 
 logger4.start('I found the parent');
+logger4_1.start('I found the parent');
 logger5.start('I found the parent');
+logger5_1.start('I found the parent');
 
 await waitFor(500);
 
@@ -57,8 +68,11 @@ await waitFor(500);
 
 logger2.finish('Job finished');
 logger3.finish('Ok');
+logger3_1.finish('Ok');
 logger4.finish('Ok !');
+logger4_1.finish('Ok !');
 logger5.finish('Kind of Ok !!', 2);
+logger5_1.finish('Kind of Ok !!', 2);
 
 await waitFor(500);
 

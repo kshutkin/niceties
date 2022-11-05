@@ -245,6 +245,18 @@ describe('draftlog appender', () => {
         expect(consoleUpdateMock).toBeCalledWith('  - +test5');
         expect(consoleUpdateMock).toBeCalledWith('- +test0');
     });
+
+    it('multilevel output 2 (adding to multilevel tree)', () => {
+        appender({loglevel: LogLevel.info, message: 'top', action: Action.start, inputId: 0, ref});
+        appender({loglevel: LogLevel.info, message: 'level2_1', action: Action.start, inputId: 1, ref, parentId: 0});
+        appender({loglevel: LogLevel.info, message: 'level3_1', action: Action.start, inputId: 2, ref, parentId: 1});
+        appender({loglevel: LogLevel.info, message: 'level2_2', action: Action.start, inputId: 3, ref, parentId: 0});
+        
+        expect(consoleUpdateMock).toBeCalledWith('- top');
+        expect(consoleUpdateMock).toBeCalledWith('  - level2_1');
+        expect(consoleUpdateMock).toBeCalledWith('    - level3_1');
+        expect(consoleUpdateMock).toBeCalledWith('  - level2_2');
+    });
 });
 
 const testSpinner2 = {

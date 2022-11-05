@@ -55,10 +55,7 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
             Object.assign(modelItem, options);
             model.spinning_ += statusDiff;
             if (moveIntoParent) {
-                let lastLeaf = modelItem;
-                while(lastLeaf.lastLeaf_) {
-                    lastLeaf = lastLeaf.lastLeaf_;
-                }
+                const lastLeaf = getLastLeaf(modelItem);
                 model.spinning_ -= (modelItem.status_ || 0);
                 modelItem.dirty_ = true;
                 removeRange(modelItem as ListNode, lastLeaf as ListNode);
@@ -74,7 +71,7 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
             appendToModel(parent, false);
             itemById[itemParentId] = parent;
         }
-        appendRange((parent.lastLeaf_ || parent) as ListNode, begin as ListNode, end as ListNode);
+        appendRange((getLastLeaf(parent)) as ListNode, begin as ListNode, end as ListNode);
         parent.lastLeaf_ = begin;
         model.spinning_ += (begin.status_ || 0);
     };
@@ -116,3 +113,11 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
         return model;
     }];
 };
+
+function getLastLeaf(modelItem: ModelItem) {
+    let lastLeaf = modelItem;
+    while (lastLeaf.lastLeaf_) {
+        lastLeaf = lastLeaf.lastLeaf_;
+    }
+    return lastLeaf;
+}
