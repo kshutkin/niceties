@@ -6,23 +6,23 @@ export const enum ItemStatus {
     inprogress
 }
 export interface ModelItem extends Partial<ListNode> {
-    inputId_?: number;
-    text_: string;
-    status_?: ItemStatus; // undefined means static
-    loglevel_: LogLevel;
-    ref_?: WeakRef<never>;
-    parentId_?: number;
-    dirty_?: boolean;
-    lastLeaf_?: ModelItem;
-    tag_?: string;
+    inputId?: number;
+    message: string;
+    status?: ItemStatus; // undefined means static
+    loglevel: LogLevel;
+    ref?: WeakRef<never>;
+    parentId?: number;
+    dirty?: boolean;
+    lastLeaf?: ModelItem;
+    tag?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context_?: any;
+    context?: any;
 }
 
 export type Model = List<ModelItem> & {
-    skipLines_: number;
-    tick_: number;
-    spinning_: number;
+    skipLines: number;
+    tick: number;
+    spinning: number;
 }
 
 export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage) => Model, () => Model] => {
@@ -35,31 +35,31 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
         } else {
             append(model, item);
         }
-        model.spinning_ += (item.status_ || 0);
+        model.spinning += (item.status || 0);
     };
 
     const updateModel = (inputId: number, options: ModelItem): void => {
         const modelItem = itemById[inputId];
         if (!modelItem) {
-            const item: ModelItem = {inputId_: inputId, ...options};
+            const item: ModelItem = {inputId: inputId, ...options};
             itemById[inputId] = item;
-            const itemParentId = item.parentId_;
+            const itemParentId = item.parentId;
             if (itemParentId != null) {
                 putIntoChildren(itemParentId, item, item);
             } else {
                 appendToModel(item, false);
             }
         } else {
-            const statusDiff = (options.status_ || 0) - (modelItem.status_ || 0);
-            const moveIntoParent = options.parentId_ != null && modelItem.parentId_ == null;
+            const statusDiff = (options.status || 0) - (modelItem.status || 0);
+            const moveIntoParent = options.parentId != null && modelItem.parentId == null;
             Object.assign(modelItem, options);
-            model.spinning_ += statusDiff;
+            model.spinning += statusDiff;
             if (moveIntoParent) {
                 const lastLeaf = getLastLeaf(modelItem);
-                model.spinning_ -= (modelItem.status_ || 0);
-                modelItem.dirty_ = true;
+                model.spinning -= (modelItem.status || 0);
+                modelItem.dirty = true;
                 removeRange(modelItem as ListNode, lastLeaf as ListNode);
-                putIntoChildren(modelItem.parentId_ as number, modelItem, lastLeaf);
+                putIntoChildren(modelItem.parentId as number, modelItem, lastLeaf);
             }
         }
     };
@@ -67,20 +67,20 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
     const putIntoChildren = (itemParentId: number, begin: ModelItem, end: ModelItem) => {
         let parent = itemById[itemParentId];
         if (!parent) {
-            parent = { inputId_: itemParentId, text_: '', loglevel_: 0, ref_: new WeakRef(model) as WeakRef<never> } as ModelItem;
+            parent = { inputId: itemParentId, message: '', loglevel: 0, ref: new WeakRef(model) as WeakRef<never> } as ModelItem;
             appendToModel(parent, false);
             itemById[itemParentId] = parent;
         }
         appendRange((getLastLeaf(parent)) as ListNode, begin as ListNode, end as ListNode);
-        parent.lastLeaf_ = begin;
-        model.spinning_ += (begin.status_ || 0);
+        parent.lastLeaf = begin;
+        model.spinning += (begin.status || 0);
     };
 
     const cleanupModel = () => {
         for (const item of model) {
-            if (!item.ref_?.deref()) {
-                model.skipLines_ += 1;
-                item.inputId_ != null && delete itemById[item.inputId_];
+            if (!item.ref?.deref()) {
+                model.skipLines += 1;
+                item.inputId != null && delete itemById[item.inputId];
                 remove(item);
             } else {
                 break;
@@ -88,20 +88,21 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
         }
     };
 
-    model.tick_ = model.skipLines_ = model.spinning_ = 0;
+    model.tick = model.skipLines = model.spinning = 0;
 
-    return [({ message: text, inputId, action, loglevel, ref, parentId, context, tag }: LogMessage): Model => {
+    return [({ action, ...item }: LogMessage & ModelItem) => {
         // item has status undefined, so it is static by default
-        const item: ModelItem = { text_: text, loglevel_: loglevel, ref_: ref, parentId_: parentId, dirty_: true, context_: context, tag_: tag };
+        item.dirty = true;
+        const { inputId } = item;
         if (action === Action.start) {
-            item.status_ = ItemStatus.inprogress;
+            item.status = ItemStatus.inprogress;
         }
         if (action === Action.finish) {
-            item.status_ = ItemStatus.finished;
+            item.status = ItemStatus.finished;
         }
         if (action !== Action.log) {
             // if status still empty in the original item or item does not exists it will remain empty and static
-            updateModel(inputId, item);
+            updateModel(inputId as number, item);
         }
         cleanupModel();
         if (action === Action.log) {
@@ -116,8 +117,8 @@ export const createModel = (logAboveSpinners: boolean): [(logMessage: LogMessage
 
 function getLastLeaf(modelItem: ModelItem) {
     let lastLeaf = modelItem;
-    while (lastLeaf.lastLeaf_) {
-        lastLeaf = lastLeaf.lastLeaf_;
+    while (lastLeaf.lastLeaf) {
+        lastLeaf = lastLeaf.lastLeaf;
     }
     return lastLeaf;
 }

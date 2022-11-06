@@ -28,30 +28,26 @@ export const createCanvas = (spinner: Spinner, formatter: Formatter, ident: numb
     };
 
     return (model: Model) => {
-        if (model.skipLines_) {
-            updaters.splice(0, model.skipLines_);
-            model.skipLines_ = 0;
+        if (model.skipLines) {
+            updaters.splice(0, model.skipLines);
+            model.skipLines = 0;
         }
         let key = 0, dirty = false;
         const stack: (ModelItem | null)[] = [];
         for (const item of model) {
-            let updater = updaters[Number(key)];
-            if (!updater) {
-                updater = console.draft(' ');
-                updaters.push(updater);
-            }
-            if (dirty || item.dirty_ || item.status_) {
-                const prefix = getPrefix(item.status_ as ItemStatus, model.tick_);
+            const updater = getNextUpdater();
+            if (dirty || item.dirty || item.status) {
+                const prefix = getPrefix(item.status as ItemStatus, model.tick);
                 updater(formatter({
-                    loglevel: item.loglevel_,
-                    message: item.text_,
-                    context: item.context_,
+                    loglevel: item.loglevel,
+                    message: item.message,
+                    context: item.context,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    action: (item.status_ === undefined ? Action.log : undefined) as unknown as any,
-                    tag: item.tag_
+                    action: (item.status === undefined ? Action.log : undefined) as unknown as any,
+                    tag: item.tag
                 }, prefix, ident * stack.length));
-                if (item.dirty_) {
-                    item.dirty_ = false;
+                if (item.dirty) {
+                    item.dirty = false;
                     dirty = true;
                 }
             }
@@ -60,12 +56,21 @@ export const createCanvas = (spinner: Spinner, formatter: Formatter, ident: numb
             if (stack[stack.length - 1] === item) {
                 stack[stack.length - 1] = null;
             }
-            if (item.lastLeaf_) {
-                stack.push(item.lastLeaf_);
+            if (item.lastLeaf) {
+                stack.push(item.lastLeaf);
             }
             while (stack.length && stack[stack.length - 1] == null) {
                 stack.pop();
             }
+        }
+
+        function getNextUpdater() {
+            let updater = updaters[Number(key)];
+            if (!updater) {
+                updater = console.draft(' ');
+                updaters.push(updater);
+            }
+            return updater;
         }
     };
 };

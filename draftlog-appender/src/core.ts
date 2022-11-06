@@ -10,7 +10,7 @@ export const createDraftlogAppender = (spinner: Spinner, formatter: Formatter, l
     const renderModel = createCanvas(spinner, formatter, ident);
 
     const checkTimeout = () => {
-        const spinning = getModel().spinning_;
+        const spinning = getModel().spinning;
         if (spinning && !interval) {
             interval = setInterval(updateSpinners, spinner.interval);
             interval.unref(); // unref immidiately just in case
@@ -22,8 +22,8 @@ export const createDraftlogAppender = (spinner: Spinner, formatter: Formatter, l
 
     const updateSpinners = () => {
         const model = getModel();
-        model.tick_++;
-        model.tick_ %= spinner.frames.length;
+        model.tick++;
+        model.tick %= spinner.frames.length;
         renderModel(model);
     };
 
