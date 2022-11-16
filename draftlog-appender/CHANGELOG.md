@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.9](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.8...@niceties/draftlog-appender-v1.2.9) (2022-11-16)
+
+
+### Bug Fixes
+
+* support mutliline strings ([3b329a1](https://github.com/kshutkin/niceties/commit/3b329a1ede3413ba7b60a2d09fce00f4e9bf8192))
+
 # [@niceties/draftlog-appender-v1.2.8](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.7...@niceties/draftlog-appender-v1.2.8) (2022-11-05)
 
 
