@@ -34,31 +34,31 @@ const logger4_1 = createLogger(logger3_1);
 const logger5_1 = createLogger(logger3_1);
 const logger6_1 = createLogger(logger3_1);
 
-logger4.start('I have parent missing');
-logger4_1.start('I have parent missing');
+logger4.start('I have parent missing1');
+logger4_1.start('I have parent missing2');
 
 await waitFor(500);
 
-logger5.update('I have parent missing');
-logger5_1.update('I have parent missing');
+logger5.update('I have parent missing3');
+logger5_1.update('I have parent missing4');
 
 await waitFor(500);
 
-logger6.start('I have parent missing');
-logger6_1.start('I have parent missing');
+logger6.start('I have parent missing5');
+logger6_1.start('I have parent missing6');
 
 await waitFor(500);
 
-logger2.start('I am the another missing parent');
-logger6.finish('I am finished with error', 3);
-logger6_1.finish('I am finished with error', 3);
-logger3.start('I am the missing parent');
-logger3_1.start('I am the missing parent');
+logger2.start('I am the another\nmissing parent1');
+logger6.finish('I am finished with error1', 3);
+logger6_1.finish('I am finished with error2', 3);
+logger3.start('I am the missing parent1');
+logger3_1.start('I am the missing parent2');
 
-logger4.start('I found the parent');
-logger4_1.start('I found the parent');
-logger5.start('I found the parent');
-logger5_1.start('I found the parent');
+logger4.start('I found the parent1');
+logger4_1.start('I found the parent2');
+logger5.start('I found the parent3');
+logger5_1.start('I found the parent4');
 
 await waitFor(500);
 
@@ -67,12 +67,12 @@ global.gc();
 await waitFor(500);
 
 logger2.finish('Job finished');
-logger3.finish('Ok');
-logger3_1.finish('Ok');
-logger4.finish('Ok !');
-logger4_1.finish('Ok !');
-logger5.finish('Kind of Ok !!', 2);
-logger5_1.finish('Kind of Ok !!', 2);
+logger3.finish('Ok1');
+logger3_1.finish('Ok2');
+logger4.finish('Ok1 !');
+logger4_1.finish('Ok2 !');
+logger5.finish('Kind of Ok1 !!', 2);
+logger5_1.finish('Kind of Ok2 !!', 2);
 
 await waitFor(500);
 

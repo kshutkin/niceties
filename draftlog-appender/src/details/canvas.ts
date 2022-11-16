@@ -28,24 +28,36 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         let key = 0, dirty = false;
         const stack: (ModelItem | null)[] = [];
         for (const item of model) {
-            const updater = getNextUpdater();
             if (dirty || item.dirty || item.status) {
-                const prefix = getPrefix(item.status as ItemStatus, model.tick);
-                updater(formatter({
-                    loglevel: item.loglevel,
-                    message: item.message,
-                    context: item.context,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    action: (item.status === undefined ? Action.log : undefined) as unknown as any,
-                    tag: item.tag
-                }, prefix, ident * stack.length));
+                let prefix = getPrefix(item.status as ItemStatus, model.tick), prefixUpdated = false;
+                const subitems = substrings(item.message);
+                for (const message of subitems) {
+                    let updater = updaters[key++];
+                    if (!updater) {
+                        updater = console.draft(' ');
+                        updaters.push(updater);
+                    }
+                    updater(formatter({
+                        loglevel: item.loglevel,
+                        message,
+                        context: item.context,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        action: (item.status === undefined ? Action.log : undefined) as unknown as any,
+                        tag: item.tag
+                    }, prefix, ident * stack.length));
+                    if (subitems.length > 1 && typeof prefix === 'string' && !prefixUpdated) {
+                        prefix = prefix.replaceAll(/./g, ' ');
+                        prefixUpdated = true;
+                    }
+                }
                 if (item.dirty) {
                     item.dirty = false;
                     dirty = true;
                 }
+            } else {
+                // iterate
+                key += substrings(item.message).length;
             }
-            // iterate
-            ++key;
             if (stack[stack.length - 1] === item) {
                 stack[stack.length - 1] = null;
             }
@@ -57,13 +69,8 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             }
         }
 
-        function getNextUpdater() {
-            let updater = updaters[Number(key)];
-            if (!updater) {
-                updater = console.draft(' ');
-                updaters.push(updater);
-            }
-            return updater;
+        while(key !== updaters.length) {
+            updaters[key++]('');
         }
     };
 
@@ -73,4 +80,9 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             // status not null when it is finished
             status != null;
     }
+}
+
+function substrings(message: string): string[] {
+    return message
+        .match(/.{1,80}/g) ?? [];
 }

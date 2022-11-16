@@ -127,6 +127,38 @@ describe('draftlog appender', () => {
         expect(consoleUpdateMock).toBeCalledWith('test1');
     });
 
+    it('multiline log', () => {
+        appender({loglevel: LogLevel.info, message: 'test1\n123', action: Action.log, inputId: 0, ref});
+
+        expect(consoleDraftMock).toBeCalledWith(' ');
+        expect(consoleDraftMock).toBeCalledTimes(2);
+        
+        expect(consoleUpdateMock).toBeCalledWith('test1');
+        expect(consoleUpdateMock).toBeCalledWith('123');
+    });
+
+    it('multiline spinner', () => {
+        appender({loglevel: LogLevel.info, message: 'test1\n123', action: Action.start, inputId: 0, ref});
+
+        expect(consoleDraftMock).toBeCalledWith(' ');
+        expect(consoleDraftMock).toBeCalledTimes(2);
+        
+        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('  123');
+    });
+
+    it('multiline clean excess lines', () => {
+        appender({loglevel: LogLevel.info, message: 'test1\n123', action: Action.start, inputId: 0, ref});
+        appender({loglevel: LogLevel.info, message: 'test1', action: Action.update, inputId: 0, ref});
+
+        expect(consoleDraftMock).toBeCalledWith(' ');
+        expect(consoleDraftMock).toBeCalledTimes(2);
+        
+        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('  123');
+        expect(consoleUpdateMock).toBeCalledWith('');
+    });
+
     it('gc test', async () => {
         appender({loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never>});
     
