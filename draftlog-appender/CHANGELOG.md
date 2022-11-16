@@ -1,5 +1,12 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.2.8](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.7...@niceties/draftlog-appender-v1.2.8) (2022-11-05)
+
+
+### Bug Fixes
+
+* inserting item in tree with 2+ levels of children ([c954d17](https://github.com/kshutkin/niceties/commit/c954d178098cb7b6a9bd839c19627a88e503af37))
+
 # [@niceties/draftlog-appender-v1.2.7](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.6...@niceties/draftlog-appender-v1.2.7) (2022-11-01)
 
 
