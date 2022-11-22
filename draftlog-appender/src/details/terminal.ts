@@ -9,6 +9,8 @@ process.stdout.on('resize', () => {
         const realListener = listener.deref();
         if (realListener) {
             realListener();
+        } else {
+            allColumnsListeners.delete(listener);
         }
     }
 });

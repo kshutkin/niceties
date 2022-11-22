@@ -26,19 +26,19 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
 
     subscribeToTerminalResize(() => {
         if (lastModel) {
-            modelFn(lastModel);
+            modelFn(lastModel, true);
         }
     });
 
     return modelFn;
 
-    function modelFn(model: Model) {
+    function modelFn(model: Model, dirty = false) {
         lastModel = model;
         if (model.skipLines) {
             updaters.splice(0, model.skipLines);
             model.skipLines = 0;
         }
-        let key = 0, dirty = false;
+        let key = 0;
         const stack: (ModelItem | null)[] = [];
         for (const item of model) {
             if (dirty || item.dirty || item.status) {
