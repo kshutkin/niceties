@@ -1,5 +1,19 @@
 Changelog
 
+# [@niceties/draftlog-appender-v1.3.0](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.9...@niceties/draftlog-appender-v1.3.0) (2022-11-22)
+
+
+### Bug Fixes
+
+* check that key strictly less than updaters length ([836afbc](https://github.com/kshutkin/niceties/commit/836afbcf9b45eb2b03b687eb9c5d655574ad7997))
+* treat model dirty when reacting to resize ([4a8d7cb](https://github.com/kshutkin/niceties/commit/4a8d7cbf0ec17d681796d28f0cefeb519b04f9ae))
+* use 80 symbols as default line length ([f7335a0](https://github.com/kshutkin/niceties/commit/f7335a09b65fb39f659b4301f6b38b5eba95ea5c))
+
+
+### Features
+
+* use stdout columns to split lines ([8c215d3](https://github.com/kshutkin/niceties/commit/8c215d3f43076630bd712406359ed02fb7ef8297))
+
 # [@niceties/draftlog-appender-v1.2.9](https://github.com/kshutkin/niceties/compare/@niceties/draftlog-appender-v1.2.8...@niceties/draftlog-appender-v1.2.9) (2022-11-16)
 
 
