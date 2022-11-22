@@ -7,7 +7,7 @@ export default function splitByLines(message: string): string[] {
 let substringsRegex: RegExp, substringsColumns: number;
 
 function getSubstringsRegex() {
-    const newColumns = process.stdout.columns;
+    const newColumns = process.stdout.columns || 80;
     if (substringsColumns !== newColumns) {
         substringsRegex = new RegExp(`.{1,${newColumns}}`, 'g');
         substringsColumns = newColumns;
