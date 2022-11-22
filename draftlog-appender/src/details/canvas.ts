@@ -1,10 +1,12 @@
 import draftlog from 'draftlog';
 
 import { Formatter } from '@niceties/logger/types';
-
-import { ItemStatus, Model, ModelItem } from './model';
-import { Spinner } from '../spinners';
 import { Action } from '@niceties/logger';
+
+import { Spinner } from '../spinners';
+import { ItemStatus, Model, ModelItem } from './model';
+import { subscribeToTerminalResize } from './terminal';
+import splitByLines from './split-by-lines';
 
 interface DraftlogConfig {
     defaults: {
@@ -20,7 +22,18 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updaters: Array<(message?: any, ...optionalParams: any[]) => void> = [];    
 
-    return (model: Model) => {
+    let lastModel: Model | undefined;
+
+    subscribeToTerminalResize(() => {
+        if (lastModel) {
+            modelFn(lastModel);
+        }
+    });
+
+    return modelFn;
+
+    function modelFn(model: Model) {
+        lastModel = model;
         if (model.skipLines) {
             updaters.splice(0, model.skipLines);
             model.skipLines = 0;
@@ -30,7 +43,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         for (const item of model) {
             if (dirty || item.dirty || item.status) {
                 let prefix = getPrefix(item.status as ItemStatus, model.tick), prefixUpdated = false;
-                const subitems = substrings(item.message);
+                const subitems = splitByLines(item.message);
                 for (const message of subitems) {
                     let updater = updaters[key++];
                     if (!updater) {
@@ -56,7 +69,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
                 }
             } else {
                 // iterate
-                key += substrings(item.message).length;
+                key += splitByLines(item.message).length;
             }
             if (stack[stack.length - 1] === item) {
                 stack[stack.length - 1] = null;
@@ -72,7 +85,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         while(key !== updaters.length) {
             updaters[key++]('');
         }
-    };
+    }
 
     function getPrefix(status: ItemStatus, tick: number): string | boolean {
         // status is truthy when it is inprogress
@@ -80,9 +93,4 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             // status not null when it is finished
             status != null;
     }
-}
-
-function substrings(message: string): string[] {
-    return message
-        .match(/.{1,80}/g) ?? [];
 }
