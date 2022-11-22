@@ -82,7 +82,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
             }
         }
 
-        while(key !== updaters.length) {
+        while(key < updaters.length) {
             updaters[key++]('');
         }
     }
