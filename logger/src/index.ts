@@ -9,7 +9,7 @@ import { filterMessages } from './appender-utils';
 // @endif */
 
 if (!appender()) {
-    // @ifdef esm
+    // @ifdef es
     const [
         { asciiPrefixes, colors, unicodePrefixes, tagFactory },
         { createConsoleAppender },
