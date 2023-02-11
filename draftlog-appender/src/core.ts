@@ -17,7 +17,7 @@ export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, l
     function checkTimeout() {
         const spinning = getModel().spinning;
         if (spinning && !interval) {
-            interval = setInterval(updateSpinners, spinner.interval);
+            interval = setInterval(updateSpinners, spinner.interval) as unknown as NodeJS.Timer;
             interval.unref(); // unref immidiately just in case
         } else if (!spinning && interval) {
             clearInterval(interval);
