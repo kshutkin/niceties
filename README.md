@@ -1,5 +1,7 @@
 # niceties
 
+Some nice but not mandatory things for nodejs and web development
+
 ## Packages
 
 - [@niceties/logger](./logger/README.md) - logger for async tasks
