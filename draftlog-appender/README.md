@@ -58,4 +58,4 @@ Subpackage `'@niceties/draftlog-appender/spinners'` exports spinners definitions
 
 # License
 
-[MIT](./LICENSE)
+[MIT](https://github.com/kshutkin/niceties/blob/main/LICENSE)

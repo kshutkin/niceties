@@ -246,4 +246,4 @@ Subpackage `'@niceties/logger/appender-utils'` exports `combineAppenders()` and 
 
 # License
 
-[MIT](./LICENSE)
+[MIT](https://github.com/kshutkin/niceties/blob/main/LICENSE)
