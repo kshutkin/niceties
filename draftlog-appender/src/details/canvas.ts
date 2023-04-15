@@ -83,13 +83,14 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         }
 
         while(key < updaters.length) {
-            updaters[key++]('');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (updaters[key++] as (message?: any, ...optionalParams: any[]) => void)('');
         }
     }
 
     function getPrefix(status: ItemStatus, tick: number): string | boolean {
         // status is truthy when it is inprogress
-        return status ? spinner.frames[tick] :
+        return status ? spinner.frames[tick] as string | boolean :
             // status not null when it is finished
             status != null;
     }

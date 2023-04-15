@@ -11,7 +11,7 @@ importers:
       '@typescript-eslint/parser': ^5.57.1
       eslint: ^8.37.0
       jest: ^29.5.0
-      pkgbld-internal: ~1.0.23
+      pkgbld-internal: ~1.0.25
       ts-jest: ^29.1.0
     devDependencies:
       '@changesets/cli': 2.26.1
@@ -21,7 +21,7 @@ importers:
       '@typescript-eslint/parser': 5.57.1_vwh6htx42aidho2qgfca5u5rwm
       eslint: 8.37.0
       jest: 29.5.0_@types+node@15.14.9
-      pkgbld-internal: 1.0.23
+      pkgbld-internal: 1.0.25
       ts-jest: 29.1.0_yzeaoa6pmnniln6lx235suykoq
 
   draftlog-appender:
@@ -3659,8 +3659,8 @@ packages:
       find-up: 5.0.0
     dev: true
 
-  /pkgbld-internal/1.0.23:
-    resolution: {integrity: sha512-Z9AtoudDbtTZGREOAvnvJ5zFVZMFl/iSX68xCP9UnOpOyX+/5sO0VUwwmgytk2qOyLoOsm1LfOWoeXYJMGe+mQ==}
+  /pkgbld-internal/1.0.25:
+    resolution: {integrity: sha512-MpSPGbI+PByUmgtZpSrX8w3Qi84D3gnYLwuqHsx7WerSCYpOKg1T8s07WbzQh9COkpeBpyaWb/3qA+3yHPTS0g==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
