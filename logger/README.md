@@ -6,7 +6,7 @@ Logger that can handle async tasks.
 
 - Provides API for reporting async events that can be later handled by custom appender.
 
-- Provides default appender that uses console for output.
+- Provides a default appender that uses console for output.
 
 - Modular and configurable
 
@@ -18,7 +18,7 @@ Logger that can handle async tasks.
 npm install --save @niceties/logger
 ```
 
-### [Changlelog](./CHANGELOG.md)
+### [Changelog](./CHANGELOG.md)
 
 # Example
 
@@ -90,26 +90,26 @@ try {
 start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits start event inside a logger. If loglevel provided it will be remembered and used as default loglevel in subsequent events in the same logger instance. Default loglevel (if argument is not provided) is `info`.
+Emits a start event inside a logger. If loglevel provided it will be remembered and used as default loglevel in subsequent events in the same logger instance. Default loglevel (if argument is not provided) is `info`.
 
 ```typescript
 update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits update event. Can be used to inform user that we are doing something else in the same async task. loglevel used to redefine default loglevel.
+Emits update event. Can be used to inform an user that we are doing something else in the same async task. loglevel used to redefine default loglevel.
 
 ```typescript
 finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits finish event. Can be used to inform user that task finished. loglevel is optional and equals initial loglevel if omitted.
+Emits finish event. Can be used to inform an user that the task finished. loglevel is optional and equals initial loglevel if omitted.
 
 ```typescript
 const logger = createLogger();
 logger.appender(someFancyAppender);
 ```
 
-Sets different appender for the specific instance of the logger.
+Sets a different appender for the specific instance of the logger.
 
 ```typescript
 const logger = createLogger();
@@ -169,7 +169,7 @@ type LogMessage<ErrorContext = Error> = {
 };
 ```
 
-Same appender function without arguments can be used to get current appender.
+Same appender function without arguments can be used to get the current appender.
 
 # FAQ
 
@@ -220,7 +220,7 @@ function setLoglevel(loglevel) {
 
 Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory and `appender()` function.
 
-Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that is part of default configuration of the console appender.
+Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that are part of default configuration of the console appender.
 
 Subpackage `'@niceties/logger/core'` exports `createLogger()` factory.
 
@@ -234,7 +234,7 @@ Subpackage `'@niceties/logger/global-appender'` exports `appender()` and `global
 
 Subpackage `'@niceties/logger/appender-utils'` exports `combineAppenders()` and `filterMessages()`.
 
-`simple` (default), `core` and `console-appender` exists as umd packages as well but probably require some effort to consume them.
+`simple` (default), `core` and `console-appender` exist as umd packages as well but probably require some effort to consume them.
 
 # Prior art
 

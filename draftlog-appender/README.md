@@ -15,7 +15,7 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 ![Example](./example.gif "In terminal")
 ![Example](./cmdexe.gif "In windows terminal")
 
-### [Changlelog](./CHANGELOG.md)
+### [Changelog](./CHANGELOG.md)
 
 # Installation
 
@@ -39,7 +39,7 @@ To install appender use next import:
 import "@niceties/draftlog-appender";
 ```
 
-It is better to do it before other imports so default appender in `'@niceites/logger'` not installed.
+It is better to do it before other imports so the default appender in `'@niceites/logger'` is not installed.
 
 ## Subpackages
 
