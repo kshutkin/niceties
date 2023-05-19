@@ -29,13 +29,13 @@ importers:
       '@niceties/logger': workspace:*
       '@slimlib/list': ^1.0.3
       draftlog: ^1.0.13
-      tslib: 2.5.0
+      tslib: 2.5.2
     dependencies:
       '@slimlib/list': 1.0.7
       draftlog: 1.0.13
     devDependencies:
       '@niceties/logger': link:../logger
-      tslib: 2.5.0
+      tslib: 2.5.2
 
   examples:
     specifiers:
@@ -3886,7 +3886,7 @@ packages:
       fs-extra: 10.1.0
       rollup: 3.17.2
       semver: 7.3.8
-      tslib: 2.5.0
+      tslib: 2.5.2
       typescript: 5.0.3
     dev: true
 
@@ -4269,8 +4269,8 @@ packages:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
     dev: true
 
-  /tslib/2.5.0:
-    resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
+  /tslib/2.5.2:
+    resolution: {integrity: sha512-5svOrSA2w3iGFDs1HibEVBGbDrAY82bFQ3HZ3ixB+88nsbsWQoKqDRb5UBYAUPEzbBn6dAp5gRNXglySbx1MlA==}
     dev: true
 
   /tsutils/3.21.0_typescript@5.0.3:
