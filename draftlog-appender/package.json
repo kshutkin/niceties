@@ -54,8 +54,7 @@
     "lint": "eslint ./src"
   },
   "devDependencies": {
-    "@niceties/logger": "workspace:*",
-    "tslib": "2.5.0"
+    "@niceties/logger": "workspace:*"
   },
   "peerDependencies": {
     "@niceties/logger": "workspace:^"
