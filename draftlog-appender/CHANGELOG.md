@@ -1,5 +1,13 @@
 Changelog
 
+## 1.3.2
+
+### Patch Changes
+
+- fd810ed: Updated readme files
+- Updated dependencies [fd810ed]
+  - @niceties/logger@1.1.12
+
 ## 1.3.1
 
 ### Patch Changes
