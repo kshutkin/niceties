@@ -216,23 +216,23 @@ function setLoglevel(loglevel) {
 }
 ```
 
-# Subpackages
+# Sub-packages
 
-Default subpackage `'@niceties/logger'` exports types, `createLogger()` factory and `appender()` function.
+Default sub-package `'@niceties/logger'` exports types, `createLogger()` factory and `appender()` function.
 
-Subpackage `'@niceties/logger/default-formatting'` exports formatting constants that are part of default configuration of the console appender.
+Sub-package `'@niceties/logger/default-formatting'` exports formatting constants that are part of default configuration of the console appender.
 
-Subpackage `'@niceties/logger/core'` exports `createLogger()` factory.
+Sub-package `'@niceties/logger/core'` exports `createLogger()` factory.
 
-Subpackage `'@niceties/logger/simple'` exports `createLogger()` factory.
+Sub-package `'@niceties/logger/simple'` exports `createLogger()` factory.
 
-Subpackage `'@niceties/logger/console-appender'` exports `createConsoleAppender()` factory.
+Sub-package `'@niceties/logger/console-appender'` exports `createConsoleAppender()` factory.
 
-Subpackage `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
+Sub-package `'@niceties/logger/format-utils'` exports `createFormatter()` and `terminalSupportsUnicode()` functions.
 
-Subpackage `'@niceties/logger/global-appender'` exports `appender()` and `globalAppender`.
+Sub-package `'@niceties/logger/global-appender'` exports `appender()` and `globalAppender`.
 
-Subpackage `'@niceties/logger/appender-utils'` exports `combineAppenders()` and `filterMessages()`.
+Sub-package `'@niceties/logger/appender-utils'` exports `combineAppenders()` and `filterMessages()`.
 
 `simple` (default), `core` and `console-appender` exist as umd packages as well but probably require some effort to consume them.
 

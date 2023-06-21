@@ -41,13 +41,13 @@ import "@niceties/draftlog-appender";
 
 It is better to do it before other imports so the default appender in `'@niceites/logger'` is not installed.
 
-## Subpackages
+## Sub-packages
 
-Default subpackage `'@niceties/draftlog-appender'` exports nothing.
+Default sub-package `'@niceties/draftlog-appender'` exports nothing.
 
-Subpackage `'@niceties/draftlog-appender/core'` exports `createDraftlogAppender()` factory.
+Sub-package `'@niceties/draftlog-appender/core'` exports `createDraftlogAppender()` factory.
 
-Subpackage `'@niceties/draftlog-appender/spinners'` exports spinners definitions used in default config.
+Sub-package `'@niceties/draftlog-appender/spinners'` exports spinners definitions used in default config.
 
 ## Prior art
 
