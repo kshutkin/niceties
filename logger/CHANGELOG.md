@@ -1,5 +1,11 @@
 Changelog
 
+## 1.1.12
+
+### Patch Changes
+
+- fd810ed: Updated readme files
+
 ## 1.1.11
 
 ### Patch Changes
