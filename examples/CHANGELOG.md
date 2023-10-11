@@ -1,5 +1,13 @@
 # examples
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [81ca510]
+  - @niceties/draftlog-appender@1.3.3
+  - @niceties/logger@1.1.13
+
 ## 1.0.2
 
 ### Patch Changes

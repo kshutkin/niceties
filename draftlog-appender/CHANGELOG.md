@@ -1,5 +1,13 @@
 Changelog
 
+## 1.3.3
+
+### Patch Changes
+
+- 81ca510: update package.json with newer subpath exports approach
+- Updated dependencies [81ca510]
+  - @niceties/logger@1.1.13
+
 ## 1.3.2
 
 ### Patch Changes

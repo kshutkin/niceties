@@ -1,5 +1,11 @@
 Changelog
 
+## 1.1.13
+
+### Patch Changes
+
+- 81ca510: update package.json with newer subpath exports approach
+
 ## 1.1.12
 
 ### Patch Changes
