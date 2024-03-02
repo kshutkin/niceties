@@ -40,7 +40,7 @@ importers:
     dependencies:
       '@slimlib/list':
         specifier: ^1.0.3
-        version: 1.0.7
+        version: 1.0.10
       draftlog:
         specifier: ^1.0.13
         version: 1.0.13
@@ -1152,8 +1152,8 @@ packages:
       '@sinonjs/commons': 3.0.1
     dev: true
 
-  /@slimlib/list@1.0.7:
-    resolution: {integrity: sha512-gBv6FU1TZCSZGDkD6oX7aZE5DknzwQK8AaNQkS1I2fWNwZHTjeZDFt5jhaFbLnkusF675THjQ5LQm+UvYeFhGQ==}
+  /@slimlib/list@1.0.10:
+    resolution: {integrity: sha512-RY+o8ywbIcatp6jMZ/HSQYcMZ/Ezv/rQzKY6Un0n37KHct00REXXdH14zrXvBb1PF/BT6SHVle9TcJDHTQBfbw==}
     dev: false
 
   /@types/babel__core@7.20.5:
