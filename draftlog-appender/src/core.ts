@@ -4,7 +4,7 @@ import { createModel } from './details/model';
 import { Spinner } from './spinners';
 
 export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
-    let interval: NodeJS.Timer | undefined;
+    let interval: NodeJS.Timeout | undefined;
 
     const [updateModel, getModel] = createModel(logAboveSpinners);
     const renderModel = createCanvas(spinner, formatter, ident);
@@ -17,8 +17,8 @@ export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, l
     function checkTimeout() {
         const spinning = getModel().spinning;
         if (spinning && !interval) {
-            interval = setInterval(updateSpinners, spinner.interval) as unknown as NodeJS.Timer;
-            interval.unref(); // unref immidiately just in case
+            interval = setInterval(updateSpinners, spinner.interval);
+            interval.unref(); // unref immediately just in case
         } else if (!spinning && interval) {
             clearInterval(interval);
             interval = undefined;

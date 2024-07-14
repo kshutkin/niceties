@@ -8,14 +8,17 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
     },
     "./core": {
+      "types": "./dist/core.d.ts",
       "require": "./dist/core.cjs",
       "default": "./dist/core.mjs"
     },
     "./spinners": {
+      "types": "./dist/spinners.d.ts",
       "require": "./dist/spinners.cjs",
       "default": "./dist/spinners.mjs"
     },
@@ -23,7 +26,6 @@
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "typings": "./dist/index.d.ts",
   "files": [
     "dist",
     "core",
@@ -51,7 +53,8 @@
   "scripts": {
     "build": "pkgbld-internal",
     "test": "node --expose-gc ../node_modules/jest/bin/jest.js --collectCoverage",
-    "lint": "eslint ./src"
+    "lint": "eslint ./src",
+    "prepack": "pkgbld-internal prune"
   },
   "devDependencies": {
     "@niceties/logger": "workspace:*"
@@ -62,5 +65,23 @@
   "dependencies": {
     "draftlog": "^1.0.13",
     "@slimlib/list": "^1.0.3"
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "dist/index.d.ts"
+      ],
+      "./core": [
+        "dist/core.d.ts"
+      ],
+      "./spinners": [
+        "dist/spinners.d.ts"
+      ],
+      "*": [
+        "dist/index.d.ts",
+        "dist/*"
+      ]
+    }
   }
 }
