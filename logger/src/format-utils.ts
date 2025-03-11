@@ -1,12 +1,12 @@
 import { Action, LogLevel } from '.';
-import { ColorFormatters, LogMessage, Prefixes } from './types';
+import type { ColorFormatters, LogMessage, Prefixes } from './types';
 
 export const createFormatter = (colors: ColorFormatters, prefixes: Prefixes, tagFactory: (tag: string) => string) => {
-    return ({ loglevel, message, context, action, tag }: LogMessage, usePrefix?: string | boolean, identation = 0): string => {
+    return ({ loglevel, message, context, action, tag }: LogMessage, usePrefix?: string | boolean, indentation = 0): string => {
         const prefix = usePrefix === true ? (`${prefixes[loglevel]} `) : (typeof usePrefix === 'string' ? (`${usePrefix} `) : '');
         const color = colors[loglevel];
-        const text = `${prefix}${loglevel === LogLevel.verbose && action === Action.log && tag !== undefined ? tagFactory(tag) + ' ' : ''}${message}${context != null? ' ' + context : ''}`;
-        return `${' '.repeat(identation)}${color ? color(text) : text}`;
+        const text = `${prefix}${loglevel === LogLevel.verbose && action === Action.log && tag !== undefined ? `${tagFactory(tag)} ` : ''}${message}${context != null? ` ${context}` : ''}`;
+        return `${' '.repeat(indentation)}${color ? color(text) : text}`;
     };
 };
 

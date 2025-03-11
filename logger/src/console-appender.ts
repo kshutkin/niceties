@@ -1,4 +1,4 @@
-import { Action, Formatter, LogMessage } from './types';
+import { Action, type Formatter, type LogMessage } from './types';
 
 export const createConsoleAppender = (formatter: Formatter) => {
     return (message: LogMessage) => {

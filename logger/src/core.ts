@@ -1,10 +1,11 @@
 import { globalAppender } from './global-appender';
-import { Action, Appender, LogLevel, LogMessage, Identity } from './types';
+import { Action, type Appender, LogLevel, type LogMessage, type Identity } from './types';
 
 let globalInputId = 0;
 
 const getOptions = (options: [] | [string | Identity | undefined] | [string, Identity]): { tag?: string, parentId?: number } => {
-    let parentId, tag;
+    // biome-ignore lint/style/useSingleVarDeclarator: no need to split
+    let parentId: number | undefined, tag: string | undefined;
     if (options.length === 1) {
         if (typeof options[0] === 'string') {
             tag = options[0];
@@ -21,14 +22,14 @@ const getOptions = (options: [] | [string | Identity | undefined] | [string, Ide
 export const createLogger = <ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]) => {
     let initialLogLevel: number = LogLevel.info;
 
-    let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender && globalAppender(message); };
+    let myAppender = (message: LogMessage<ErrorContext>) => { globalAppender?.(message); };
     
     const inputId = globalInputId++;
     
     const { tag, parentId } = getOptions(args);
     
     const append = (message: string, action: Action, loglevel: LogLevel, context?: ErrorContext) => {
-        myAppender && myAppender({
+        myAppender?.({
             action,
             inputId,
             message,

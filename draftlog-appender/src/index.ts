@@ -4,7 +4,7 @@ import { terminalSupportsUnicode, createFormatter } from '@niceties/logger/forma
 import { colors, unicodePrefixes, asciiPrefixes, tagFactory } from '@niceties/logger/default-formatting';
 import { createDraftlogAppender } from './core';
 import { dots, line } from './spinners';
-import { LogLevel, LogMessage } from '@niceties/logger';
+import { LogLevel, type LogMessage } from '@niceties/logger';
 
 if (!process.env.CI) {
     const supportsUnicode = terminalSupportsUnicode();

@@ -1,6 +1,6 @@
 import { createLogger } from './core';
 import { appender } from './global-appender';
-import { LogLevel, LogMessage } from './types';
+import { LogLevel, type LogMessage } from './types';
 /* @ifdef umd
 import { asciiPrefixes, colors, unicodePrefixes, tagFactory } from './default-formatting';
 import { createConsoleAppender } from './console-appender';

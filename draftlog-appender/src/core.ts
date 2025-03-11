@@ -1,7 +1,7 @@
-import { Formatter, LogMessage } from '@niceties/logger/types';
+import type { Formatter, LogMessage } from '@niceties/logger/types';
 import { createCanvas } from './details/canvas';
 import { createModel } from './details/model';
-import { Spinner } from './spinners';
+import type { Spinner } from './spinners';
 
 export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
     let interval: NodeJS.Timeout | undefined;

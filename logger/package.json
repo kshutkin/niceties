@@ -3,47 +3,54 @@
   "license": "MIT",
   "name": "@niceties/logger",
   "author": "Konstantin Shutkin",
-  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "default": "./dist/index.cjs"
     },
     "./default-formatting": {
       "types": "./dist/default-formatting.d.ts",
+      "import": "./dist/default-formatting.mjs",
       "require": "./dist/default-formatting.cjs",
-      "default": "./dist/default-formatting.mjs"
+      "default": "./dist/default-formatting.cjs"
     },
     "./core": {
       "types": "./dist/core.d.ts",
+      "import": "./dist/core.mjs",
       "require": "./dist/core.cjs",
-      "default": "./dist/core.mjs"
+      "default": "./dist/core.cjs"
     },
     "./simple": {
       "types": "./dist/simple.d.ts",
+      "import": "./dist/simple.mjs",
       "require": "./dist/simple.cjs",
-      "default": "./dist/simple.mjs"
+      "default": "./dist/simple.cjs"
     },
     "./console-appender": {
       "types": "./dist/console-appender.d.ts",
+      "import": "./dist/console-appender.mjs",
       "require": "./dist/console-appender.cjs",
-      "default": "./dist/console-appender.mjs"
+      "default": "./dist/console-appender.cjs"
     },
     "./format-utils": {
       "types": "./dist/format-utils.d.ts",
+      "import": "./dist/format-utils.mjs",
       "require": "./dist/format-utils.cjs",
-      "default": "./dist/format-utils.mjs"
+      "default": "./dist/format-utils.cjs"
     },
     "./global-appender": {
       "types": "./dist/global-appender.d.ts",
+      "import": "./dist/global-appender.mjs",
       "require": "./dist/global-appender.cjs",
-      "default": "./dist/global-appender.mjs"
+      "default": "./dist/global-appender.cjs"
     },
     "./appender-utils": {
       "types": "./dist/appender-utils.d.ts",
+      "import": "./dist/appender-utils.mjs",
       "require": "./dist/appender-utils.cjs",
-      "default": "./dist/appender-utils.mjs"
+      "default": "./dist/appender-utils.cjs"
     },
     "./package.json": "./package.json"
   },

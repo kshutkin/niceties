@@ -1,7 +1,7 @@
-import { Appender, LogMessage } from './types';
+import type { Appender, LogMessage } from './types';
 
 export const filterMessages = <ErrorContext = Error, Api extends object = object>(predicate: (logMessage: LogMessage<ErrorContext>) => boolean, appender: Appender<ErrorContext>, api?: Api): Appender<ErrorContext> & Api => {
-    return Object.assign(function(logMessage: LogMessage<ErrorContext>) {
+    return Object.assign((logMessage: LogMessage<ErrorContext>) => {
         if (predicate(logMessage)) {
             appender(logMessage);
         }

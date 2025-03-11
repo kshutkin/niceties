@@ -1,6 +1,8 @@
-import { Action, LogLevel, LogMessage } from '@niceties/logger/types';
-import { append, appendRange, List, ListNode, prepend, remove, removeRange } from '@slimlib/list';
+import { Action, type LogLevel, type LogMessage } from '@niceties/logger/types';
+import { append, appendRange, List, type ListNode, prepend, remove, removeRange } from '@slimlib/list';
 
+// biome-ignore lint/suspicious/noConstEnum: internal
+// biome-ignore lint/style/useEnumInitializers: internal
 export const enum ItemStatus {
     finished,
     inprogress
