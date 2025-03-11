@@ -1,4 +1,4 @@
-import { Appender } from './types';
+import type { Appender } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export let globalAppender: Appender<any>;

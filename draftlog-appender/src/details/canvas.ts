@@ -1,10 +1,10 @@
 import draftlog from 'draftlog';
 
-import { Formatter } from '@niceties/logger/types';
+import type { Formatter } from '@niceties/logger/types';
 import { Action } from '@niceties/logger';
 
-import { Spinner } from '../spinners';
-import { ItemStatus, Model, ModelItem } from './model';
+import type { Spinner } from '../spinners';
+import type { ItemStatus, Model, ModelItem } from './model';
 import { subscribeToTerminalResize } from './terminal';
 import splitByLines from './split-by-lines';
 
