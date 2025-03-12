@@ -1,3 +1,5 @@
+[![.github/workflows/main.yml](https://github.com/kshutkin/niceties/actions/workflows/main.yml/badge.svg)](https://github.com/kshutkin/niceties/actions/workflows/main.yml)
+
 # niceties
 
 Some nice but not mandatory things for nodejs and web development
