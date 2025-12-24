@@ -2,10 +2,9 @@ import { Action, type LogLevel, type LogMessage } from '@niceties/logger/types';
 import { append, appendRange, List, type ListNode, prepend, remove, removeRange } from '@slimlib/list';
 
 // biome-ignore lint/suspicious/noConstEnum: internal
-// biome-ignore lint/style/useEnumInitializers: internal
 export const enum ItemStatus {
     finished,
-    inprogress
+    inprogress,
 }
 export interface ModelItem extends Partial<ListNode> {
     inputId?: number;
@@ -17,7 +16,6 @@ export interface ModelItem extends Partial<ListNode> {
     dirty?: boolean;
     lastLeaf?: ModelItem;
     tag?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any;
 }
 
@@ -25,37 +23,40 @@ export type Model = List<ModelItem> & {
     skipLines: number;
     tick: number;
     spinning: number;
-}
+};
 
 export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage) => Model, () => Model] {
     const model: Model = new List<ModelItem>() as Model;
-    const itemById: { [key: number]: ModelItem; } = Object.create(null);
+    const itemById: { [key: number]: ModelItem } = Object.create(null);
 
     model.tick = model.skipLines = model.spinning = 0;
 
-    return [({ action, ...item }: LogMessage & ModelItem) => {
-        // item has status undefined, so it is static by default
-        item.dirty = true;
-        const { inputId } = item;
-        if (action === Action.start) {
-            item.status = ItemStatus.inprogress;
-        }
-        if (action === Action.finish) {
-            item.status = ItemStatus.finished;
-        }
-        if (action !== Action.log) {
-            // if status still empty in the original item or item does not exists it will remain empty and static
-            updateModel(inputId as number, item);
-        }
-        cleanupModel();
-        if (action === Action.log) {
-            appendToModel(item, logAboveSpinners);
-        }
-        return model;
-    }, () => {
-        cleanupModel();
-        return model;
-    }];
+    return [
+        ({ action, ...item }: LogMessage & ModelItem) => {
+            // item has status undefined, so it is static by default
+            item.dirty = true;
+            const { inputId } = item;
+            if (action === Action.start) {
+                item.status = ItemStatus.inprogress;
+            }
+            if (action === Action.finish) {
+                item.status = ItemStatus.finished;
+            }
+            if (action !== Action.log) {
+                // if status still empty in the original item or item does not exists it will remain empty and static
+                updateModel(inputId as number, item);
+            }
+            cleanupModel();
+            if (action === Action.log) {
+                appendToModel(item, logAboveSpinners);
+            }
+            return model;
+        },
+        () => {
+            cleanupModel();
+            return model;
+        },
+    ];
 
     function appendToModel(item: ModelItem, head: boolean) {
         if (head) {
@@ -63,7 +64,7 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
         } else {
             append(model, item);
         }
-        model.spinning += (item.status || 0);
+        model.spinning += item.status || 0;
     }
 
     function updateModel(inputId: number, options: ModelItem): void {
@@ -84,7 +85,7 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
             model.spinning += statusDiff;
             if (moveIntoParent) {
                 const lastLeaf = getLastLeaf(modelItem);
-                model.spinning -= (modelItem.status || 0);
+                model.spinning -= modelItem.status || 0;
                 modelItem.dirty = true;
                 removeRange(modelItem as ListNode, lastLeaf as ListNode);
                 putIntoChildren(modelItem.parentId as number, modelItem, lastLeaf);
@@ -99,9 +100,9 @@ export function createModel(logAboveSpinners: boolean): [(logMessage: LogMessage
             appendToModel(parent, false);
             itemById[itemParentId] = parent;
         }
-        appendRange((getLastLeaf(parent)) as ListNode, begin as ListNode, end as ListNode);
+        appendRange(getLastLeaf(parent) as ListNode, begin as ListNode, end as ListNode);
         parent.lastLeaf = begin;
-        model.spinning += (begin.status || 0);
+        model.spinning += begin.status || 0;
     }
 
     function cleanupModel() {

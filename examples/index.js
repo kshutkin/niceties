@@ -1,8 +1,8 @@
-require("@niceties/draftlog-appender");
-const { createLogger } = require("@niceties/logger");
-const kleur = require("kleur");
+require('@niceties/draftlog-appender');
+const { createLogger } = require('@niceties/logger');
+const kleur = require('kleur');
 
-const waitFor = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const waitFor = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 const logger2 = createLogger();
 const logger3 = createLogger(logger2);

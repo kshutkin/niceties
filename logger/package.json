@@ -8,7 +8,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "default": "./dist/index.cjs"
+      "default": "./dist/index.mjs"
     },
     "./default-formatting": {
       "types": "./dist/default-formatting.d.ts",
@@ -52,21 +52,19 @@
       "require": "./dist/appender-utils.cjs",
       "default": "./dist/appender-utils.cjs"
     },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.mjs",
+      "require": "./dist/types.cjs",
+      "default": "./dist/types.cjs"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "unpkg": "./dist/simple.umd.js",
   "files": [
-    "dist",
-    "default-formatting",
-    "core",
-    "console-appender",
-    "global-appender",
-    "appender-utils",
-    "format-utils",
-    "types",
-    "simple"
+    "dist"
   ],
   "engines": {
     "node": ">=15"
@@ -87,9 +85,8 @@
     "simple-logger"
   ],
   "scripts": {
-    "build": "pkgbld-internal --umd=core,simple,console-appender,global-appender,appender-utils --preprocess=index",
+    "build": "pkgbld-internal --formats=esm --no-subpackages",
     "test": "jest --collectCoverage",
-    "lint": "eslint ./src",
     "prepack": "pkgbld-internal prune"
   },
   "dependencies": {
@@ -121,6 +118,9 @@
       ],
       "./appender-utils": [
         "dist/appender-utils.d.ts"
+      ],
+      "./types": [
+        "dist/types.d.ts"
       ],
       "*": [
         "dist/index.d.ts",

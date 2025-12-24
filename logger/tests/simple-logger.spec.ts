@@ -1,7 +1,7 @@
 import { filterMessages } from '../src/appender-utils';
 import { appender } from '../src/global-appender';
 import { createLogger } from '../src/simple';
-import { Action, Appender, LogLevel } from '../src/types';
+import { Action, type Appender, LogLevel } from '../src/types';
 
 describe('simple logger api tests', () => {
     it('set/get appender', () => {
@@ -24,7 +24,7 @@ describe('simple logger api tests', () => {
             expect.objectContaining({
                 action: Action.log,
                 tag: undefined,
-                message: 'test message'
+                message: 'test message',
             })
         );
     });
@@ -37,7 +37,7 @@ describe('simple logger api tests', () => {
             expect.objectContaining({
                 action: Action.log,
                 tag: 'a tag',
-                message: 'test message'
+                message: 'test message',
             })
         );
     });
@@ -50,7 +50,7 @@ describe('simple logger api tests', () => {
             expect.objectContaining({
                 action: Action.log,
                 message: 'test message',
-                loglevel: LogLevel.error
+                loglevel: LogLevel.error,
             })
         );
     });
@@ -59,14 +59,13 @@ describe('simple logger api tests', () => {
         const appenderMock = jest.fn();
         appender(appenderMock);
         const context = {};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createLogger()('test message', LogLevel.error, context as any);
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
                 message: 'test message',
                 loglevel: LogLevel.error,
-                context
+                context,
             })
         );
     });
@@ -80,7 +79,7 @@ describe('simple logger api tests', () => {
             expect.objectContaining({
                 action: Action.log,
                 loglevel: LogLevel.info,
-                message: 'test message'
+                message: 'test message',
             })
         );
         expect(logger.appender()).toBe(appenderMock);
@@ -90,29 +89,29 @@ describe('simple logger api tests', () => {
         const appenderMock = jest.fn();
         const logger = createLogger();
         let filter = false;
-        logger.appender(filterMessages<Error, { setFilter(value: boolean): void; }>(
-            () => filter,
-            appenderMock, // eslint-disable-line indent
-            { setFilter(value: boolean) { filter = value; } } // eslint-disable-line indent
-        ));
+        logger.appender(
+            filterMessages<Error, { setFilter(value: boolean): void }>(() => filter, appenderMock, {
+                setFilter(value: boolean) {
+                    filter = value;
+                },
+            })
+        );
         logger('test message');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (logger.appender() as any).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
                 loglevel: LogLevel.info,
-                message: 'test message'
+                message: 'test message',
             })
         );
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
                 loglevel: LogLevel.info,
-                message: 'another test message'
+                message: 'another test message',
             })
         );
     });
-
 });

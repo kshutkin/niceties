@@ -1,17 +1,17 @@
 {
-  "name": "examples",
-  "version": "1.0.3",
-  "description": "Examples for @liceties/logger and basic integration tests",
-  "main": "index.js",
-  "scripts": {
-    "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs  && node --expose-gc ./index.js"
-  },
-  "author": "Konstantin Shutkin",
-  "license": "MIT",
-  "private": "true",
-  "dependencies": {
-    "@niceties/logger": "workspace:*",
-    "@niceties/draftlog-appender": "workspace:*",
-    "kleur": "^4.1.4"
-  }
+    "name": "examples",
+    "version": "1.0.3",
+    "description": "Examples for @liceties/logger and basic integration tests",
+    "main": "index.js",
+    "scripts": {
+        "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs  && node --expose-gc ./index.js"
+    },
+    "author": "Konstantin Shutkin",
+    "license": "MIT",
+    "private": "true",
+    "dependencies": {
+        "@niceties/logger": "workspace:*",
+        "@niceties/draftlog-appender": "workspace:*",
+        "kleur": "^4.1.4"
+    }
 }

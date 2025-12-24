@@ -1,5 +1,0 @@
-{
-  "type": "module",
-  "types": "../dist/spinners.d.ts",
-  "main": "../dist/spinners.mjs"
-}

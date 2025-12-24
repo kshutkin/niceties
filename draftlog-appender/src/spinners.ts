@@ -1,14 +1,14 @@
 export interface Spinner {
-	interval: number;
-	frames: string[];
+    interval: number;
+    frames: string[];
 }
 
 export const dots = {
     interval: 50,
-    frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+    frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
 };
 
 export const line = {
     interval: 130,
-    frames: ['-', '\\', '|', '/']
+    frames: ['-', '\\', '|', '/'],
 };

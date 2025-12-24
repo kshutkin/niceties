@@ -1,6 +1,6 @@
-import type { Formatter, LogMessage } from '@niceties/logger/types';
 import { createCanvas } from './details/canvas';
 import { createModel } from './details/model';
+import type { Formatter, LogMessage } from '@niceties/logger/types';
 import type { Spinner } from './spinners';
 
 export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
@@ -32,5 +32,3 @@ export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, l
         renderModel(model);
     }
 }
-
-

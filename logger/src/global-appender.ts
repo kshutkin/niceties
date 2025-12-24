@@ -1,11 +1,10 @@
 import type { Appender } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export let globalAppender: Appender<any>;
+export let globalAppender: Appender<unknown>;
 
 export const appender = <ErrorContext = Error>(appender?: Appender<ErrorContext>) => {
     if (appender !== undefined) {
-        globalAppender = appender;
+        globalAppender = appender as Appender<unknown>;
     }
     return globalAppender;
 };

@@ -1,7 +1,5 @@
-
 export default function splitByLines(message: string): string[] {
-    return message
-        .match(getSubstringsRegex()) ?? [];
+    return message.match(getSubstringsRegex()) ?? [];
 }
 
 let substringsRegex: RegExp, substringsColumns: number;

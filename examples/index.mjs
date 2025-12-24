@@ -1,10 +1,12 @@
-import "@niceties/draftlog-appender";
-import { createLogger, appender } from "@niceties/logger";
-import kleur from "kleur";
+import '@niceties/draftlog-appender';
+
+import kleur from 'kleur';
+
+import { appender, createLogger } from '@niceties/logger';
 
 appender().setMinLevel(0);
 
-const waitFor = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const waitFor = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 setTimeout(() => {
     const logger = createLogger('test tag');
@@ -77,4 +79,3 @@ logger5_1.finish('Kind of Ok2 !!', 2);
 await waitFor(500);
 
 console.log('');
-

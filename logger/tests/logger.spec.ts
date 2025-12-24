@@ -1,7 +1,7 @@
+import { filterMessages } from '../src/appender-utils';
 import { createLogger } from '../src/core';
 import { appender } from '../src/global-appender';
-import { filterMessages } from '../src/appender-utils';
-import { Action, Appender, LogLevel } from '../src/types';
+import { Action, type Appender, LogLevel } from '../src/types';
 
 describe('api tests', () => {
     it('set/get appender', () => {
@@ -22,7 +22,7 @@ describe('api tests', () => {
         createLogger().start('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
-                tag: undefined
+                tag: undefined,
             })
         );
     });
@@ -33,7 +33,7 @@ describe('api tests', () => {
         createLogger('a tag').start('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
-                tag: 'a tag'
+                tag: 'a tag',
             })
         );
     });
@@ -41,11 +41,11 @@ describe('api tests', () => {
     it('with a tag and parent in options', () => {
         const appenderMock = jest.fn();
         appender(appenderMock);
-        createLogger('test', {id: 123}).start('test message');
+        createLogger('test', { id: 123 }).start('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 tag: 'test',
-                parentId: 123
+                parentId: 123,
             })
         );
     });
@@ -56,7 +56,7 @@ describe('api tests', () => {
         createLogger('test', {}).start('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
-                tag: 'test'
+                tag: 'test',
             })
         );
     });
@@ -64,10 +64,10 @@ describe('api tests', () => {
     it('with parent in options', () => {
         const appenderMock = jest.fn();
         appender(appenderMock);
-        createLogger({id: 123}).start('test message');
+        createLogger({ id: 123 }).start('test message');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
-                parentId: 123
+                parentId: 123,
             })
         );
     });
@@ -78,7 +78,7 @@ describe('api tests', () => {
         createLogger({}).start('test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({
-                parentId: expect.any(Number)
+                parentId: expect.any(Number),
             })
         );
     });
@@ -90,10 +90,10 @@ describe('api tests', () => {
             createLogger().start('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.start, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.info, 
-                    message: 'test message'
+                    action: Action.start,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.info,
+                    message: 'test message',
                 })
             );
         });
@@ -104,10 +104,10 @@ describe('api tests', () => {
             createLogger().start('test message', LogLevel.verbose);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.start, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.verbose, 
-                    message: 'test message'
+                    action: Action.start,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.verbose,
+                    message: 'test message',
                 })
             );
         });
@@ -119,10 +119,10 @@ describe('api tests', () => {
             createLogger().start('test message2', LogLevel.verbose);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.start, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.verbose, 
-                    message: 'test message2'
+                    action: Action.start,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.verbose,
+                    message: 'test message2',
                 })
             );
         });
@@ -135,10 +135,10 @@ describe('api tests', () => {
             createLogger().update('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.update, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.info, 
-                    message: 'test message'
+                    action: Action.update,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.info,
+                    message: 'test message',
                 })
             );
         });
@@ -151,10 +151,10 @@ describe('api tests', () => {
             instance.update('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.update, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.verbose, 
-                    message: 'test message'
+                    action: Action.update,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.verbose,
+                    message: 'test message',
                 })
             );
         });
@@ -167,10 +167,10 @@ describe('api tests', () => {
             instance.update('test message', LogLevel.warn);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.update, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.warn, 
-                    message: 'test message'
+                    action: Action.update,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.warn,
+                    message: 'test message',
                 })
             );
         });
@@ -183,10 +183,10 @@ describe('api tests', () => {
             createLogger().finish('test message', LogLevel.info);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.finish, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.info, 
-                    message: 'test message'
+                    action: Action.finish,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.info,
+                    message: 'test message',
                 })
             );
         });
@@ -199,10 +199,10 @@ describe('api tests', () => {
             instance.finish('test message');
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.finish, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.verbose, 
-                    message: 'test message'
+                    action: Action.finish,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.verbose,
+                    message: 'test message',
                 })
             );
         });
@@ -215,10 +215,10 @@ describe('api tests', () => {
             instance.finish('test message', LogLevel.warn);
             expect(appenderMock).toBeCalledWith(
                 expect.objectContaining({
-                    action: Action.finish, 
-                    inputId: expect.any(Number), 
-                    loglevel: LogLevel.warn, 
-                    message: 'test message'
+                    action: Action.finish,
+                    inputId: expect.any(Number),
+                    loglevel: LogLevel.warn,
+                    message: 'test message',
                 })
             );
         });
@@ -233,7 +233,7 @@ describe('api tests', () => {
                 action: Action.finish,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.error,
-                message: 'test message'
+                message: 'test message',
             })
         );
     });
@@ -247,7 +247,7 @@ describe('api tests', () => {
                 action: Action.log,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.info,
-                message: 'test message'
+                message: 'test message',
             })
         );
     });
@@ -261,7 +261,7 @@ describe('api tests', () => {
                 action: Action.log,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.error,
-                message: 'test message'
+                message: 'test message',
             })
         );
     });
@@ -276,7 +276,7 @@ describe('api tests', () => {
                 inputId: expect.any(Number),
                 loglevel: LogLevel.error,
                 message: 'test message',
-                context: 'some context'
+                context: 'some context',
             })
         );
     });
@@ -291,7 +291,7 @@ describe('api tests', () => {
                 action: Action.log,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.info,
-                message: 'test message'
+                message: 'test message',
             })
         );
         expect(logger.appender()).toBe(appenderMock);
@@ -301,13 +301,14 @@ describe('api tests', () => {
         const appenderMock = jest.fn();
         const logger = createLogger();
         let filter = false;
-        logger.appender(filterMessages<Error, { setFilter(value: boolean): void; }>(
-            () => filter,
-            appenderMock, // eslint-disable-line indent
-            { setFilter(value: boolean) { filter = value; } } // eslint-disable-line indent
-        ));
+        logger.appender(
+            filterMessages<Error, { setFilter(value: boolean): void }>(() => filter, appenderMock, {
+                setFilter(value: boolean) {
+                    filter = value;
+                },
+            })
+        );
         logger('test message');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (logger.appender() as any).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
@@ -315,7 +316,7 @@ describe('api tests', () => {
                 action: Action.log,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.info,
-                message: 'test message'
+                message: 'test message',
             })
         );
         expect(appenderMock).toBeCalledWith(
@@ -323,15 +324,15 @@ describe('api tests', () => {
                 action: Action.log,
                 inputId: expect.any(Number),
                 loglevel: LogLevel.info,
-                message: 'another test message'
+                message: 'another test message',
             })
         );
     });
 
     describe('id is not writable', () => {
         const logger = createLogger();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(() => (logger as never as any)['id'] = 123).toThrow();
+        expect(() => {
+            (logger as never as any)['id'] = 123;
+        }).toThrow();
     });
-
 });

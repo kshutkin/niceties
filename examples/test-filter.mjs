@@ -1,4 +1,4 @@
-import { createLogger } from "@niceties/logger";
+import { createLogger } from '@niceties/logger';
 
 const logger = createLogger();
 

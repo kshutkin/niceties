@@ -51,9 +51,8 @@
     "appender"
   ],
   "scripts": {
-    "build": "pkgbld-internal",
+    "build": "pkgbld-internal --formats=esm --no-subpackages",
     "test": "node --expose-gc ../node_modules/jest/bin/jest.js --collectCoverage",
-    "lint": "eslint ./src",
     "prepack": "pkgbld-internal prune"
   },
   "devDependencies": {
