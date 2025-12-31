@@ -1,64 +1,64 @@
 {
-  "version": "1.3.3",
-  "license": "MIT",
-  "name": "@niceties/draftlog-appender",
-  "author": {
-    "name": "Konstantin Shutkin"
-  },
-  "type": "module",
-  "types": "./types/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./types/index.d.ts",
-      "default": "./src/index.js"
+    "version": "1.3.3",
+    "license": "MIT",
+    "name": "@niceties/draftlog-appender",
+    "author": {
+        "name": "Konstantin Shutkin"
     },
-    "./core": {
-      "types": "./types/index.d.ts",
-      "default": "./src/core.js"
+    "type": "module",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./src/index.js"
+        },
+        "./core": {
+            "types": "./types/index.d.ts",
+            "default": "./src/core.js"
+        },
+        "./spinners": {
+            "types": "./types/index.d.ts",
+            "default": "./src/spinners.js"
+        },
+        "./package.json": "./package.json"
     },
-    "./spinners": {
-      "types": "./types/index.d.ts",
-      "default": "./src/spinners.js"
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "files": [
+        "src",
+        "types"
+    ],
+    "engines": {
+        "node": ">=15"
     },
-    "./package.json": "./package.json"
-  },
-  "main": "./src/index.js",
-  "module": "./src/index.js",
-  "files": [
-    "src",
-    "types"
-  ],
-  "engines": {
-    "node": ">=15"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kshutkin/niceties.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kshutkin/niceties/issues"
-  },
-  "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
-  "readme": "README.md",
-  "description": "Appender for '@niceites/logger' implemented using draftlog package.",
-  "keywords": [
-    "@niceties",
-    "draftlog-appender",
-    "draftlog",
-    "appender"
-  ],
-  "scripts": {
-    "build": "dts-buddy",
-    "test": "vitest run --coverage --config ../vitest.config.js"
-  },
-  "devDependencies": {
-    "@niceties/logger": "workspace:*"
-  },
-  "peerDependencies": {
-    "@niceties/logger": "workspace:^"
-  },
-  "dependencies": {
-    "draftlog": "^1.0.13",
-    "@slimlib/list": "^1.0.3"
-  }
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kshutkin/niceties.git"
+    },
+    "bugs": {
+        "url": "https://github.com/kshutkin/niceties/issues"
+    },
+    "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
+    "readme": "README.md",
+    "description": "Appender for '@niceites/logger' implemented using draftlog package.",
+    "keywords": [
+        "@niceties",
+        "draftlog-appender",
+        "draftlog",
+        "appender"
+    ],
+    "scripts": {
+        "build": "dts-buddy",
+        "test": "vitest run --coverage --config ../vitest.config.js"
+    },
+    "devDependencies": {
+        "@niceties/logger": "workspace:*"
+    },
+    "peerDependencies": {
+        "@niceties/logger": "workspace:^"
+    },
+    "dependencies": {
+        "draftlog": "^1.0.13",
+        "@slimlib/list": "^1.0.3"
+    }
 }

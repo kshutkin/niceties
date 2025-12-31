@@ -21,6 +21,6 @@ export const colors = [, , yellow, red];
  * @param {string} tag
  * @returns {string}
  */
-export const tagFactory = (tag) => {
+export const tagFactory = tag => {
     return `[${blue(tag)}]`;
 };

@@ -18,9 +18,9 @@ import { Action, LogLevel } from './types.js';
  *   appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
  * }}
  */
-export const createLogger = (tag) => {
+export const createLogger = tag => {
     /** @type {(message: LogMessage<ErrorContext>) => void} */
-    let myAppender = (message) => {
+    let myAppender = message => {
         globalAppender?.(message);
     };
 
@@ -31,13 +31,15 @@ export const createLogger = (tag) => {
          * @param {ErrorContext} [context]
          */
         (message, loglevel = LogLevel.info, context) => {
-            myAppender?.(/** @type {LogMessage<ErrorContext>} */ ({
-                action: Action.log,
-                message,
-                loglevel,
-                tag,
-                context,
-            }));
+            myAppender?.(
+                /** @type {LogMessage<ErrorContext>} */ ({
+                    action: Action.log,
+                    message,
+                    loglevel,
+                    tag,
+                    context,
+                })
+            );
         },
         {
             /**

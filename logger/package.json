@@ -1,78 +1,78 @@
 {
-  "version": "1.1.13",
-  "license": "MIT",
-  "name": "@niceties/logger",
-  "author": "Konstantin Shutkin",
-  "type": "module",
-  "types": "./types/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./types/index.d.ts",
-      "default": "./src/index.js"
+    "version": "1.1.13",
+    "license": "MIT",
+    "name": "@niceties/logger",
+    "author": "Konstantin Shutkin",
+    "type": "module",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./src/index.js"
+        },
+        "./default-formatting": {
+            "types": "./types/index.d.ts",
+            "default": "./src/default-formatting.js"
+        },
+        "./core": {
+            "types": "./types/index.d.ts",
+            "default": "./src/core.js"
+        },
+        "./simple": {
+            "types": "./types/index.d.ts",
+            "default": "./src/simple.js"
+        },
+        "./console-appender": {
+            "types": "./types/index.d.ts",
+            "default": "./src/console-appender.js"
+        },
+        "./format-utils": {
+            "types": "./types/index.d.ts",
+            "default": "./src/format-utils.js"
+        },
+        "./global-appender": {
+            "types": "./types/index.d.ts",
+            "default": "./src/global-appender.js"
+        },
+        "./appender-utils": {
+            "types": "./types/index.d.ts",
+            "default": "./src/appender-utils.js"
+        },
+        "./types": {
+            "types": "./types/index.d.ts",
+            "default": "./src/types.js"
+        },
+        "./package.json": "./package.json"
     },
-    "./default-formatting": {
-      "types": "./types/index.d.ts",
-      "default": "./src/default-formatting.js"
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "files": [
+        "src",
+        "types"
+    ],
+    "engines": {
+        "node": ">=15"
     },
-    "./core": {
-      "types": "./types/index.d.ts",
-      "default": "./src/core.js"
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kshutkin/niceties.git"
     },
-    "./simple": {
-      "types": "./types/index.d.ts",
-      "default": "./src/simple.js"
+    "bugs": {
+        "url": "https://github.com/kshutkin/niceties/issues"
     },
-    "./console-appender": {
-      "types": "./types/index.d.ts",
-      "default": "./src/console-appender.js"
+    "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
+    "readme": "REAMDE.md",
+    "description": "Logger that supports async tasks",
+    "keywords": [
+        "@niceties",
+        "logger",
+        "simple-logger"
+    ],
+    "scripts": {
+        "build": "dts-buddy",
+        "test": "vitest run --coverage --config ../vitest.config.js"
     },
-    "./format-utils": {
-      "types": "./types/index.d.ts",
-      "default": "./src/format-utils.js"
-    },
-    "./global-appender": {
-      "types": "./types/index.d.ts",
-      "default": "./src/global-appender.js"
-    },
-    "./appender-utils": {
-      "types": "./types/index.d.ts",
-      "default": "./src/appender-utils.js"
-    },
-    "./types": {
-      "types": "./types/index.d.ts",
-      "default": "./src/types.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "main": "./src/index.js",
-  "module": "./src/index.js",
-  "files": [
-    "src",
-    "types"
-  ],
-  "engines": {
-    "node": ">=15"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kshutkin/niceties.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kshutkin/niceties/issues"
-  },
-  "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
-  "readme": "REAMDE.md",
-  "description": "Logger that supports async tasks",
-  "keywords": [
-    "@niceties",
-    "logger",
-    "simple-logger"
-  ],
-  "scripts": {
-    "build": "dts-buddy",
-    "test": "vitest run --coverage --config ../vitest.config.js"
-  },
-  "dependencies": {
-    "kleur": "^4.1.4"
-  }
+    "dependencies": {
+        "kleur": "^4.1.4"
+    }
 }

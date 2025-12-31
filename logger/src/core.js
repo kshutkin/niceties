@@ -21,7 +21,7 @@ let globalInputId = 0;
  * @param {[] | [string | Identity | undefined] | [string, Identity]} options
  * @returns {{ tag?: string; parentId?: number }}
  */
-const getOptions = (options) => {
+const getOptions = options => {
     /** @type {number | undefined} */
     let parentId;
     /** @type {string | undefined} */
@@ -53,7 +53,7 @@ export const createLogger = (...args) => {
     let initialLogLevel = LogLevel.info;
 
     /** @type {(message: LogMessage<ErrorContext>) => void} */
-    let myAppender = (message) => {
+    let myAppender = message => {
         globalAppender?.(message);
     };
 
@@ -68,16 +68,18 @@ export const createLogger = (...args) => {
      * @param {ErrorContext} [context]
      */
     const append = (message, action, loglevel, context) => {
-        myAppender?.(/** @type {LogMessage<ErrorContext>} */ ({
-            action,
-            inputId,
-            message,
-            loglevel,
-            tag,
-            parentId,
-            ref,
-            context,
-        }));
+        myAppender?.(
+            /** @type {LogMessage<ErrorContext>} */ ({
+                action,
+                inputId,
+                message,
+                loglevel,
+                tag,
+                parentId,
+                ref,
+                context,
+            })
+        );
     };
 
     const loggerInstance = Object.assign(

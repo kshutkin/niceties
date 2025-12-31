@@ -13,7 +13,7 @@ export let globalAppender;
  * @param {Appender<ErrorContext>} [newAppender]
  * @returns {Appender<unknown> | undefined}
  */
-export const appender = (newAppender) => {
+export const appender = newAppender => {
     if (newAppender !== undefined) {
         globalAppender = /** @type {Appender<unknown>} */ (newAppender);
     }

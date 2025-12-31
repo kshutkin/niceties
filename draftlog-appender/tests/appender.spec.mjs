@@ -7,7 +7,7 @@ import { createDraftlogAppender } from '../src/core.js';
 
 vi.mock('draftlog', () => ({
     default: Object.assign(
-        (console) => {
+        console => {
             console.draft = () => () => {};
             return {
                 addLineListener() {},
@@ -32,10 +32,10 @@ const finishedPrefixes = ['', 'ok', 'warn', 'error'];
 // biome-ignore lint/suspicious/noSparseArray: expected empty slots
 const colors = [, , , ,];
 /** @param {string} tag */
-const tagFactory = (tag) => tag;
+const tagFactory = tag => tag;
 
 /** @param {number} milliseconds */
-const waitFor = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
+const waitFor = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 describe('draftlog appender', () => {
     /** @type {import('@niceties/logger/types').Appender} */
@@ -67,8 +67,12 @@ describe('draftlog appender', () => {
         setIntervalCopy = global.setInterval;
         global.setInterval = Object.assign(
             // hold interval reference
-            // biome-ignore lint/suspicious/noAssignInExpressions: mock implementation
-            (/** @type {(...args: any[]) => void} */ /** @type {(...args: any[]) => void} */callback, /** @type {number} */ ms, /** @type {any[]} */ ...args) => (interval = setIntervalCopy(callback, ms, ...args)),
+            (
+                /** @type {(...args: any[]) => void} */ /** @type {(...args: any[]) => void} */ callback,
+                /** @type {number} */ ms,
+                /** @type {any[]} */ ...args
+                // biome-ignore lint/suspicious/noAssignInExpressions: mock implementation
+            ) => (interval = setIntervalCopy(callback, ms, ...args)),
             setIntervalCopy
         );
     });
@@ -187,7 +191,13 @@ describe('draftlog appender', () => {
     });
 
     it('gc test', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test1',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
+        });
 
         expect(consoleDraftMock).toBeCalledWith(' ');
 
@@ -207,8 +217,21 @@ describe('draftlog appender', () => {
     });
 
     it('gc test 2 (empty ref)', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
-        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref: /** @type {any} */ (null), parentId: 0 });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test1',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
+        });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test2',
+            action: Action.start,
+            inputId: 1,
+            ref: /** @type {any} */ (null),
+            parentId: 0,
+        });
 
         await waitFor(50);
 
@@ -222,7 +245,13 @@ describe('draftlog appender', () => {
     });
 
     it('gc test 3 (remove lines when children are freed as well and not spinning)', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.update, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test1',
+            action: Action.update,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
+        });
         appender({
             loglevel: LogLevel.info,
             message: 'test2',
@@ -244,8 +273,20 @@ describe('draftlog appender', () => {
     });
 
     it('gc test for log items', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
-        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.log, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test1',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
+        });
+        appender({
+            loglevel: LogLevel.info,
+            message: 'test2',
+            action: Action.log,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
+        });
 
         expect(consoleDraftMock).toBeCalledWith(' ');
 

@@ -10,7 +10,7 @@ import { Action } from './types.js';
  * @param {Formatter} formatter
  * @returns {Appender}
  */
-export const createConsoleAppender = (formatter) => {
+export const createConsoleAppender = formatter => {
     return (/** @type {LogMessage} */ message) => {
         console.log(formatter(message, message.action === Action.finish));
     };

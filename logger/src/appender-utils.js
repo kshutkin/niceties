@@ -19,7 +19,7 @@
 export const filterMessages = (predicate, appender, api) => {
     return Object.assign(
         /** @param {LogMessage<ErrorContext>} logMessage */
-        (logMessage) => {
+        logMessage => {
             if (predicate(logMessage)) {
                 appender(logMessage);
             }

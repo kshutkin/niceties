@@ -304,16 +304,12 @@ describe('api tests', () => {
         const logger = createLogger();
         let filter = false;
         logger.appender(
-            filterMessages(
-                () => filter,
-                appenderMock,
-                {
-                    /** @param {boolean} value */
-                    setFilter(value) {
-                        filter = value;
-                    },
-                }
-            )
+            filterMessages(() => filter, appenderMock, {
+                /** @param {boolean} value */
+                setFilter(value) {
+                    filter = value;
+                },
+            })
         );
         logger('test message');
         /** @type {any} */ (logger.appender()).setFilter(true);
@@ -339,7 +335,7 @@ describe('api tests', () => {
     it('id is not writable', () => {
         const logger = createLogger();
         expect(() => {
-            /** @type {any} */ (logger)['id'] = 123;
+            /** @type {any} */ (logger).id = 123;
         }).toThrow();
     });
 });

@@ -134,7 +134,12 @@ export function createModel(logAboveSpinners) {
     function putIntoChildren(itemParentId, begin, end) {
         let parent = itemById[itemParentId];
         if (!parent) {
-            parent = /** @type {ModelItem} */ ({ inputId: itemParentId, message: '', loglevel: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef(model)) });
+            parent = /** @type {ModelItem} */ ({
+                inputId: itemParentId,
+                message: '',
+                loglevel: 0,
+                ref: /** @type {WeakRef<never>} */ (new WeakRef(model)),
+            });
             appendToModel(parent, false);
             itemById[itemParentId] = parent;
         }

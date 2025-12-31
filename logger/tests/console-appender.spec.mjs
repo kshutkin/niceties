@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import kleur from 'kleur';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { blue, green, red, yellow } = kleur;
 
@@ -26,55 +26,109 @@ describe('console appender', () => {
     });
 
     it('start (with info)', () => {
-        consoleAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith('test');
     });
 
     it('start (with warning)', () => {
-        consoleAppender({ loglevel: LogLevel.warn, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.warn,
+            message: 'test',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${yellow('test')}`);
     });
 
     it('update (info)', () => {
-        consoleAppender({ loglevel: LogLevel.info, message: 'test', action: Action.update, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.update,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith('test');
     });
 
     it('finish with info (success)', () => {
-        consoleAppender({ loglevel: LogLevel.info, message: 'test', action: Action.finish, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.finish,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${green('✓')} test`);
     });
 
     it('finish with warning', () => {
-        consoleAppender({ loglevel: LogLevel.warn, message: 'test', action: Action.finish, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.warn,
+            message: 'test',
+            action: Action.finish,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${yellow('⚠ test')}`);
     });
 
     it('finish with error', () => {
-        consoleAppender({ loglevel: LogLevel.error, message: 'test', action: Action.finish, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.error,
+            message: 'test',
+            action: Action.finish,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${red('✕ test')}`);
     });
 
     it('log with info (success)', () => {
-        consoleAppender({ loglevel: LogLevel.info, message: 'test', action: Action.log, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.log,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith('test');
     });
 
     it('log with warning', () => {
-        consoleAppender({ loglevel: LogLevel.warn, message: 'test', action: Action.log, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.warn,
+            message: 'test',
+            action: Action.log,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${yellow('test')}`);
     });
 
     it('log with error', () => {
-        consoleAppender({ loglevel: LogLevel.error, message: 'test', action: Action.log, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        consoleAppender({
+            loglevel: LogLevel.error,
+            message: 'test',
+            action: Action.log,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
 
         expect(consoleLogMock).toBeCalledWith(`${red('test')}`);
     });

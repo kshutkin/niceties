@@ -10,7 +10,13 @@ describe('combine appenders', () => {
         const appender1 = vi.fn();
         const appender2 = vi.fn();
         const combinedAppender = combineAppenders(appender1, appender2);
-        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        combinedAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
         expect(appender1).toBeCalled();
         expect(appender2).toBeCalled();
     });
@@ -21,7 +27,13 @@ describe('combine appenders', () => {
         });
         const appender2 = vi.fn();
         const combinedAppender = combineAppenders(appender1, appender2);
-        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
+        combinedAppender({
+            loglevel: LogLevel.info,
+            message: 'test',
+            action: Action.start,
+            inputId: 0,
+            ref: /** @type {WeakRef<never>} */ (ref),
+        });
         expect(appender1).toBeCalled();
         expect(appender2).toBeCalled();
     });

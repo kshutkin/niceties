@@ -24,7 +24,7 @@ if (!appender()) {
     appender(
         filterMessages(
             /** @param {LogMessage} message */
-            (message) => /** @type {number} */ (message.loglevel) >= minLogLevel,
+            message => /** @type {number} */ (message.loglevel) >= minLogLevel,
             createConsoleAppender(formatter),
             {
                 /**
