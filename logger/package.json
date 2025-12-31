@@ -70,7 +70,7 @@
   ],
   "scripts": {
     "build": "dts-buddy",
-    "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --collectCoverage"
+    "test": "vitest run --coverage --config ../vitest.config.js"
   },
   "dependencies": {
     "kleur": "^4.1.4"

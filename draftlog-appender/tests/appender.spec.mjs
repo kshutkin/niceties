@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createFormatter } from '@niceties/logger/format-utils';
 import { Action, LogLevel } from '@niceties/logger/types';
 
 import { createDraftlogAppender } from '../src/core.js';
 
-jest.unstable_mockModule('draftlog', () => ({
+vi.mock('draftlog', () => ({
     default: Object.assign(
         (console) => {
             console.draft = () => () => {};
@@ -46,20 +46,20 @@ describe('draftlog appender', () => {
     let interval;
     /** @type {typeof global.setInterval} */
     let setIntervalCopy;
-    /** @type {jest.Mock<void, any[]>} */
+    /** @type {ReturnType<typeof vi.fn>} */
     let consoleUpdateMock;
-    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    /** @type {ReturnType<typeof vi.spyOn<typeof console, 'draft'>>} */
     let consoleDraftMock;
     const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
     beforeEach(async () => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         const draftlog = await import('draftlog');
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, false, 2);
         draftLogDefaults = /** @type {any} */ (draftlog.default).defaults;
-        consoleUpdateMock = jest.fn();
-        consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
+        consoleUpdateMock = vi.fn();
+        consoleDraftMock = vi.spyOn(global.console, 'draft').mockImplementation(
             () =>
                 (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)
@@ -333,18 +333,18 @@ const testSpinner2 = {
 describe('draftlog appender animation', () => {
     /** @type {import('@niceties/logger/types').Appender} */
     let appender;
-    /** @type {jest.Mock<void, any[]>} */
+    /** @type {ReturnType<typeof vi.fn>} */
     let consoleUpdateMock;
-    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    /** @type {ReturnType<typeof vi.spyOn<typeof console, 'draft'>>} */
     let consoleDraftMock;
     const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
-        consoleUpdateMock = jest.fn();
-        consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
+        consoleUpdateMock = vi.fn();
+        consoleDraftMock = vi.spyOn(global.console, 'draft').mockImplementation(
             () =>
                 (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)
@@ -371,18 +371,18 @@ describe('draftlog appender animation', () => {
 describe('prepend config', () => {
     /** @type {import('@niceties/logger/types').Appender} */
     let appender;
-    /** @type {jest.Mock<void, any[]>} */
+    /** @type {ReturnType<typeof vi.fn>} */
     let consoleUpdateMock;
-    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    /** @type {ReturnType<typeof vi.spyOn<typeof console, 'draft'>>} */
     let consoleDraftMock;
     const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, true, 2);
-        consoleUpdateMock = jest.fn();
-        consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
+        consoleUpdateMock = vi.fn();
+        consoleDraftMock = vi.spyOn(global.console, 'draft').mockImplementation(
             () =>
                 (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)

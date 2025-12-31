@@ -49,7 +49,7 @@
   ],
   "scripts": {
     "build": "dts-buddy",
-    "test": "node --expose-gc --experimental-vm-modules ../node_modules/jest/bin/jest.js --collectCoverage"
+    "test": "vitest run --coverage --config ../vitest.config.js"
   },
   "devDependencies": {
     "@niceties/logger": "workspace:*"

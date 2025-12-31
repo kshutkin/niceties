@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { filterMessages } from '../src/appender-utils.js';
 import { appender } from '../src/global-appender.js';
@@ -7,7 +7,7 @@ import { Action, LogLevel } from '../src/types.js';
 
 describe('simple logger api tests', () => {
     it('set/get appender', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         expect(appender()).toBe(appenderMock);
     });
@@ -19,7 +19,7 @@ describe('simple logger api tests', () => {
     });
 
     it('without a tag', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger()('test message');
         expect(appenderMock).toBeCalledWith(
@@ -32,7 +32,7 @@ describe('simple logger api tests', () => {
     });
 
     it('with a tag', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger('a tag')('test message');
         expect(appenderMock).toBeCalledWith(
@@ -45,7 +45,7 @@ describe('simple logger api tests', () => {
     });
 
     it('with a loglevel', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger()('test message', LogLevel.error);
         expect(appenderMock).toBeCalledWith(
@@ -58,7 +58,7 @@ describe('simple logger api tests', () => {
     });
 
     it('with a context', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         const context = {};
         createLogger()('test message', LogLevel.error, /** @type {any} */ (context));
@@ -72,8 +72,8 @@ describe('simple logger api tests', () => {
         );
     });
 
-    describe('appender', () => {
-        const appenderMock = jest.fn();
+    it('appender', () => {
+        const appenderMock = vi.fn();
         const logger = createLogger();
         logger.appender(appenderMock);
         logger('test message');
@@ -87,8 +87,8 @@ describe('simple logger api tests', () => {
         expect(logger.appender()).toBe(appenderMock);
     });
 
-    describe('appender API', () => {
-        const appenderMock = jest.fn();
+    it('appender API', () => {
+        const appenderMock = vi.fn();
         const logger = createLogger();
         let filter = false;
         logger.appender(

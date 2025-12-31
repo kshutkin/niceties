@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import kleur from 'kleur';
 
 const { blue, green, red, yellow } = kleur;
@@ -9,14 +9,14 @@ import { createFormatter } from '../src/format-utils.js';
 import { Action, LogLevel } from '../src/types.js';
 
 describe('console appender', () => {
-    /** @type {jest.SpiedFunction<typeof console.log>} */
+    /** @type {ReturnType<typeof vi.spyOn<typeof console, 'log'>>} */
     let consoleLogMock;
     /** @type {import('../src/types.js').Appender} */
     let consoleAppender;
     const ref = new WeakRef({});
 
     beforeEach(() => {
-        consoleLogMock = jest.spyOn(global.console, 'log').mockImplementation(() => {});
+        consoleLogMock = vi.spyOn(global.console, 'log').mockImplementation(() => {});
         const formatter = createFormatter(colors, unicodePrefixes, tagFactory);
         consoleAppender = createConsoleAppender(formatter);
     });

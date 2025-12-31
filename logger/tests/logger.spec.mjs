@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { filterMessages } from '../src/appender-utils.js';
 import { createLogger } from '../src/core.js';
@@ -7,7 +7,7 @@ import { Action, LogLevel } from '../src/types.js';
 
 describe('api tests', () => {
     it('set/get appender', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         expect(appender()).toBe(appenderMock);
     });
@@ -19,7 +19,7 @@ describe('api tests', () => {
     });
 
     it('without a tag', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger().start('test message');
         expect(appenderMock).toBeCalledWith(
@@ -30,7 +30,7 @@ describe('api tests', () => {
     });
 
     it('with a tag', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger('a tag').start('test message');
         expect(appenderMock).toBeCalledWith(
@@ -41,7 +41,7 @@ describe('api tests', () => {
     });
 
     it('with a tag and parent in options', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger('test', { id: 123 }).start('test message');
         expect(appenderMock).toBeCalledWith(
@@ -53,7 +53,7 @@ describe('api tests', () => {
     });
 
     it('with a tag and parent without id in options', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger('test', {}).start('test message');
         expect(appenderMock).toBeCalledWith(
@@ -64,7 +64,7 @@ describe('api tests', () => {
     });
 
     it('with parent in options', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger({ id: 123 }).start('test message');
         expect(appenderMock).toBeCalledWith(
@@ -75,7 +75,7 @@ describe('api tests', () => {
     });
 
     it('with parent in options without id', () => {
-        const appenderMock = jest.fn();
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger({}).start('test message');
         expect(appenderMock).not.toBeCalledWith(
@@ -87,7 +87,7 @@ describe('api tests', () => {
 
     describe('start', () => {
         it('with default log level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             createLogger().start('test message');
             expect(appenderMock).toBeCalledWith(
@@ -101,7 +101,7 @@ describe('api tests', () => {
         });
 
         it('with overriden log level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             createLogger().start('test message', LogLevel.verbose);
             expect(appenderMock).toBeCalledWith(
@@ -115,7 +115,7 @@ describe('api tests', () => {
         });
 
         it('with overriden log level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             createLogger().start('test message', LogLevel.info);
             createLogger().start('test message2', LogLevel.verbose);
@@ -132,7 +132,7 @@ describe('api tests', () => {
 
     describe('update', () => {
         it('without start', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             createLogger().update('test message');
             expect(appenderMock).toBeCalledWith(
@@ -146,7 +146,7 @@ describe('api tests', () => {
         });
 
         it('receives initial log level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             const instance = createLogger();
             instance.start('start', LogLevel.verbose);
@@ -162,7 +162,7 @@ describe('api tests', () => {
         });
 
         it('with overriden log Level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             const instance = createLogger();
             instance.start('start', LogLevel.verbose);
@@ -180,7 +180,7 @@ describe('api tests', () => {
 
     describe('finish', () => {
         it('without start', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             createLogger().finish('test message', LogLevel.info);
             expect(appenderMock).toBeCalledWith(
@@ -194,7 +194,7 @@ describe('api tests', () => {
         });
 
         it('receives initial log level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             const instance = createLogger();
             instance.start('start', LogLevel.verbose);
@@ -210,7 +210,7 @@ describe('api tests', () => {
         });
 
         it('with overriden log Level', () => {
-            const appenderMock = jest.fn();
+            const appenderMock = vi.fn();
             appender(appenderMock);
             const instance = createLogger();
             instance.start('start', LogLevel.verbose);
@@ -226,8 +226,8 @@ describe('api tests', () => {
         });
     });
 
-    describe('fail', () => {
-        const appenderMock = jest.fn();
+    it('fail', () => {
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger().finish('test message', LogLevel.error);
         expect(appenderMock).toBeCalledWith(
@@ -240,8 +240,8 @@ describe('api tests', () => {
         );
     });
 
-    describe('log with default log level', () => {
-        const appenderMock = jest.fn();
+    it('log with default log level', () => {
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger()('test message');
         expect(appenderMock).toBeCalledWith(
@@ -254,8 +254,8 @@ describe('api tests', () => {
         );
     });
 
-    describe('log', () => {
-        const appenderMock = jest.fn();
+    it('log', () => {
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger()('test message', LogLevel.error);
         expect(appenderMock).toBeCalledWith(
@@ -268,8 +268,8 @@ describe('api tests', () => {
         );
     });
 
-    describe('log with additional context', () => {
-        const appenderMock = jest.fn();
+    it('log with additional context', () => {
+        const appenderMock = vi.fn();
         appender(appenderMock);
         createLogger()('test message', LogLevel.error, 'some context');
         expect(appenderMock).toBeCalledWith(
@@ -283,8 +283,8 @@ describe('api tests', () => {
         );
     });
 
-    describe('appender', () => {
-        const appenderMock = jest.fn();
+    it('appender', () => {
+        const appenderMock = vi.fn();
         const logger = createLogger();
         logger.appender(appenderMock);
         logger('test message');
@@ -299,8 +299,8 @@ describe('api tests', () => {
         expect(logger.appender()).toBe(appenderMock);
     });
 
-    describe('appender API', () => {
-        const appenderMock = jest.fn();
+    it('appender API', () => {
+        const appenderMock = vi.fn();
         const logger = createLogger();
         let filter = false;
         logger.appender(
@@ -336,7 +336,7 @@ describe('api tests', () => {
         );
     });
 
-    describe('id is not writable', () => {
+    it('id is not writable', () => {
         const logger = createLogger();
         expect(() => {
             /** @type {any} */ (logger)['id'] = 123;
