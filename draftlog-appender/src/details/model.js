@@ -31,8 +31,8 @@ export const ItemStatus = /** @type {const} */ ({
  * @property {ModelItem} [lastLeaf]
  * @property {string} [tag]
  * @property {*} [context]
- * @property {ListNode} [prev]
- * @property {ListNode} [next]
+ * @property {ListNode} [p]
+ * @property {ListNode} [n]
  */
 
 /**

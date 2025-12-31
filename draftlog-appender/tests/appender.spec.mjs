@@ -29,7 +29,7 @@ const testSpinner = {
 /** @type {{ [index: number]: string }} */
 const finishedPrefixes = ['', 'ok', 'warn', 'error'];
 /** @type {{ [index: number]: ((text: string) => string) | undefined }} */
-// @ts-ignore - sparse array for color formatters
+// biome-ignore lint/suspicious/noSparseArray: expected empty slots
 const colors = [, , , ,];
 /** @param {string} tag */
 const tagFactory = (tag) => tag;
@@ -66,8 +66,9 @@ describe('draftlog appender', () => {
         );
         setIntervalCopy = global.setInterval;
         global.setInterval = Object.assign(
-            // @ts-ignore - hold interval reference
-            (/** @type {(...args: any[]) => void} */ callback, /** @type {number} */ ms, /** @type {any[]} */ ...args) => (interval = setIntervalCopy(callback, ms, ...args)),
+            // hold interval reference
+            // biome-ignore lint/suspicious/noAssignInExpressions: mock implementation
+            (/** @type {(...args: any[]) => void} */ /** @type {(...args: any[]) => void} */callback, /** @type {number} */ ms, /** @type {any[]} */ ...args) => (interval = setIntervalCopy(callback, ms, ...args)),
             setIntervalCopy
         );
     });

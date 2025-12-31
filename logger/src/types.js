@@ -4,13 +4,13 @@
  */
 export const LogLevel = /** @type {const} */ ({
     /** for debugging logs, not for displaying on screen in normal cases */
-    verbose: 0,
+    verbose: /** @type {number} */ (0),
     /** should be printed to user but not an error */
-    info: 1,
+    info: /** @type {number} */ (1),
     /** something is probably wrong, but we can continue */
-    warn: 2,
+    warn: /** @type {number} */ (2),
     /** operation completely failed */
-    error: 3,
+    error: /** @type {number} */ (3),
 });
 
 /**

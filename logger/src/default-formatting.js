@@ -14,7 +14,7 @@ export const unicodePrefixes = [`${green('✓')}`, `${green('✓')}`, '⚠', '�
 export const asciiPrefixes = [`${green('+')}`, `${green('+')}`, '!', 'x'];
 
 /** @type {ColorFormatters} */
-// @ts-ignore - sparse array for color formatters
+// biome-ignore lint/suspicious/noSparseArray: expected
 export const colors = [, , yellow, red];
 
 /**
