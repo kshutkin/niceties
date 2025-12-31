@@ -6,23 +6,18 @@ let scope;
 const moduleNameMapper = {};
 if (scopeTest?.[0]) {
     scope = scopeTest[1];
-    moduleNameMapper[`${scope}/(.*)/(.*)`] = '<rootDir>/../$1/src/$2.ts';
-    moduleNameMapper[`${scope}/(.*)$`] = '<rootDir>/../$1/src';
+    moduleNameMapper[`${scope}/(.*)/(.*)`] = '<rootDir>/../$1/src/$2.js';
+    moduleNameMapper[`${scope}/(.*)$`] = '<rootDir>/../$1/src/index.js';
 }
 
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('jest').Config} */
 export default {
-    preset: 'ts-jest',
     testEnvironment: 'node',
-    extensionsToTreatAsEsm: ['.ts'],
-    testMatch: ['<rootDir>/**/tests/**/*.spec.ts'],
-    globals: {
-        'ts-jest': {
-            useESM: true,
-        },
-    },
+    extensionsToTreatAsEsm: [],
+    testMatch: ['<rootDir>/**/tests/**/*.spec.mjs'],
     testPathIgnorePatterns: ['/node_modules/'],
     coverageDirectory: './coverage',
     coveragePathIgnorePatterns: ['node_modules', 'src/tests'],
     moduleNameMapper,
+    transform: {},
 };

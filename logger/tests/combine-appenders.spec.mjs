@@ -1,5 +1,6 @@
-import { combineAppenders } from '../src/appender-utils';
-import { Action, LogLevel } from '../src/types';
+import { jest, describe, it, expect } from '@jest/globals';
+import { combineAppenders } from '../src/appender-utils.js';
+import { Action, LogLevel } from '../src/types.js';
 
 describe('combine appenders', () => {
     const ref = new WeakRef({});
@@ -8,7 +9,7 @@ describe('combine appenders', () => {
         const appender1 = jest.fn();
         const appender2 = jest.fn();
         const combinedAppender = combineAppenders(appender1, appender2);
-        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: ref as WeakRef<never> });
+        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
         expect(appender1).toBeCalled();
         expect(appender2).toBeCalled();
     });
@@ -19,7 +20,7 @@ describe('combine appenders', () => {
         });
         const appender2 = jest.fn();
         const combinedAppender = combineAppenders(appender1, appender2);
-        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: ref as WeakRef<never> });
+        combinedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
         expect(appender1).toBeCalled();
         expect(appender2).toBeCalled();
     });

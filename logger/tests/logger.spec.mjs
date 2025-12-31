@@ -1,7 +1,8 @@
-import { filterMessages } from '../src/appender-utils';
-import { createLogger } from '../src/core';
-import { appender } from '../src/global-appender';
-import { Action, type Appender, LogLevel } from '../src/types';
+import { jest, describe, it, expect } from '@jest/globals';
+import { filterMessages } from '../src/appender-utils.js';
+import { createLogger } from '../src/core.js';
+import { appender } from '../src/global-appender.js';
+import { Action, LogLevel } from '../src/types.js';
 
 describe('api tests', () => {
     it('set/get appender', () => {
@@ -12,7 +13,7 @@ describe('api tests', () => {
 
     it('null appender does not throw', () => {
         const logger = createLogger();
-        appender(null as never as Appender);
+        appender(/** @type {any} */ (null));
         expect(() => logger('')).not.toThrow();
     });
 
@@ -269,7 +270,7 @@ describe('api tests', () => {
     describe('log with additional context', () => {
         const appenderMock = jest.fn();
         appender(appenderMock);
-        createLogger<string>()('test message', LogLevel.error, 'some context');
+        createLogger()('test message', LogLevel.error, 'some context');
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
@@ -302,14 +303,19 @@ describe('api tests', () => {
         const logger = createLogger();
         let filter = false;
         logger.appender(
-            filterMessages<Error, { setFilter(value: boolean): void }>(() => filter, appenderMock, {
-                setFilter(value: boolean) {
-                    filter = value;
-                },
-            })
+            filterMessages(
+                () => filter,
+                appenderMock,
+                {
+                    /** @param {boolean} value */
+                    setFilter(value) {
+                        filter = value;
+                    },
+                }
+            )
         );
         logger('test message');
-        (logger.appender() as any).setFilter(true);
+        /** @type {any} */ (logger.appender()).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({
@@ -332,7 +338,7 @@ describe('api tests', () => {
     describe('id is not writable', () => {
         const logger = createLogger();
         expect(() => {
-            (logger as never as any)['id'] = 123;
+            /** @type {any} */ (logger)['id'] = 123;
         }).toThrow();
     });
 });

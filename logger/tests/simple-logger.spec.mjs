@@ -1,7 +1,8 @@
-import { filterMessages } from '../src/appender-utils';
-import { appender } from '../src/global-appender';
-import { createLogger } from '../src/simple';
-import { Action, type Appender, LogLevel } from '../src/types';
+import { jest, describe, it, expect } from '@jest/globals';
+import { filterMessages } from '../src/appender-utils.js';
+import { appender } from '../src/global-appender.js';
+import { createLogger } from '../src/simple.js';
+import { Action, LogLevel } from '../src/types.js';
 
 describe('simple logger api tests', () => {
     it('set/get appender', () => {
@@ -12,7 +13,7 @@ describe('simple logger api tests', () => {
 
     it('null appender does not throw', () => {
         const logger = createLogger();
-        appender(null as never as Appender);
+        appender(/** @type {any} */ (null));
         expect(() => logger('')).not.toThrow();
     });
 
@@ -59,7 +60,7 @@ describe('simple logger api tests', () => {
         const appenderMock = jest.fn();
         appender(appenderMock);
         const context = {};
-        createLogger()('test message', LogLevel.error, context as any);
+        createLogger()('test message', LogLevel.error, /** @type {any} */ (context));
         expect(appenderMock).toBeCalledWith(
             expect.objectContaining({
                 action: Action.log,
@@ -90,14 +91,19 @@ describe('simple logger api tests', () => {
         const logger = createLogger();
         let filter = false;
         logger.appender(
-            filterMessages<Error, { setFilter(value: boolean): void }>(() => filter, appenderMock, {
-                setFilter(value: boolean) {
-                    filter = value;
-                },
-            })
+            filterMessages(
+                () => filter,
+                appenderMock,
+                {
+                    /** @param {boolean} value */
+                    setFilter(value) {
+                        filter = value;
+                    },
+                }
+            )
         );
         logger('test message');
-        (logger.appender() as any).setFilter(true);
+        /** @type {any} */ (logger.appender()).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({

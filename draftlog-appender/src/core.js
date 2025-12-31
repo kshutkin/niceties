@@ -1,15 +1,27 @@
-import { createCanvas } from './details/canvas';
-import { createModel } from './details/model';
-import type { Formatter, LogMessage } from '@niceties/logger/types';
-import type { Spinner } from './spinners';
+/**
+ * @typedef {import('@niceties/logger/types').Formatter} Formatter
+ * @typedef {import('@niceties/logger/types').LogMessage} LogMessage
+ * @typedef {import('./spinners.js').Spinner} Spinner
+ */
 
-export function createDraftlogAppender(spinner: Spinner, formatter: Formatter, logAboveSpinners: boolean, ident: number) {
-    let interval: NodeJS.Timeout | undefined;
+import { createCanvas } from './details/canvas.js';
+import { createModel } from './details/model.js';
+
+/**
+ * @param {Spinner} spinner
+ * @param {Formatter} formatter
+ * @param {boolean} logAboveSpinners
+ * @param {number} ident
+ * @returns {(message: LogMessage) => void}
+ */
+export function createDraftlogAppender(spinner, formatter, logAboveSpinners, ident) {
+    /** @type {NodeJS.Timeout | undefined} */
+    let interval;
 
     const [updateModel, getModel] = createModel(logAboveSpinners);
     const renderModel = createCanvas(spinner, formatter, ident);
 
-    return (message: LogMessage) => {
+    return (/** @type {LogMessage} */ message) => {
         renderModel(updateModel(message));
         checkTimeout();
     };

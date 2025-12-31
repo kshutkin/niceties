@@ -1,27 +1,37 @@
+/**
+ * @typedef {import('@niceties/logger/types').Formatter} Formatter
+ * @typedef {import('../spinners.js').Spinner} Spinner
+ * @typedef {import('./model.js').Model} Model
+ * @typedef {import('./model.js').ModelItem} ModelItem
+ */
+
 import draftlog from 'draftlog';
 
-import { Action } from '@niceties/logger';
+import { Action } from '@niceties/logger/types';
 
-import splitByLines from './split-by-lines';
-import { subscribeToTerminalResize } from './terminal';
-import type { Formatter } from '@niceties/logger/types';
-import type { Spinner } from '../spinners';
-import type { ItemStatus, Model, ModelItem } from './model';
+import splitByLines from './split-by-lines.js';
+import { subscribeToTerminalResize } from './terminal.js';
 
-interface DraftlogConfig {
-    defaults: {
-        canReWrite: boolean;
-        maximumLinesUp: number;
-    };
-}
+/**
+ * @typedef {Object} DraftlogConfig
+ * @property {{ canReWrite: boolean; maximumLinesUp: number }} defaults
+ */
 
-export function createCanvas(spinner: Spinner, formatter: Formatter, ident: number) {
+/**
+ * @param {Spinner} spinner
+ * @param {Formatter} formatter
+ * @param {number} ident
+ * @returns {(model: Model, dirty?: boolean) => void}
+ */
+export function createCanvas(spinner, formatter, ident) {
     draftlog(console);
-    (draftlog as never as DraftlogConfig).defaults.canReWrite = false;
+    /** @type {DraftlogConfig} */ (/** @type {unknown} */ (draftlog)).defaults.canReWrite = false;
 
-    const updaters: Array<(message?: string, ...optionalParams: any[]) => void> = [];
+    /** @type {Array<(message?: string, ...optionalParams: any[]) => void>} */
+    const updaters = [];
 
-    let lastModel: Model | undefined;
+    /** @type {Model | undefined} */
+    let lastModel;
 
     subscribeToTerminalResize(() => {
         if (lastModel) {
@@ -31,18 +41,23 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
 
     return modelFn;
 
-    function modelFn(model: Model, dirty = false) {
+    /**
+     * @param {Model} model
+     * @param {boolean} [dirty]
+     */
+    function modelFn(model, dirty = false) {
         lastModel = model;
         if (model.skipLines) {
             updaters.splice(0, model.skipLines);
             model.skipLines = 0;
         }
         let key = 0;
-        const stack: (ModelItem | null)[] = [];
+        /** @type {(ModelItem | null)[]} */
+        const stack = [];
         for (const item of model) {
             if (dirty || item.dirty || item.status) {
-                let prefix = getPrefix(item.status as ItemStatus, model.tick),
-                    prefixUpdated = false;
+                let prefix = getPrefix(/** @type {number} */ (item.status), model.tick);
+                let prefixUpdated = false;
                 const subitems = splitByLines(item.message);
                 for (const message of subitems) {
                     let updater = updaters[key++];
@@ -56,7 +71,7 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
                                 loglevel: item.loglevel,
                                 message,
                                 context: item.context,
-                                action: (item.status === undefined ? Action.log : undefined) as Action.log,
+                                action: /** @type {3} */ (item.status === undefined ? Action.log : undefined),
                                 tag: item.tag,
                             },
                             prefix,
@@ -88,14 +103,19 @@ export function createCanvas(spinner: Spinner, formatter: Formatter, ident: numb
         }
 
         while (key < updaters.length) {
-            (updaters[key++] as (message?: string, ...optionalParams: any[]) => void)('');
+            /** @type {(message?: string, ...optionalParams: any[]) => void} */ (updaters[key++])('');
         }
     }
 
-    function getPrefix(status: ItemStatus, tick: number): string | boolean {
+    /**
+     * @param {number} status
+     * @param {number} tick
+     * @returns {string | boolean}
+     */
+    function getPrefix(status, tick) {
         // status is truthy when it is inprogress
         return status
-            ? (spinner.frames[tick] as string | boolean)
+            ? /** @type {string | boolean} */ (spinner.frames[tick])
             : // status not null when it is finished
               status != null;
     }

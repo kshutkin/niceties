@@ -1,6 +1,11 @@
-const allColumnsListeners = new Set<WeakRef<() => void>>();
+/** @type {Set<WeakRef<() => void>>} */
+const allColumnsListeners = new Set();
 
-export function subscribeToTerminalResize(listener: () => void) {
+/**
+ * Subscribe to terminal resize events
+ * @param {() => void} listener
+ */
+export function subscribeToTerminalResize(listener) {
     allColumnsListeners.add(new WeakRef(listener));
 }
 

@@ -6,30 +6,27 @@
     "name": "Konstantin Shutkin"
   },
   "type": "module",
+  "types": "./types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
     },
     "./core": {
-      "types": "./dist/core.d.ts",
-      "require": "./dist/core.cjs",
-      "default": "./dist/core.mjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/core.js"
     },
     "./spinners": {
-      "types": "./dist/spinners.d.ts",
-      "require": "./dist/spinners.cjs",
-      "default": "./dist/spinners.mjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/spinners.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
   "files": [
-    "dist",
-    "core",
-    "spinners"
+    "src",
+    "types"
   ],
   "engines": {
     "node": ">=15"
@@ -51,9 +48,8 @@
     "appender"
   ],
   "scripts": {
-    "build": "pkgbld-internal --formats=esm --no-subpackages",
-    "test": "node --expose-gc ../node_modules/jest/bin/jest.js --collectCoverage",
-    "prepack": "pkgbld-internal prune"
+    "build": "dts-buddy",
+    "test": "node --expose-gc --experimental-vm-modules ../node_modules/jest/bin/jest.js --collectCoverage"
   },
   "devDependencies": {
     "@niceties/logger": "workspace:*"
@@ -64,23 +60,5 @@
   "dependencies": {
     "draftlog": "^1.0.13",
     "@slimlib/list": "^1.0.3"
-  },
-  "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "dist/index.d.ts"
-      ],
-      "./core": [
-        "dist/core.d.ts"
-      ],
-      "./spinners": [
-        "dist/spinners.d.ts"
-      ],
-      "*": [
-        "dist/index.d.ts",
-        "dist/*"
-      ]
-    }
   }
 }

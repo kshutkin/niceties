@@ -1,56 +1,73 @@
-import draftlog from 'draftlog';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 import { createFormatter } from '@niceties/logger/format-utils';
-import { Action, type Appender, type ColorFormatters, LogLevel, type Prefixes } from '@niceties/logger/types';
+import { Action, LogLevel } from '@niceties/logger/types';
 
-import { createDraftlogAppender } from '../src/core';
+import { createDraftlogAppender } from '../src/core.js';
 
-jest.mock('draftlog');
-
-interface DraftlogDefaults {
-    canReWrite: boolean;
-    maximumLinesUp: number;
-}
-
-interface DraftlogConfig {
-    defaults: DraftlogDefaults;
-}
+jest.unstable_mockModule('draftlog', () => ({
+    default: Object.assign(
+        (console) => {
+            console.draft = () => () => {};
+            return {
+                addLineListener() {},
+            };
+        },
+        {
+            defaults: {
+                canRewrite: true,
+            },
+        }
+    ),
+}));
 
 const testSpinner = {
     frames: ['-'],
     interval: 500,
 };
 
-const finishedPrefixes: Prefixes = ['', 'ok', 'warn', 'error'];
-// biome-ignore lint/suspicious/noSparseArray: we need sparse array here
-const colors: ColorFormatters = [, , , ,];
-const tagFactory = (tag: string) => tag;
+/** @type {{ [index: number]: string }} */
+const finishedPrefixes = ['', 'ok', 'warn', 'error'];
+/** @type {{ [index: number]: ((text: string) => string) | undefined }} */
+// @ts-ignore - sparse array for color formatters
+const colors = [, , , ,];
+/** @param {string} tag */
+const tagFactory = (tag) => tag;
 
-const waitFor = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));
+/** @param {number} milliseconds */
+const waitFor = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 describe('draftlog appender', () => {
-    let appender: Appender;
-    let draftLogDefaults: DraftlogDefaults;
-    let interval: NodeJS.Timer;
-    let setIntervalCopy: typeof global.setInterval;
-    let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
-    let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testSpinner) as WeakRef<never>;
+    /** @type {import('@niceties/logger/types').Appender} */
+    let appender;
+    /** @type {{ canReWrite: boolean; maximumLinesUp: number }} */
+    let draftLogDefaults;
+    /** @type {NodeJS.Timer} */
+    let interval;
+    /** @type {typeof global.setInterval} */
+    let setIntervalCopy;
+    /** @type {jest.Mock<void, any[]>} */
+    let consoleUpdateMock;
+    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    let consoleDraftMock;
+    const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        const draftlog = await import('draftlog');
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, false, 2);
-        draftLogDefaults = (draftlog as never as DraftlogConfig).defaults;
-        consoleUpdateMock = jest.fn<void, any[]>();
+        draftLogDefaults = /** @type {any} */ (draftlog.default).defaults;
+        consoleUpdateMock = jest.fn();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
             () =>
-                (...args: any[]) =>
+                (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)
         );
         setIntervalCopy = global.setInterval;
         global.setInterval = Object.assign(
-            // biome-ignore lint/suspicious/noAssignInExpressions: hold interval reference
-            (callback: (...args: any[]) => void, ms?: number, ...args: any[]) => (interval = setIntervalCopy(callback, ms, ...args)),
+            // @ts-ignore - hold interval reference
+            (/** @type {(...args: any[]) => void} */ callback, /** @type {number} */ ms, /** @type {any[]} */ ...args) => (interval = setIntervalCopy(callback, ms, ...args)),
             setIntervalCopy
         );
     });
@@ -58,6 +75,7 @@ describe('draftlog appender', () => {
     afterEach(() => {
         global.setInterval = setIntervalCopy;
         clearInterval(interval);
+        consoleDraftMock.mockRestore();
     });
 
     it('smoke', () => {
@@ -168,7 +186,7 @@ describe('draftlog appender', () => {
     });
 
     it('gc test', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never> });
+        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
 
         expect(consoleDraftMock).toBeCalledWith(' ');
 
@@ -176,7 +194,7 @@ describe('draftlog appender', () => {
 
         await waitFor(50);
 
-        (global as never as any).gc();
+        /** @type {any} */ (global).gc();
 
         await waitFor(50);
 
@@ -188,12 +206,12 @@ describe('draftlog appender', () => {
     });
 
     it('gc test 2 (empty ref)', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never> });
-        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref: null as any, parentId: 0 });
+        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
+        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.start, inputId: 1, ref: /** @type {any} */ (null), parentId: 0 });
 
         await waitFor(50);
 
-        (global as never as any).gc();
+        /** @type {any} */ (global).gc();
 
         await waitFor(50);
 
@@ -203,19 +221,19 @@ describe('draftlog appender', () => {
     });
 
     it('gc test 3 (remove lines when children are freed as well and not spinning)', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.update, inputId: 0, ref: new WeakRef({}) as WeakRef<never> });
+        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.update, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
         appender({
             loglevel: LogLevel.info,
             message: 'test2',
             action: Action.update,
             inputId: 1,
-            ref: new WeakRef({}) as WeakRef<never>,
+            ref: /** @type {WeakRef<never>} */ (new WeakRef({})),
             parentId: 0,
         });
 
         await waitFor(50);
 
-        (global as never as any).gc();
+        /** @type {any} */ (global).gc();
 
         await waitFor(50);
 
@@ -225,8 +243,8 @@ describe('draftlog appender', () => {
     });
 
     it('gc test for log items', async () => {
-        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: new WeakRef({}) as WeakRef<never> });
-        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.log, inputId: 0, ref: new WeakRef({}) as WeakRef<never> });
+        appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
+        appender({ loglevel: LogLevel.info, message: 'test2', action: Action.log, inputId: 0, ref: /** @type {WeakRef<never>} */ (new WeakRef({})) });
 
         expect(consoleDraftMock).toBeCalledWith(' ');
 
@@ -235,7 +253,7 @@ describe('draftlog appender', () => {
 
         await waitFor(50);
 
-        (global as never as any).gc();
+        /** @type {any} */ (global).gc();
 
         await waitFor(1050); // wait for 2 cycles after gc
 
@@ -312,20 +330,28 @@ const testSpinner2 = {
 };
 
 describe('draftlog appender animation', () => {
-    let appender: Appender;
-    let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
-    let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testSpinner) as WeakRef<never>;
+    /** @type {import('@niceties/logger/types').Appender} */
+    let appender;
+    /** @type {jest.Mock<void, any[]>} */
+    let consoleUpdateMock;
+    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    let consoleDraftMock;
+    const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
     beforeEach(() => {
+        jest.clearAllMocks();
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
-        consoleUpdateMock = jest.fn<void, any[]>();
+        consoleUpdateMock = jest.fn();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
             () =>
-                (...args: any[]) =>
+                (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)
         );
+    });
+
+    afterEach(() => {
+        consoleDraftMock.mockRestore();
     });
 
     it('test animation', async () => {
@@ -342,20 +368,28 @@ describe('draftlog appender animation', () => {
 });
 
 describe('prepend config', () => {
-    let appender: Appender;
-    let consoleUpdateMock: jest.Mock<ReturnType<ReturnType<typeof console.draft>>, Parameters<ReturnType<typeof console.draft>>>;
-    let consoleDraftMock: jest.MockInstance<ReturnType<typeof console.draft>, Parameters<typeof console.draft>>;
-    const ref = new WeakRef(testSpinner) as WeakRef<never>;
+    /** @type {import('@niceties/logger/types').Appender} */
+    let appender;
+    /** @type {jest.Mock<void, any[]>} */
+    let consoleUpdateMock;
+    /** @type {jest.SpiedFunction<typeof console.draft>} */
+    let consoleDraftMock;
+    const ref = /** @type {WeakRef<never>} */ (new WeakRef(testSpinner));
 
     beforeEach(() => {
+        jest.clearAllMocks();
         const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, true, 2);
-        consoleUpdateMock = jest.fn<void, any[]>();
+        consoleUpdateMock = jest.fn();
         consoleDraftMock = jest.spyOn(global.console, 'draft').mockImplementation(
             () =>
-                (...args: any[]) =>
+                (/** @type {any[]} */ ...args) =>
                     consoleUpdateMock(...args)
         );
+    });
+
+    afterEach(() => {
+        consoleDraftMock.mockRestore();
     });
 
     it('prepend log', () => {

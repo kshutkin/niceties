@@ -3,68 +3,52 @@
   "license": "MIT",
   "name": "@niceties/logger",
   "author": "Konstantin Shutkin",
+  "type": "module",
+  "types": "./types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
     },
     "./default-formatting": {
-      "types": "./dist/default-formatting.d.ts",
-      "import": "./dist/default-formatting.mjs",
-      "require": "./dist/default-formatting.cjs",
-      "default": "./dist/default-formatting.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/default-formatting.js"
     },
     "./core": {
-      "types": "./dist/core.d.ts",
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.cjs",
-      "default": "./dist/core.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/core.js"
     },
     "./simple": {
-      "types": "./dist/simple.d.ts",
-      "import": "./dist/simple.mjs",
-      "require": "./dist/simple.cjs",
-      "default": "./dist/simple.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/simple.js"
     },
     "./console-appender": {
-      "types": "./dist/console-appender.d.ts",
-      "import": "./dist/console-appender.mjs",
-      "require": "./dist/console-appender.cjs",
-      "default": "./dist/console-appender.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/console-appender.js"
     },
     "./format-utils": {
-      "types": "./dist/format-utils.d.ts",
-      "import": "./dist/format-utils.mjs",
-      "require": "./dist/format-utils.cjs",
-      "default": "./dist/format-utils.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/format-utils.js"
     },
     "./global-appender": {
-      "types": "./dist/global-appender.d.ts",
-      "import": "./dist/global-appender.mjs",
-      "require": "./dist/global-appender.cjs",
-      "default": "./dist/global-appender.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/global-appender.js"
     },
     "./appender-utils": {
-      "types": "./dist/appender-utils.d.ts",
-      "import": "./dist/appender-utils.mjs",
-      "require": "./dist/appender-utils.cjs",
-      "default": "./dist/appender-utils.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/appender-utils.js"
     },
     "./types": {
-      "types": "./dist/types.d.ts",
-      "import": "./dist/types.mjs",
-      "require": "./dist/types.cjs",
-      "default": "./dist/types.cjs"
+      "types": "./types/index.d.ts",
+      "default": "./src/types.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "unpkg": "./dist/simple.umd.js",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
   "files": [
-    "dist"
+    "src",
+    "types"
   ],
   "engines": {
     "node": ">=15"
@@ -85,47 +69,10 @@
     "simple-logger"
   ],
   "scripts": {
-    "build": "pkgbld-internal --formats=esm --no-subpackages",
-    "test": "jest --collectCoverage",
-    "prepack": "pkgbld-internal prune"
+    "build": "dts-buddy",
+    "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --collectCoverage"
   },
   "dependencies": {
     "kleur": "^4.1.4"
-  },
-  "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "dist/index.d.ts"
-      ],
-      "./default-formatting": [
-        "dist/default-formatting.d.ts"
-      ],
-      "./core": [
-        "dist/core.d.ts"
-      ],
-      "./simple": [
-        "dist/simple.d.ts"
-      ],
-      "./console-appender": [
-        "dist/console-appender.d.ts"
-      ],
-      "./format-utils": [
-        "dist/format-utils.d.ts"
-      ],
-      "./global-appender": [
-        "dist/global-appender.d.ts"
-      ],
-      "./appender-utils": [
-        "dist/appender-utils.d.ts"
-      ],
-      "./types": [
-        "dist/types.d.ts"
-      ],
-      "*": [
-        "dist/index.d.ts",
-        "dist/*"
-      ]
-    }
   }
 }

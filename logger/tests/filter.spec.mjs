@@ -1,5 +1,6 @@
-import { filterMessages } from '../src/appender-utils';
-import { Action, LogLevel } from '../src/types';
+import { jest, describe, it, expect } from '@jest/globals';
+import { filterMessages } from '../src/appender-utils.js';
+import { Action, LogLevel } from '../src/types.js';
 
 describe('filter', () => {
     const ref = new WeakRef({});
@@ -7,14 +8,14 @@ describe('filter', () => {
     it('filter out message', () => {
         const mockAppender = jest.fn();
         const decoratedAppender = filterMessages(() => false, mockAppender);
-        decoratedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: ref as WeakRef<never> });
+        decoratedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
         expect(mockAppender).not.toBeCalled();
     });
 
     it('filter passes message', () => {
         const mockAppender = jest.fn();
         const decoratedAppender = filterMessages(() => true, mockAppender);
-        decoratedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: ref as WeakRef<never> });
+        decoratedAppender({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref: /** @type {WeakRef<never>} */ (ref) });
         expect(mockAppender).toBeCalledWith({ loglevel: LogLevel.info, message: 'test', action: Action.start, inputId: 0, ref });
     });
 });

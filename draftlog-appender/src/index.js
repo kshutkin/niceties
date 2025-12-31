@@ -1,11 +1,16 @@
-import { LogLevel, type LogMessage } from '@niceties/logger';
+/**
+ * @typedef {import('@niceties/logger/types').LogMessage} LogMessage
+ * @typedef {import('@niceties/logger/types').LogLevel} LogLevel
+ */
+
+import { LogLevel } from '@niceties/logger/types';
 import { filterMessages } from '@niceties/logger/appender-utils';
 import { asciiPrefixes, colors, tagFactory, unicodePrefixes } from '@niceties/logger/default-formatting';
 import { createFormatter, terminalSupportsUnicode } from '@niceties/logger/format-utils';
 import { appender } from '@niceties/logger/global-appender';
 
-import { createDraftlogAppender } from './core';
-import { dots, line } from './spinners';
+import { createDraftlogAppender } from './core.js';
+import { dots, line } from './spinners.js';
 
 if (!process.env.CI) {
     const supportsUnicode = terminalSupportsUnicode();
@@ -14,11 +19,15 @@ if (!process.env.CI) {
 
     let minLogLevel = LogLevel.info;
     appender(
-        filterMessages<Error, { setMinLevel(logLevel: LogLevel): void }>(
-            (message: LogMessage) => message.loglevel >= minLogLevel,
+        filterMessages(
+            /** @param {LogMessage} message */
+            (message) => /** @type {number} */ (message.loglevel) >= minLogLevel,
             createDraftlogAppender(spinner, formatter, true, 2),
             {
-                setMinLevel(logLevel: LogLevel) {
+                /**
+                 * @param {number} logLevel
+                 */
+                setMinLevel(logLevel) {
                     minLogLevel = logLevel;
                 },
             }

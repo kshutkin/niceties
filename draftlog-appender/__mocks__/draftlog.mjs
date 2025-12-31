@@ -1,10 +1,11 @@
 export default Object.assign(
-    jest.fn(console => {
+    /** @param {typeof console} console */
+    (console) => {
         console.draft = () => () => {};
         return {
             addLineListener() {},
         };
-    }),
+    },
     {
         defaults: {
             canRewrite: true,
