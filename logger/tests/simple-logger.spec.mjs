@@ -1,4 +1,5 @@
-import { jest, describe, it, expect } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
+
 import { filterMessages } from '../src/appender-utils.js';
 import { appender } from '../src/global-appender.js';
 import { createLogger } from '../src/simple.js';

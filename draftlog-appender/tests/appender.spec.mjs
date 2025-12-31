@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { createFormatter } from '@niceties/logger/format-utils';
 import { Action, LogLevel } from '@niceties/logger/types';
