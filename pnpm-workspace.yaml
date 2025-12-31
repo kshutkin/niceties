@@ -1,4 +1,7 @@
 packages:
-  - "logger"
-  - "draftlog-appender"
-  - "examples"
+  - logger
+  - draftlog-appender
+  - examples
+
+onlyBuiltDependencies:
+  - esbuild
