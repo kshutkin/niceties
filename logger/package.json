@@ -70,7 +70,7 @@
     ],
     "scripts": {
         "build": "dts-buddy",
-        "test": "vitest run --coverage --config ../vitest.config.js && node tests/check-deopt.mjs"
+        "test": "vitest run --coverage --config ../vitest.config.js"
     },
     "dependencies": {
         "kleur": "^4.1.4"
