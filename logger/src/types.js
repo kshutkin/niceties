@@ -1,3 +1,5 @@
+/** @typedef {import('./default-extended-api.js').DefaultExtendedApi} DefaultExtendedApi */
+
 /**
  * @readonly
  * @enum {number}
@@ -51,7 +53,8 @@ export const Action = /** @type {const} */ ({
 
 /**
  * @template [ErrorContext=Error]
- * @typedef {((message: LogMessage<ErrorContext>) => void) & { api?: object }} Appender
+ * @template [Api=DefaultExtendedApi]
+ * @typedef {((message: LogMessage<ErrorContext>) => void) & { api?: Api }} Appender
  */
 
 /**
@@ -78,15 +81,11 @@ export const Action = /** @type {const} */ ({
 
 /**
  * @template [ErrorContext=Error]
+ * @template [Api=DefaultExtendedApi]
  * @typedef {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
  *   start(message: string, loglevel?: number, context?: ErrorContext): void;
  *   update(message: string, loglevel?: number, context?: ErrorContext): void;
  *   finish(message: string, loglevel?: number, context?: ErrorContext): void;
- *   appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
- * } & Identity} Logger
- */
-
-/**
- * @typedef {Object} MinLogLevelApi
- * @property {(logLevel: number) => void} setMinLevel
+ *   appender(appender?: Appender<ErrorContext, Api>): (message: LogMessage<ErrorContext>) => void;
+ * } & Identity & Api} Logger
  */

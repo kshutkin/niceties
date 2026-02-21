@@ -70,7 +70,8 @@
     ],
     "scripts": {
         "build": "dts-buddy",
-        "test": "vitest run --coverage --config ../vitest.config.js"
+        "test": "vitest run --coverage --config ../vitest.config.js",
+        "test:types": "tsc -p tsconfig.types.json"
     },
     "dependencies": {
         "kleur": "^4.1.4"

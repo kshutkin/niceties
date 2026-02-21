@@ -5,17 +5,19 @@
 
 /**
  * @template [ErrorContext=Error]
- * @typedef {import('./types.js').Appender<ErrorContext>} Appender
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
 /**
  * @template [ErrorContext=Error]
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
  * @param {(logMessage: LogMessage<ErrorContext>) => boolean} predicate
- * @param {Appender<ErrorContext>} appender
- * @returns {Appender<ErrorContext>}
+ * @param {Appender<ErrorContext, Api>} appender
+ * @returns {Appender<ErrorContext, Api>}
  */
 export const filterMessages = (predicate, appender) => {
-    /** @type {Appender<ErrorContext>} */
+    /** @type {Appender<ErrorContext, Api>} */
     const result = /** @param {LogMessage<ErrorContext>} logMessage */ logMessage => {
         if (predicate(logMessage)) {
             appender(logMessage);
@@ -29,11 +31,12 @@ export const filterMessages = (predicate, appender) => {
 
 /**
  * @template [ErrorContext=Error]
- * @param {...Appender<ErrorContext>} appenders
- * @returns {Appender<ErrorContext>}
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @param {...Appender<ErrorContext, Api>} appenders
+ * @returns {Appender<ErrorContext, Api>}
  */
 export const combineAppenders = (...appenders) => {
-    /** @type {Appender<ErrorContext>} */
+    /** @type {Appender<ErrorContext, Api>} */
     const result = (/** @type {LogMessage<ErrorContext>} */ message) => {
         for (const appender of appenders) {
             try {
@@ -45,7 +48,7 @@ export const combineAppenders = (...appenders) => {
     };
     const apis = appenders.map(a => a.api).filter(Boolean);
     if (apis.length > 0) {
-        result.api = Object.assign({}, ...apis);
+        result.api = /** @type {Api} */ (Object.assign({}, ...apis));
     }
     return result;
 };

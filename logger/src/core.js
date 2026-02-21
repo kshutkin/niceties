@@ -1,6 +1,7 @@
 /**
  * @template [ErrorContext=Error]
- * @typedef {import('./types.js').Appender<ErrorContext>} Appender
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
 /**
@@ -41,13 +42,14 @@ const getOptions = options => {
 
 /**
  * @template [ErrorContext=Error]
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
  * @param {...(string | Identity | undefined)} args
  * @returns {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
  *   start(message: string, loglevel?: number, context?: ErrorContext): void;
  *   update(message: string, loglevel?: number, context?: ErrorContext): void;
  *   finish(message: string, loglevel?: number, context?: ErrorContext): void;
- *   appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
- * } & Identity}
+ *   appender(appender?: Appender<ErrorContext, Api>): (message: LogMessage<ErrorContext>) => void;
+ * } & Identity & Api}
  */
 export const createLogger = (...args) => {
     let initialLogLevel = LogLevel.info;
@@ -120,7 +122,7 @@ export const createLogger = (...args) => {
                 append(message, Action.finish, loglevel ?? initialLogLevel, context);
             },
             /**
-             * @param {Appender<ErrorContext>} [appender]
+             * @param {Appender<ErrorContext, Api>} [appender]
              * @returns {(message: LogMessage<ErrorContext>) => void}
              */
             appender(appender) {
@@ -146,5 +148,5 @@ export const createLogger = (...args) => {
 
     const ref = new WeakRef(loggerInstance);
 
-    return /** @type {typeof loggerInstance & Identity} */ (loggerInstance);
+    return /** @type {typeof loggerInstance & Identity & Api} */ (loggerInstance);
 };

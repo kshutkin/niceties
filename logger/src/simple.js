@@ -1,6 +1,7 @@
 /**
  * @template [ErrorContext=Error]
- * @typedef {import('./types.js').Appender<ErrorContext>} Appender
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
 /**
@@ -13,10 +14,11 @@ import { Action, LogLevel } from './types.js';
 
 /**
  * @template [ErrorContext=Error]
+ * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
  * @param {string} [tag]
  * @returns {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
- *   appender(appender?: Appender<ErrorContext>): (message: LogMessage<ErrorContext>) => void;
- * }}
+ *   appender(appender?: Appender<ErrorContext, Api>): (message: LogMessage<ErrorContext>) => void;
+ * } & Api}
  */
 export const createLogger = tag => {
     /** @type {(message: LogMessage<ErrorContext>) => void} */
@@ -43,7 +45,7 @@ export const createLogger = tag => {
         },
         {
             /**
-             * @param {Appender<ErrorContext>} [appender]
+             * @param {Appender<ErrorContext, Api>} [appender]
              * @returns {(message: LogMessage<ErrorContext>) => void}
              */
             appender(appender) {
@@ -62,5 +64,5 @@ export const createLogger = tag => {
         }
     );
 
-    return loggerInstance;
+    return /** @type {typeof loggerInstance & Api} */ (loggerInstance);
 };
