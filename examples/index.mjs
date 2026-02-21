@@ -4,7 +4,7 @@ import kleur from 'kleur';
 
 import { appender, createLogger } from '@niceties/logger';
 
-appender().setMinLevel(0);
+appender.setMinLevel(0);
 
 const waitFor = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 

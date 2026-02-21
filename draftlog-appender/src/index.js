@@ -17,19 +17,18 @@ if (!process.env.CI) {
     const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes, tagFactory);
 
     let minLogLevel = LogLevel.info;
-    appender(
-        filterMessages(
-            /** @param {LogMessage} message */
-            message => /** @type {number} */ (message.loglevel) >= minLogLevel,
-            createDraftlogAppender(spinner, formatter, true, 2),
-            {
-                /**
-                 * @param {number} logLevel
-                 */
-                setMinLevel(logLevel) {
-                    minLogLevel = logLevel;
-                },
-            }
-        )
+    const filtered = filterMessages(
+        /** @param {LogMessage} message */
+        message => /** @type {number} */ (message.loglevel) >= minLogLevel,
+        createDraftlogAppender(spinner, formatter, true, 2)
     );
+    filtered.api = {
+        /**
+         * @param {number} logLevel
+         */
+        setMinLevel(logLevel) {
+            minLogLevel = logLevel;
+        },
+    };
+    appender(filtered);
 }

@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
         <title>test</title>
-        <script src="https://unpkg.com/@niceties/logger@1.0.0-alpha.3/dist/simple.umd.js"></script>
+        <script src="https://unpkg.com/@niceties/logger/dist/simple.umd.js"></script>
     </head>
     <body>
         <script>
-            const logger = nicetiesLoggerSimple.createLogger()
-                .withAppender((msg) => {
-                    console.log(msg.message);
-                });
-            logger('test message');
+            const logger = nicetiesLoggerSimple.createLogger();
+            logger.appender((msg) => {
+                console.log(msg.message);
+            });
+            logger("test message");
         </script>
     </body>
 </html>
