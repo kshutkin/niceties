@@ -63,6 +63,7 @@ async function orchestrate() {
         'trace-console-appender',
         'trace-simple-logger',
         'trace-global-appender',
+        'trace-default-appender',
     ];
 
     for (const workloadName of traceWorkloads) {
@@ -318,6 +319,39 @@ async function traceWorkload(name) {
             }
             break;
         }
+
+        // Default appender (filterMessages + consoleAppender) as in index.js
+        case 'trace-default-appender': {
+            const prefixes = terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes;
+            const formatter = createFormatter(colors, prefixes, tagFactory);
+            let minLogLevel = LogLevel.info;
+            const filtered = filterMessages(
+                message => /** @type {number} */ (message.loglevel) >= minLogLevel,
+                createConsoleAppender(formatter)
+            );
+            filtered.api = {
+                setMinLevel(logLevel) {
+                    minLogLevel = logLevel;
+                },
+            };
+            appender(filtered);
+            const logger = createLogger('default-app');
+            for (let i = 0; i < N; i++) {
+                logger.start('starting');
+                logger.update('updating');
+                logger.finish('done');
+                logger('log msg');
+            }
+            // Exercise setMinLevel in steady state
+            for (let i = 0; i < N; i++) {
+                logger.setMinLevel(LogLevel.verbose);
+                logger('verbose msg', LogLevel.verbose);
+                logger.setMinLevel(LogLevel.warn);
+                logger('filtered out', LogLevel.info);
+                logger('passes', LogLevel.warn);
+            }
+            break;
+        }
     }
 
     console.log = origLog;
@@ -473,6 +507,33 @@ async function nativesWorkload() {
     checkOptimized('global appender()', appender, () => {
         appender(noop);
     });
+
+    // -- default appender (filterMessages + consoleAppender) as in index.js -
+    {
+        const prefixes = terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes;
+        const formatter = createFormatter(colors, prefixes, tagFactory);
+        let minLogLevel = LogLevel.info;
+        const filtered = filterMessages(
+            message => /** @type {number} */ (message.loglevel) >= minLogLevel,
+            createConsoleAppender(formatter)
+        );
+        filtered.api = {
+            setMinLevel(logLevel) {
+                minLogLevel = logLevel;
+            },
+        };
+        appender(filtered);
+        const logger = createLogger('default-app');
+        checkOptimized('default appender (filtered consoleAppender)', filtered, () => {
+            filtered({ action: Action.finish, loglevel: LogLevel.info, message: 'msg' });
+        });
+        checkOptimized('default appender logger lifecycle', logger.start, () => {
+            logger.start('msg');
+        });
+        checkOptimized('default appender setMinLevel', filtered.api.setMinLevel, () => {
+            filtered.api.setMinLevel(LogLevel.warn);
+        });
+    }
 
     console.log = origLog;
 
