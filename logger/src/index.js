@@ -21,21 +21,20 @@ if (!appender()) {
     ]);
     const formatter = createFormatter(colors, terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes, tagFactory);
     let minLogLevel = LogLevel.info;
-    appender(
-        filterMessages(
-            /** @param {LogMessage} message */
-            message => /** @type {number} */ (message.loglevel) >= minLogLevel,
-            createConsoleAppender(formatter),
-            {
-                /**
-                 * @param {number} logLevel
-                 */
-                setMinLevel(logLevel) {
-                    minLogLevel = logLevel;
-                },
-            }
-        )
+    const filtered = filterMessages(
+        /** @param {LogMessage} message */
+        message => /** @type {number} */ (message.loglevel) >= minLogLevel,
+        createConsoleAppender(formatter)
     );
+    filtered.api = {
+        /**
+         * @param {number} logLevel
+         */
+        setMinLevel(logLevel) {
+            minLogLevel = logLevel;
+        },
+    };
+    appender(filtered);
 }
 
 export * from './types.js';

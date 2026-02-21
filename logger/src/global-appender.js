@@ -16,6 +16,13 @@ export let globalAppender;
 export const appender = newAppender => {
     if (newAppender !== undefined) {
         globalAppender = /** @type {Appender<unknown>} */ (newAppender);
+        const api = newAppender != null ? newAppender.api : undefined;
+        if (api != null) {
+            Object.setPrototypeOf(api, Function.prototype);
+            Object.setPrototypeOf(appender, api);
+        } else {
+            Object.setPrototypeOf(appender, Function.prototype);
+        }
     }
     return globalAppender;
 };

@@ -126,6 +126,13 @@ export const createLogger = (...args) => {
             appender(appender) {
                 if (appender !== undefined) {
                     myAppender = appender;
+                    const api = appender.api;
+                    if (api != null) {
+                        Object.setPrototypeOf(api, Function.prototype);
+                        Object.setPrototypeOf(loggerInstance, api);
+                    } else {
+                        Object.setPrototypeOf(loggerInstance, Function.prototype);
+                    }
                 }
                 return myAppender;
             },

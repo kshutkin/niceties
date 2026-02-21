@@ -10,22 +10,21 @@
 
 /**
  * @template [ErrorContext=Error]
- * @template {object} [Api=object]
  * @param {(logMessage: LogMessage<ErrorContext>) => boolean} predicate
  * @param {Appender<ErrorContext>} appender
- * @param {Api} [api]
- * @returns {Appender<ErrorContext> & Api}
+ * @returns {Appender<ErrorContext>}
  */
-export const filterMessages = (predicate, appender, api) => {
-    return Object.assign(
-        /** @param {LogMessage<ErrorContext>} logMessage */
-        logMessage => {
-            if (predicate(logMessage)) {
-                appender(logMessage);
-            }
-        },
-        api
-    );
+export const filterMessages = (predicate, appender) => {
+    /** @type {Appender<ErrorContext>} */
+    const result = /** @param {LogMessage<ErrorContext>} logMessage */ logMessage => {
+        if (predicate(logMessage)) {
+            appender(logMessage);
+        }
+    };
+    if (appender.api) {
+        result.api = appender.api;
+    }
+    return result;
 };
 
 /**
@@ -34,7 +33,8 @@ export const filterMessages = (predicate, appender, api) => {
  * @returns {Appender<ErrorContext>}
  */
 export const combineAppenders = (...appenders) => {
-    return (/** @type {LogMessage<ErrorContext>} */ message) => {
+    /** @type {Appender<ErrorContext>} */
+    const result = (/** @type {LogMessage<ErrorContext>} */ message) => {
         for (const appender of appenders) {
             try {
                 appender(message);
@@ -43,4 +43,9 @@ export const combineAppenders = (...appenders) => {
             }
         }
     };
+    const apis = appenders.map(a => a.api).filter(Boolean);
+    if (apis.length > 0) {
+        result.api = Object.assign({}, ...apis);
+    }
+    return result;
 };

@@ -303,16 +303,16 @@ describe('api tests', () => {
         const appenderMock = vi.fn();
         const logger = createLogger();
         let filter = false;
-        logger.appender(
-            filterMessages(() => filter, appenderMock, {
-                /** @param {boolean} value */
-                setFilter(value) {
-                    filter = value;
-                },
-            })
-        );
+        const filtered = filterMessages(() => filter, appenderMock);
+        filtered.api = {
+            /** @param {boolean} value */
+            setFilter(value) {
+                filter = value;
+            },
+        };
+        logger.appender(filtered);
         logger('test message');
-        /** @type {any} */ (logger.appender()).setFilter(true);
+        /** @type {any} */ (logger).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({
@@ -330,6 +330,43 @@ describe('api tests', () => {
                 message: 'another test message',
             })
         );
+    });
+
+    it('appender api properties are cleaned up on swap', () => {
+        const logger = createLogger();
+        const filtered1 = filterMessages(() => true, vi.fn());
+        filtered1.api = {
+            customMethod() {
+                return 'first';
+            },
+        };
+        logger.appender(filtered1);
+        expect(/** @type {any} */ (logger).customMethod()).toBe('first');
+
+        const filtered2 = filterMessages(() => true, vi.fn());
+        filtered2.api = {
+            otherMethod() {
+                return 'second';
+            },
+        };
+        logger.appender(filtered2);
+        expect(/** @type {any} */ (logger).customMethod).toBeUndefined();
+        expect(/** @type {any} */ (logger).otherMethod()).toBe('second');
+    });
+
+    it('appender api properties are cleaned up when swapping to appender without api', () => {
+        const logger = createLogger();
+        const filtered = filterMessages(() => true, vi.fn());
+        filtered.api = {
+            customMethod() {
+                return 'value';
+            },
+        };
+        logger.appender(filtered);
+        expect(/** @type {any} */ (logger).customMethod()).toBe('value');
+
+        logger.appender(vi.fn());
+        expect(/** @type {any} */ (logger).customMethod).toBeUndefined();
     });
 
     it('id is not writable', () => {

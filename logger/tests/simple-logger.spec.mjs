@@ -91,16 +91,16 @@ describe('simple logger api tests', () => {
         const appenderMock = vi.fn();
         const logger = createLogger();
         let filter = false;
-        logger.appender(
-            filterMessages(() => filter, appenderMock, {
-                /** @param {boolean} value */
-                setFilter(value) {
-                    filter = value;
-                },
-            })
-        );
+        const filtered = filterMessages(() => filter, appenderMock);
+        filtered.api = {
+            /** @param {boolean} value */
+            setFilter(value) {
+                filter = value;
+            },
+        };
+        logger.appender(filtered);
         logger('test message');
-        /** @type {any} */ (logger.appender()).setFilter(true);
+        /** @type {any} */ (logger).setFilter(true);
         logger('another test message');
         expect(appenderMock).not.toBeCalledWith(
             expect.objectContaining({

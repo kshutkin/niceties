@@ -51,9 +51,7 @@ export const Action = /** @type {const} */ ({
 
 /**
  * @template [ErrorContext=Error]
- * @callback Appender
- * @param {LogMessage<ErrorContext>} message
- * @returns {void}
+ * @typedef {((message: LogMessage<ErrorContext>) => void) & { api?: object }} Appender
  */
 
 /**

@@ -1,6 +1,6 @@
 # Draftlog Appender
 
-Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draftlog package.
+Appender for [`'@niceties/logger'`](../logger/README.md) implemented using the draftlog package.
 
 - Uses animation in the console to display log messages
 
@@ -8,7 +8,7 @@ Appender for [`'@niceites/logger'`](../logger/README.md) implemented using draft
 
 - Doesn't hold your event loop on exit
 
-- Creates maximum one active interval (timer) at a time
+- Creates at most one active interval (timer) at a time
 
 - Supports multilevel spinners
 
@@ -29,17 +29,15 @@ or
 npm install --save @niceties/draftlog-appender
 ```
 
-No umd packages published because draftlog appender does not exists in umd format.
-
 # Example
 
-To install appender use next import:
+To install the appender, use the following import:
 
 ```javascript
 import "@niceties/draftlog-appender";
 ```
 
-It is better to do it before other imports so the default appender in `'@niceites/logger'` is not installed.
+It is better to do it before other imports so that the default appender in `'@niceties/logger'` is not installed.
 
 ## Sub-packages
 
@@ -47,7 +45,7 @@ Default sub-package `'@niceties/draftlog-appender'` exports nothing.
 
 Sub-package `'@niceties/draftlog-appender/core'` exports `createDraftlogAppender()` factory.
 
-Sub-package `'@niceties/draftlog-appender/spinners'` exports spinners definitions used in default config.
+Sub-package `'@niceties/draftlog-appender/spinners'` exports spinner definitions used in the default config.
 
 ## Prior art
 
