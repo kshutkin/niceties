@@ -1,6 +1,6 @@
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
@@ -14,7 +14,7 @@ import { Action, LogLevel } from './types.js';
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @param {string} [tag]
  * @returns {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
  *   appender(appender?: Appender<ErrorContext, Api>): (message: LogMessage<ErrorContext>) => void;

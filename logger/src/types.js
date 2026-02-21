@@ -1,4 +1,7 @@
-/** @typedef {import('./default-extended-api.js').DefaultExtendedApi} DefaultExtendedApi */
+/**
+ * @typedef {Object} DefaultExtendedApi
+ * @property {(logLevel: number) => void} setMinLevel
+ */
 
 /**
  * @readonly

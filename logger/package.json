@@ -69,7 +69,7 @@
         "simple-logger"
     ],
     "scripts": {
-        "build": "dts-buddy",
+        "build": "dts-buddy && node scripts/fix-types.js",
         "test": "vitest run --coverage --config ../vitest.config.js",
         "test:types": "tsc -p tsconfig.types.json"
     },

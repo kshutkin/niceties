@@ -1,6 +1,6 @@
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
@@ -42,7 +42,7 @@ const getOptions = options => {
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @param {...(string | Identity | undefined)} args
  * @returns {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
  *   start(message: string, loglevel?: number, context?: ErrorContext): void;

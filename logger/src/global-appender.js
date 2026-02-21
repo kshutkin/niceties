@@ -1,6 +1,6 @@
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
@@ -11,7 +11,7 @@ export let globalAppender;
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @param {Appender<ErrorContext, Api>} [newAppender]
  * @returns {Appender<unknown> | undefined}
  */

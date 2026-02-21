@@ -5,13 +5,13 @@
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
  */
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @param {(logMessage: LogMessage<ErrorContext>) => boolean} predicate
  * @param {Appender<ErrorContext, Api>} appender
  * @returns {Appender<ErrorContext, Api>}
@@ -31,7 +31,7 @@ export const filterMessages = (predicate, appender) => {
 
 /**
  * @template [ErrorContext=Error]
- * @template [Api=import('./default-extended-api.js').DefaultExtendedApi]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
  * @param {...Appender<ErrorContext, Api>} appenders
  * @returns {Appender<ErrorContext, Api>}
  */
