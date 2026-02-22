@@ -32,7 +32,7 @@ importers:
   draftlog-appender:
     dependencies:
       '@niceties/draftlog':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../draftlog
       '@slimlib/list':
         specifier: ^2.0.1

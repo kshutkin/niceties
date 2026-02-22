@@ -58,7 +58,7 @@
         "@niceties/logger": "workspace:^"
     },
     "dependencies": {
-        "@niceties/draftlog": "workspace:*",
+        "@niceties/draftlog": "workspace:^",
         "@slimlib/list": "^2.0.1"
     }
 }
