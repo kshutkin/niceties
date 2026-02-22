@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/** @param {string} arg */
-function isCursorMove(arg) {
-    return arg.startsWith('\x1B[') && (arg.endsWith('A') || arg.endsWith('B'));
+async function flushTicks() {
+    await new Promise(resolve => process.nextTick(resolve));
 }
+
+const CURSOR_HIDE = '\x1B[?25l';
+const CURSOR_SHOW = '\x1B[?25h';
 
 describe('draftlog', () => {
     /** @type {ReturnType<typeof vi.fn>} */
@@ -64,87 +66,90 @@ describe('draftlog', () => {
         expect(typeof updater).toBe('function');
     });
 
-    it('updates a single draft line in place', () => {
+    it('updates a single draft line in place', async () => {
         const updater = draftlog.draft('hello');
         writeMock.mockClear();
 
         updater('world');
+        await flushTicks();
 
-        // linesUp is 0, so no cursor movement up/down
-        // just: \r\x1B[2K + content + \r
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kworld');
-        expect(writeMock).toHaveBeenCalledWith('\r');
+        // Batched update: move up 1 line, clear and rewrite it
+        expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kworld\n');
     });
 
-    it('handles multiple draft lines', () => {
+    it('handles multiple draft lines', async () => {
         const updater1 = draftlog.draft('line1');
         const updater2 = draftlog.draft('line2');
         writeMock.mockClear();
 
-        // updater1 should be 1 line up (line2 was added after)
+        // updater1 updates content; batched flush rewrites all lines
         updater1('updated line1');
+        await flushTicks();
 
-        expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line1');
-        expect(writeMock).toHaveBeenCalledWith('\x1B[1B');
-        expect(writeMock).toHaveBeenCalledWith('\r');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line1\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kline2\n');
 
         writeMock.mockClear();
 
-        // updater2 is at the bottom (linesUp=0), so no cursor up/down codes
+        // updater2 updates content; batched flush rewrites all lines
         updater2('updated line2');
+        await flushTicks();
 
-        // Should not have cursor up or cursor down codes
-        const cursorMoveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-        expect(cursorMoveCalls).toHaveLength(0);
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line2');
-        expect(writeMock).toHaveBeenCalledWith('\r');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line1\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line2\n');
     });
 
-    it('handles three draft lines with correct cursor positions', () => {
+    it('handles three draft lines with correct cursor positions', async () => {
         const updater1 = draftlog.draft('a');
         const updater2 = draftlog.draft('b');
         const updater3 = draftlog.draft('c');
         writeMock.mockClear();
 
-        // updater1 should be 2 lines up
+        // Update first line; batch flush rewrites all 3
         updater1('A');
-        expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA');
-        expect(writeMock).toHaveBeenCalledWith('\x1B[2B');
+        await flushTicks();
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kb\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
 
         writeMock.mockClear();
 
-        // updater2 should be 1 line up
+        // Update second line
         updater2('B');
-        expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB');
-        expect(writeMock).toHaveBeenCalledWith('\x1B[1B');
+        await flushTicks();
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
 
         writeMock.mockClear();
 
-        // updater3 should be 0 lines up
+        // Update third line
         updater3('C');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC');
-        // Should not have any cursor up/down movement
-        const cursorMoveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-        expect(cursorMoveCalls).toHaveLength(0);
+        await flushTicks();
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC\n');
     });
 
-    it('multiple updates to the same line', () => {
+    it('multiple updates to the same line', async () => {
         const updater = draftlog.draft('v1');
         writeMock.mockClear();
 
         updater('v2');
         updater('v3');
         updater('v4');
+        await flushTicks();
 
-        // Each update writes the clear+content sequence
+        // Only one batched flush with the final value
         const clearAndWriteCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
-        expect(clearAndWriteCalls).toHaveLength(3);
-        expect(clearAndWriteCalls[0][0]).toBe('\r\x1B[2Kv2');
-        expect(clearAndWriteCalls[1][0]).toBe('\r\x1B[2Kv3');
-        expect(clearAndWriteCalls[2][0]).toBe('\r\x1B[2Kv4');
+        expect(clearAndWriteCalls).toHaveLength(1);
+        expect(clearAndWriteCalls[0][0]).toBe('\r\x1B[2Kv4\n');
     });
 
     it('gc cleanup removes line from tracking', async () => {
@@ -167,39 +172,42 @@ describe('draftlog', () => {
 
         // keeper should still work fine
         keeper('kept!');
+        await flushTicks();
 
-        // The keeper's linesUp should still be 0 (physical position unchanged)
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kkept!');
-        expect(writeMock).toHaveBeenCalledWith('\r');
+        // The batched flush rewrites remaining lines
+        const clearCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
+        expect(clearCalls.length).toBeGreaterThanOrEqual(1);
+        expect(clearCalls.some(([arg]) => arg === '\r\x1B[2Kkept!\n')).toBe(true);
     });
 
-    it('resize event re-renders all active lines', () => {
+    it('resize event re-renders all active lines', async () => {
         const updater1 = draftlog.draft('line1');
         const updater2 = draftlog.draft('line2');
         writeMock.mockClear();
 
         // Simulate resize
         process.stdout.emit('resize');
+        await flushTicks();
 
-        // Both lines should be re-rendered
+        // Both lines should be re-rendered in one batch
         const clearCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
         expect(clearCalls).toHaveLength(2);
-        expect(clearCalls[0][0]).toBe('\r\x1B[2Kline1');
-        expect(clearCalls[1][0]).toBe('\r\x1B[2Kline2');
+        expect(clearCalls[0][0]).toBe('\r\x1B[2Kline1\n');
+        expect(clearCalls[1][0]).toBe('\r\x1B[2Kline2\n');
 
         // Keep updaters alive
         void updater1;
         void updater2;
     });
 
-    it('empty text update', () => {
+    it('empty text update', async () => {
         const updater = draftlog.draft('hello');
         writeMock.mockClear();
 
         updater('');
+        await flushTicks();
 
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2K');
-        expect(writeMock).toHaveBeenCalledWith('\r');
+        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2K\n');
     });
 
     it('resize listener is attached at module load', () => {
@@ -212,6 +220,25 @@ describe('draftlog', () => {
 
         // no additional listeners added by draft() calls
         expect(resizeListeners).toHaveLength(1);
+    });
+
+    it('hides cursor when first draft is created', () => {
+        writeMock.mockClear();
+
+        draftlog.draft('hello');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toContain(CURSOR_HIDE);
+    });
+
+    it('does not hide cursor again for subsequent drafts', () => {
+        draftlog.draft('first');
+        writeMock.mockClear();
+
+        draftlog.draft('second');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).not.toContain(CURSOR_HIDE);
     });
 
     describe('console.log compatibility', () => {
@@ -268,49 +295,47 @@ describe('draftlog', () => {
             expect(calls[4]).toBe('third\n');
         });
 
-        it('draft updates work correctly after an external write', () => {
+        it('draft updates work correctly after an external write', async () => {
             const updater = draftlog.draft('my draft');
 
             externalWrite('external\n');
             writeMock.mockClear();
 
-            // After re-render, the draft is still the only tracked line,
-            // so linesUp = 0 (it is at the bottom of the draft block)
             updater('updated');
+            await flushTicks();
 
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated');
-            expect(writeMock).toHaveBeenCalledWith('\r');
-            // No cursor movement for a single draft
-            const moveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-            expect(moveCalls).toHaveLength(0);
+            // Batched flush: move up 1, rewrite the single line
+            expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated\n');
         });
 
-        it('draft updates work correctly after external write with multiple drafts', () => {
+        it('draft updates work correctly after external write with multiple drafts', async () => {
             const updater1 = draftlog.draft('first');
             const updater2 = draftlog.draft('second');
 
             externalWrite('external\n');
             writeMock.mockClear();
 
-            // After re-render, draft positions within the block remain the same:
-            // updater1 is at index 0, linesUp = 2 - 1 - 0 = 1
+            // Update first line
             updater1('updated first');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated first');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[1B');
-            expect(writeMock).toHaveBeenCalledWith('\r');
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated first\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Ksecond\n');
 
             writeMock.mockClear();
 
-            // updater2 is at index 1, linesUp = 2 - 1 - 1 = 0
+            // Update second line
             updater2('updated second');
-            const moveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-            expect(moveCalls).toHaveLength(0);
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated second');
-            expect(writeMock).toHaveBeenCalledWith('\r');
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated first\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated second\n');
         });
 
-        it('multiple external writes each trigger clear-passthrough-rerender', () => {
+        it('multiple external writes each trigger clear-passthrough-rerender', async () => {
             const updater = draftlog.draft('my draft');
             writeMock.mockClear();
 
@@ -334,14 +359,14 @@ describe('draftlog', () => {
 
             writeMock.mockClear();
 
-            // Draft update still works at linesUp=0
+            // Draft update still works via batched flush
             updater('updated');
-            const moveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-            expect(moveCalls).toHaveLength(0);
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated');
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated\n');
         });
 
-        it('re-renders reflect the latest draft content', () => {
+        it('re-renders reflect the latest draft content', async () => {
             const updater = draftlog.draft('original');
 
             // Update draft content before external write
@@ -408,7 +433,7 @@ describe('draftlog', () => {
             expect(calls[0]).toBe('hello\n');
         });
 
-        it('handles three drafts with external writes and subsequent updates', () => {
+        it('handles three drafts with external writes and subsequent updates', async () => {
             const updater1 = draftlog.draft('a');
             const updater2 = draftlog.draft('b');
             const updater3 = draftlog.draft('c');
@@ -418,28 +443,33 @@ describe('draftlog', () => {
             externalWrite('ext2\n');
             writeMock.mockClear();
 
-            // After re-renders, positions within the draft block are unchanged:
-            // updater1: index=0, linesUp = 3-1-0 = 2
+            // Update first line; batched flush rewrites all 3
             updater1('A');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[2B');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kb\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
 
             writeMock.mockClear();
 
-            // updater2: index=1, linesUp = 3-1-1 = 1
+            // Update second line
             updater2('B');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB');
-            expect(writeMock).toHaveBeenCalledWith('\x1B[1B');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
 
             writeMock.mockClear();
 
-            // updater3: index=2, linesUp = 3-1-2 = 0
+            // Update third line
             updater3('C');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC');
-            const moveCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && isCursorMove(arg));
-            expect(moveCalls).toHaveLength(0);
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
+            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC\n');
         });
 
         it('draft writes (from draft()) are not intercepted as external writes', () => {
@@ -448,7 +478,11 @@ describe('draftlog', () => {
             // First draft — no existing lines, so no clear-rerender
             draftlog.draft('first');
             let calls = getWriteCalls();
-            expect(calls).toEqual(['first\n']);
+            // Should have the initial text write and cursor hide
+            expect(calls).toContain('first\n');
+            expect(calls).toContain(CURSOR_HIDE);
+            // No clear-rerender sequence
+            expect(calls.filter(c => c.includes('\x1B[J'))).toHaveLength(0);
 
             writeMock.mockClear();
 
@@ -459,17 +493,22 @@ describe('draftlog', () => {
             expect(calls).toEqual(['second\n']);
         });
 
-        it('update writes are not intercepted as external writes', () => {
+        it('update writes are not intercepted as external writes', async () => {
             const updater1 = draftlog.draft('a');
             const updater2 = draftlog.draft('b');
             writeMock.mockClear();
 
-            // Updates are internal writes — no clear-rerender triggered
+            // Updates are batched — no immediate writes
             updater1('A');
             updater2('B');
             updater1('A2');
 
-            // None of the writes should contain the clear-rerender sequence
+            // No writes yet (all deferred to nextTick)
+            expect(writeMock).not.toHaveBeenCalled();
+
+            await flushTicks();
+
+            // After flush: none of the writes should contain the clear-rerender sequence
             const calls = getWriteCalls();
             const clearCalls = calls.filter(c => c.includes('\x1B[J'));
             expect(clearCalls).toHaveLength(0);
@@ -537,7 +576,7 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         process.stdout.isTTY = originalIsTTY;
     });
 
-    it('updater called after line removed from tracking is a no-op', () => {
+    it('updater called after line removed from tracking is a no-op', async () => {
         const updater = draftlog.draft('hello');
         writeMock.mockClear();
 
@@ -546,14 +585,21 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // Now call the updater — the line is no longer tracked, so updateLine should early-return
+        // showCursor is called because lines is now empty — account for that write
+        const showCursorCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg === CURSOR_SHOW);
+        expect(showCursorCalls).toHaveLength(1);
+
+        writeMock.mockClear();
+
+        // Now call the updater — the line is no longer tracked, so no update is scheduled
         updater('updated');
+        await flushTicks();
 
         // No writes should have been made since the line is no longer tracked
         expect(writeMock).not.toHaveBeenCalled();
     });
 
-    it('resize after line removed from tracking does not crash', () => {
+    it('resize after line removed from tracking does not crash', async () => {
         const updater = draftlog.draft('line1');
         draftlog.draft('line2');
         writeMock.mockClear();
@@ -565,6 +611,33 @@ describe('draftlog - updateLine after line removed from tracking', () => {
 
         // Call the updater for the removed line — should be a no-op
         updater('gone');
+        await flushTicks();
         expect(writeMock).not.toHaveBeenCalled();
+    });
+
+    it('shows cursor when last draft line is removed', () => {
+        const updater = draftlog.draft('only');
+        writeMock.mockClear();
+
+        // Simulate finalization of the only line
+        const entry = registeredEntries.find(e => e.target === updater);
+        expect(entry).toBeDefined();
+        finalizationCallback(entry.heldValue);
+
+        expect(writeMock).toHaveBeenCalledWith(CURSOR_SHOW);
+    });
+
+    it('does not show cursor when non-last draft line is removed', () => {
+        const updater1 = draftlog.draft('line1');
+        draftlog.draft('line2');
+        writeMock.mockClear();
+
+        // Simulate finalization of the first line (one still remains)
+        const entry = registeredEntries.find(e => e.target === updater1);
+        expect(entry).toBeDefined();
+        finalizationCallback(entry.heldValue);
+
+        const showCursorCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg === CURSOR_SHOW);
+        expect(showCursorCalls).toHaveLength(0);
     });
 });

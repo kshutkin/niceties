@@ -3,7 +3,7 @@
 
 import { performance } from 'node:perf_hooks';
 
-import { draft } from './src/index.js';
+import { draft } from '../src/index.js';
 
 const LINES = 40;
 const UPDATES = 200;
