@@ -2,7 +2,7 @@
 
 Create mutable log lines into the terminal.
 
-This is a simplified version of the [draftlog](https://github.com/ivanseidel/node-draftlog) package by [ivanseidel](https://github.com/ivanseidel).
+This is a simplified and improved version of the [draftlog](https://github.com/ivanseidel/node-draftlog) package by [ivanseidel](https://github.com/ivanseidel).
 
 ### [Changelog](./CHANGELOG.md)
 
