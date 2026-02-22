@@ -1,7 +1,7 @@
 {
-    "version": "1.3.3",
+    "version": "0.0.0",
     "license": "MIT",
-    "name": "@niceties/draftlog-appender",
+    "name": "@niceties/draftlog",
     "author": {
         "name": "Konstantin Shutkin"
     },
@@ -11,14 +11,6 @@
         ".": {
             "types": "./types/index.d.ts",
             "default": "./src/index.js"
-        },
-        "./core": {
-            "types": "./types/index.d.ts",
-            "default": "./src/core.js"
-        },
-        "./spinners": {
-            "types": "./types/index.d.ts",
-            "default": "./src/spinners.js"
         },
         "./package.json": "./package.json"
     },
@@ -38,27 +30,17 @@
     "bugs": {
         "url": "https://github.com/kshutkin/niceties/issues"
     },
-    "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
+    "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog/README.md",
     "readme": "README.md",
-    "description": "Appender for '@niceites/logger' implemented using draftlog package.",
+    "description": "Create mutable log lines into the terminal",
     "keywords": [
         "@niceties",
-        "draftlog-appender",
         "draftlog",
-        "appender"
+        "terminal",
+        "log"
     ],
     "scripts": {
         "build": "dts-buddy",
         "test": "vitest run --coverage --config ../vitest.config.js"
-    },
-    "devDependencies": {
-        "@niceties/logger": "workspace:*"
-    },
-    "peerDependencies": {
-        "@niceties/logger": "workspace:^"
-    },
-    "dependencies": {
-        "draftlog": "^1.0.13",
-        "@slimlib/list": "^2.0.1"
     }
 }
