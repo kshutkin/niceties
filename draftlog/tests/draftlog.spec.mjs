@@ -6,6 +6,8 @@ async function flushTicks() {
 
 const CURSOR_HIDE = '\x1B[?25l';
 const CURSOR_SHOW = '\x1B[?25h';
+const SYNC_ENABLE = '\x1B[?2026h';
+const SYNC_DISABLE = '\x1B[?2026l';
 
 describe('draftlog', () => {
     /** @type {ReturnType<typeof vi.fn>} */
@@ -73,9 +75,11 @@ describe('draftlog', () => {
         updater('world');
         await flushTicks();
 
-        // Batched update: move up 1 line, clear and rewrite it
-        expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kworld\n');
+        // Batched update: sync enable, move up 1 row + erase to end, rewrite, sync disable
+        expect(writeMock).toHaveBeenCalledWith(SYNC_ENABLE);
+        expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('world\n');
+        expect(writeMock).toHaveBeenCalledWith(SYNC_DISABLE);
     });
 
     it('handles multiple draft lines', async () => {
@@ -87,9 +91,9 @@ describe('draftlog', () => {
         updater1('updated line1');
         await flushTicks();
 
-        expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line1\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kline2\n');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[2A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('updated line1\n');
+        expect(writeMock).toHaveBeenCalledWith('line2\n');
 
         writeMock.mockClear();
 
@@ -97,9 +101,9 @@ describe('draftlog', () => {
         updater2('updated line2');
         await flushTicks();
 
-        expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line1\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated line2\n');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[2A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('updated line1\n');
+        expect(writeMock).toHaveBeenCalledWith('updated line2\n');
     });
 
     it('handles three draft lines with correct cursor positions', async () => {
@@ -111,30 +115,30 @@ describe('draftlog', () => {
         // Update first line; batch flush rewrites all 3
         updater1('A');
         await flushTicks();
-        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kb\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('A\n');
+        expect(writeMock).toHaveBeenCalledWith('b\n');
+        expect(writeMock).toHaveBeenCalledWith('c\n');
 
         writeMock.mockClear();
 
         // Update second line
         updater2('B');
         await flushTicks();
-        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('A\n');
+        expect(writeMock).toHaveBeenCalledWith('B\n');
+        expect(writeMock).toHaveBeenCalledWith('c\n');
 
         writeMock.mockClear();
 
         // Update third line
         updater3('C');
         await flushTicks();
-        expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC\n');
+        expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+        expect(writeMock).toHaveBeenCalledWith('A\n');
+        expect(writeMock).toHaveBeenCalledWith('B\n');
+        expect(writeMock).toHaveBeenCalledWith('C\n');
     });
 
     it('multiple updates to the same line', async () => {
@@ -147,9 +151,10 @@ describe('draftlog', () => {
         await flushTicks();
 
         // Only one batched flush with the final value
-        const clearAndWriteCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
-        expect(clearAndWriteCalls).toHaveLength(1);
-        expect(clearAndWriteCalls[0][0]).toBe('\r\x1B[2Kv4\n');
+        expect(writeMock).toHaveBeenCalledWith('v4\n');
+        // Intermediate values should not appear
+        const intermediateWrites = writeMock.mock.calls.filter(([arg]) => arg === 'v2\n' || arg === 'v3\n');
+        expect(intermediateWrites).toHaveLength(0);
     });
 
     it('gc cleanup removes line from tracking', async () => {
@@ -175,9 +180,7 @@ describe('draftlog', () => {
         await flushTicks();
 
         // The batched flush rewrites remaining lines
-        const clearCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
-        expect(clearCalls.length).toBeGreaterThanOrEqual(1);
-        expect(clearCalls.some(([arg]) => arg === '\r\x1B[2Kkept!\n')).toBe(true);
+        expect(writeMock).toHaveBeenCalledWith('kept!\n');
     });
 
     it('resize event re-renders all active lines', async () => {
@@ -190,10 +193,8 @@ describe('draftlog', () => {
         await flushTicks();
 
         // Both lines should be re-rendered in one batch
-        const clearCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.startsWith('\r\x1B[2K'));
-        expect(clearCalls).toHaveLength(2);
-        expect(clearCalls[0][0]).toBe('\r\x1B[2Kline1\n');
-        expect(clearCalls[1][0]).toBe('\r\x1B[2Kline2\n');
+        expect(writeMock).toHaveBeenCalledWith('line1\n');
+        expect(writeMock).toHaveBeenCalledWith('line2\n');
 
         // Keep updaters alive
         void updater1;
@@ -207,7 +208,7 @@ describe('draftlog', () => {
         updater('');
         await flushTicks();
 
-        expect(writeMock).toHaveBeenCalledWith('\r\x1B[2K\n');
+        expect(writeMock).toHaveBeenCalledWith('\n');
     });
 
     it('resize listener is attached at module load', () => {
@@ -268,12 +269,16 @@ describe('draftlog', () => {
             externalWrite('hello\n');
 
             const calls = getWriteCalls();
-            // 1. Clear: move up 1 line, go to col 0, erase to end of screen
-            expect(calls[0]).toBe('\x1B[1A\r\x1B[J');
-            // 2. Passthrough: the external content
-            expect(calls[1]).toBe('hello\n');
-            // 3. Re-render: draft line content + newline
-            expect(calls[2]).toBe('my draft\n');
+            // 1. Sync enable
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            // 2. Clear: move up 1 row, go to col 0, erase to end of screen
+            expect(calls[1]).toBe('\x1B[1A\r\x1B[J');
+            // 3. Passthrough: the external content
+            expect(calls[2]).toBe('hello\n');
+            // 4. Re-render: draft line content + newline
+            expect(calls[3]).toBe('my draft\n');
+            // 5. Sync disable
+            expect(calls[4]).toBe(SYNC_DISABLE);
         });
 
         it('external write triggers clear-passthrough-rerender for multiple drafts', () => {
@@ -285,14 +290,18 @@ describe('draftlog', () => {
             externalWrite('log message\n');
 
             const calls = getWriteCalls();
-            // 1. Clear: move up 3 lines, erase to end of screen
-            expect(calls[0]).toBe('\x1B[3A\r\x1B[J');
-            // 2. Passthrough
-            expect(calls[1]).toBe('log message\n');
-            // 3. Re-render all drafts in order
-            expect(calls[2]).toBe('first\n');
-            expect(calls[3]).toBe('second\n');
-            expect(calls[4]).toBe('third\n');
+            // 1. Sync enable
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            // 2. Clear: move up 3 rows, erase to end of screen
+            expect(calls[1]).toBe('\x1B[3A\r\x1B[J');
+            // 3. Passthrough
+            expect(calls[2]).toBe('log message\n');
+            // 4. Re-render all drafts in order
+            expect(calls[3]).toBe('first\n');
+            expect(calls[4]).toBe('second\n');
+            expect(calls[5]).toBe('third\n');
+            // 6. Sync disable
+            expect(calls[6]).toBe(SYNC_DISABLE);
         });
 
         it('draft updates work correctly after an external write', async () => {
@@ -304,9 +313,9 @@ describe('draftlog', () => {
             updater('updated');
             await flushTicks();
 
-            // Batched flush: move up 1, rewrite the single line
-            expect(writeMock).toHaveBeenCalledWith('\x1B[1A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated\n');
+            // Batched flush: move up 1 row + erase, rewrite the single line
+            expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('updated\n');
         });
 
         it('draft updates work correctly after external write with multiple drafts', async () => {
@@ -320,9 +329,9 @@ describe('draftlog', () => {
             updater1('updated first');
             await flushTicks();
 
-            expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated first\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Ksecond\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[2A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('updated first\n');
+            expect(writeMock).toHaveBeenCalledWith('second\n');
 
             writeMock.mockClear();
 
@@ -330,9 +339,9 @@ describe('draftlog', () => {
             updater2('updated second');
             await flushTicks();
 
-            expect(writeMock).toHaveBeenCalledWith('\x1B[2A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated first\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated second\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[2A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('updated first\n');
+            expect(writeMock).toHaveBeenCalledWith('updated second\n');
         });
 
         it('multiple external writes each trigger clear-passthrough-rerender', async () => {
@@ -343,9 +352,11 @@ describe('draftlog', () => {
             externalWrite('log1\n');
 
             let calls = getWriteCalls();
-            expect(calls[0]).toBe('\x1B[1A\r\x1B[J');
-            expect(calls[1]).toBe('log1\n');
-            expect(calls[2]).toBe('my draft\n');
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            expect(calls[1]).toBe('\x1B[1A\r\x1B[J');
+            expect(calls[2]).toBe('log1\n');
+            expect(calls[3]).toBe('my draft\n');
+            expect(calls[4]).toBe(SYNC_DISABLE);
 
             writeMock.mockClear();
 
@@ -353,9 +364,11 @@ describe('draftlog', () => {
             externalWrite('log2\n');
 
             calls = getWriteCalls();
-            expect(calls[0]).toBe('\x1B[1A\r\x1B[J');
-            expect(calls[1]).toBe('log2\n');
-            expect(calls[2]).toBe('my draft\n');
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            expect(calls[1]).toBe('\x1B[1A\r\x1B[J');
+            expect(calls[2]).toBe('log2\n');
+            expect(calls[3]).toBe('my draft\n');
+            expect(calls[4]).toBe(SYNC_DISABLE);
 
             writeMock.mockClear();
 
@@ -363,7 +376,7 @@ describe('draftlog', () => {
             updater('updated');
             await flushTicks();
 
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kupdated\n');
+            expect(writeMock).toHaveBeenCalledWith('updated\n');
         });
 
         it('re-renders reflect the latest draft content', async () => {
@@ -377,10 +390,12 @@ describe('draftlog', () => {
             externalWrite('log\n');
 
             const calls = getWriteCalls();
-            expect(calls[0]).toBe('\x1B[1A\r\x1B[J');
-            expect(calls[1]).toBe('log\n');
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            expect(calls[1]).toBe('\x1B[1A\r\x1B[J');
+            expect(calls[2]).toBe('log\n');
             // Re-render uses latest content, not original
-            expect(calls[2]).toBe('modified\n');
+            expect(calls[3]).toBe('modified\n');
+            expect(calls[4]).toBe(SYNC_DISABLE);
         });
 
         it('multi-line external write is passed through correctly', () => {
@@ -390,9 +405,11 @@ describe('draftlog', () => {
             externalWrite('line1\nline2\nline3\n');
 
             const calls = getWriteCalls();
-            expect(calls[0]).toBe('\x1B[1A\r\x1B[J');
-            expect(calls[1]).toBe('line1\nline2\nline3\n');
-            expect(calls[2]).toBe('draft\n');
+            expect(calls[0]).toBe(SYNC_ENABLE);
+            expect(calls[1]).toBe('\x1B[1A\r\x1B[J');
+            expect(calls[2]).toBe('line1\nline2\nline3\n');
+            expect(calls[3]).toBe('draft\n');
+            expect(calls[4]).toBe(SYNC_DISABLE);
         });
 
         it('external write with Buffer chunk triggers clear-passthrough-rerender', () => {
@@ -446,30 +463,30 @@ describe('draftlog', () => {
             // Update first line; batched flush rewrites all 3
             updater1('A');
             await flushTicks();
-            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kb\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('A\n');
+            expect(writeMock).toHaveBeenCalledWith('b\n');
+            expect(writeMock).toHaveBeenCalledWith('c\n');
 
             writeMock.mockClear();
 
             // Update second line
             updater2('B');
             await flushTicks();
-            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2Kc\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('A\n');
+            expect(writeMock).toHaveBeenCalledWith('B\n');
+            expect(writeMock).toHaveBeenCalledWith('c\n');
 
             writeMock.mockClear();
 
             // Update third line
             updater3('C');
             await flushTicks();
-            expect(writeMock).toHaveBeenCalledWith('\x1B[3A');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KA\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KB\n');
-            expect(writeMock).toHaveBeenCalledWith('\r\x1B[2KC\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('A\n');
+            expect(writeMock).toHaveBeenCalledWith('B\n');
+            expect(writeMock).toHaveBeenCalledWith('C\n');
         });
 
         it('draft writes (from draft()) are not intercepted as external writes', () => {
@@ -481,7 +498,7 @@ describe('draftlog', () => {
             // Should have the initial text write and cursor hide
             expect(calls).toContain('first\n');
             expect(calls).toContain(CURSOR_HIDE);
-            // No clear-rerender sequence
+            // No erase-to-end-of-screen sequence (which would indicate interception)
             expect(calls.filter(c => c.includes('\x1B[J'))).toHaveLength(0);
 
             writeMock.mockClear();
@@ -508,10 +525,11 @@ describe('draftlog', () => {
 
             await flushTicks();
 
-            // After flush: none of the writes should contain the clear-rerender sequence
+            // After flush: should be exactly one flushUpdates sequence
+            // (sync enable, cursor up + erase, content lines, sync disable)
+            // and NOT a nested clear-passthrough-rerender cycle
             const calls = getWriteCalls();
-            const clearCalls = calls.filter(c => c.includes('\x1B[J'));
-            expect(clearCalls).toHaveLength(0);
+            expect(calls).toEqual([SYNC_ENABLE, '\x1B[2A\r\x1B[J', 'A2\n', 'B\n', SYNC_DISABLE]);
         });
     });
 });
