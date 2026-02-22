@@ -31,12 +31,12 @@ importers:
 
   draftlog-appender:
     dependencies:
+      '@niceties/draftlog':
+        specifier: workspace:*
+        version: link:../draftlog
       '@slimlib/list':
         specifier: ^2.0.1
         version: 2.0.1
-      draftlog:
-        specifier: ^1.0.13
-        version: 1.0.13
     devDependencies:
       '@niceties/logger':
         specifier: workspace:*
@@ -674,9 +674,6 @@ packages:
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
-
-  draftlog@1.0.13:
-    resolution: {integrity: sha512-GeMWOpXERBpfVDK6v7m0x1hPg8+g8ZsZWqJl2T17wHqrm4h8fnjiZmXcnCrmwogAc6R3YTxFXax15wezfuyCUw==}
 
   dts-buddy@0.6.2:
     resolution: {integrity: sha512-KUmYrRKpVpjmnqM/JY93p1PWezMXodKCiMd5CFvfLtRCRc5i2GZiojrkVQXO2Dd8HeaU1C3sgTKDWxCEK5cyXA==}
@@ -1800,8 +1797,6 @@ snapshots:
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
-
-  draftlog@1.0.13: {}
 
   dts-buddy@0.6.2(typescript@5.5.2):
     dependencies:

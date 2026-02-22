@@ -5,17 +5,10 @@
  * @typedef {import('./model.js').ModelItem} ModelItem
  */
 
-import draftlog from 'draftlog';
-
+import { draft } from '@niceties/draftlog';
 import { Action } from '@niceties/logger/types';
 
 import splitByLines from './split-by-lines.js';
-import { subscribeToTerminalResize } from './terminal.js';
-
-/**
- * @typedef {Object} DraftlogConfig
- * @property {{ canReWrite: boolean; maximumLinesUp: number }} defaults
- */
 
 /**
  * @param {Spinner} spinner
@@ -24,20 +17,8 @@ import { subscribeToTerminalResize } from './terminal.js';
  * @returns {(model: Model, dirty?: boolean) => void}
  */
 export function createCanvas(spinner, formatter, ident) {
-    draftlog(console);
-    /** @type {DraftlogConfig} */ (/** @type {unknown} */ (draftlog)).defaults.canReWrite = false;
-
-    /** @type {Array<(message?: string, ...optionalParams: any[]) => void>} */
+    /** @type {Array<(text: string) => void>} */
     const updaters = [];
-
-    /** @type {Model | undefined} */
-    let lastModel;
-
-    subscribeToTerminalResize(() => {
-        if (lastModel) {
-            modelFn(lastModel, true);
-        }
-    });
 
     return modelFn;
 
@@ -46,7 +27,6 @@ export function createCanvas(spinner, formatter, ident) {
      * @param {boolean} [dirty]
      */
     function modelFn(model, dirty = false) {
-        lastModel = model;
         if (model.skipLines) {
             updaters.splice(0, model.skipLines);
             model.skipLines = 0;
@@ -62,7 +42,7 @@ export function createCanvas(spinner, formatter, ident) {
                 for (const message of subitems) {
                     let updater = updaters[key++];
                     if (!updater) {
-                        updater = console.draft(' ');
+                        updater = draft('');
                         updaters.push(updater);
                     }
                     updater(
@@ -103,7 +83,7 @@ export function createCanvas(spinner, formatter, ident) {
         }
 
         while (key < updaters.length) {
-            /** @type {(message?: string, ...optionalParams: any[]) => void} */ (updaters[key++])('');
+            updaters[key++]('');
         }
     }
 
