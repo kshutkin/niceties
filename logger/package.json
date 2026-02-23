@@ -1,131 +1,79 @@
 {
-  "version": "1.1.13",
-  "license": "MIT",
-  "name": "@niceties/logger",
-  "author": "Konstantin Shutkin",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.cjs"
+    "version": "1.1.13",
+    "license": "MIT",
+    "name": "@niceties/logger",
+    "author": "Konstantin Shutkin",
+    "type": "module",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./src/index.js"
+        },
+        "./default-formatting": {
+            "types": "./types/index.d.ts",
+            "default": "./src/default-formatting.js"
+        },
+        "./core": {
+            "types": "./types/index.d.ts",
+            "default": "./src/core.js"
+        },
+        "./simple": {
+            "types": "./types/index.d.ts",
+            "default": "./src/simple.js"
+        },
+        "./console-appender": {
+            "types": "./types/index.d.ts",
+            "default": "./src/console-appender.js"
+        },
+        "./format-utils": {
+            "types": "./types/index.d.ts",
+            "default": "./src/format-utils.js"
+        },
+        "./global-appender": {
+            "types": "./types/index.d.ts",
+            "default": "./src/global-appender.js"
+        },
+        "./appender-utils": {
+            "types": "./types/index.d.ts",
+            "default": "./src/appender-utils.js"
+        },
+        "./types": {
+            "types": "./types/index.d.ts",
+            "default": "./src/types.js"
+        },
+        "./package.json": "./package.json"
     },
-    "./default-formatting": {
-      "types": "./dist/default-formatting.d.ts",
-      "import": "./dist/default-formatting.mjs",
-      "require": "./dist/default-formatting.cjs",
-      "default": "./dist/default-formatting.cjs"
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "files": [
+        "src",
+        "types"
+    ],
+    "engines": {
+        "node": ">=15"
     },
-    "./core": {
-      "types": "./dist/core.d.ts",
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.cjs",
-      "default": "./dist/core.cjs"
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kshutkin/niceties.git"
     },
-    "./simple": {
-      "types": "./dist/simple.d.ts",
-      "import": "./dist/simple.mjs",
-      "require": "./dist/simple.cjs",
-      "default": "./dist/simple.cjs"
+    "bugs": {
+        "url": "https://github.com/kshutkin/niceties/issues"
     },
-    "./console-appender": {
-      "types": "./dist/console-appender.d.ts",
-      "import": "./dist/console-appender.mjs",
-      "require": "./dist/console-appender.cjs",
-      "default": "./dist/console-appender.cjs"
+    "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
+    "readme": "REAMDE.md",
+    "description": "Logger that supports async tasks",
+    "keywords": [
+        "@niceties",
+        "logger",
+        "simple-logger"
+    ],
+    "scripts": {
+        "build": "dts-buddy && node scripts/fix-types.js",
+        "test": "vitest run --coverage --config ../vitest.config.js",
+        "test:types": "tsc -p tsconfig.types.json"
     },
-    "./format-utils": {
-      "types": "./dist/format-utils.d.ts",
-      "import": "./dist/format-utils.mjs",
-      "require": "./dist/format-utils.cjs",
-      "default": "./dist/format-utils.cjs"
-    },
-    "./global-appender": {
-      "types": "./dist/global-appender.d.ts",
-      "import": "./dist/global-appender.mjs",
-      "require": "./dist/global-appender.cjs",
-      "default": "./dist/global-appender.cjs"
-    },
-    "./appender-utils": {
-      "types": "./dist/appender-utils.d.ts",
-      "import": "./dist/appender-utils.mjs",
-      "require": "./dist/appender-utils.cjs",
-      "default": "./dist/appender-utils.cjs"
-    },
-    "./package.json": "./package.json"
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "unpkg": "./dist/simple.umd.js",
-  "files": [
-    "dist",
-    "default-formatting",
-    "core",
-    "console-appender",
-    "global-appender",
-    "appender-utils",
-    "format-utils",
-    "types",
-    "simple"
-  ],
-  "engines": {
-    "node": ">=15"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kshutkin/niceties.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kshutkin/niceties/issues"
-  },
-  "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
-  "readme": "REAMDE.md",
-  "description": "Logger that supports async tasks",
-  "keywords": [
-    "@niceties",
-    "logger",
-    "simple-logger"
-  ],
-  "scripts": {
-    "build": "pkgbld-internal --umd=core,simple,console-appender,global-appender,appender-utils --preprocess=index",
-    "test": "jest --collectCoverage",
-    "lint": "eslint ./src",
-    "prepack": "pkgbld-internal prune"
-  },
-  "dependencies": {
-    "kleur": "^4.1.4"
-  },
-  "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "dist/index.d.ts"
-      ],
-      "./default-formatting": [
-        "dist/default-formatting.d.ts"
-      ],
-      "./core": [
-        "dist/core.d.ts"
-      ],
-      "./simple": [
-        "dist/simple.d.ts"
-      ],
-      "./console-appender": [
-        "dist/console-appender.d.ts"
-      ],
-      "./format-utils": [
-        "dist/format-utils.d.ts"
-      ],
-      "./global-appender": [
-        "dist/global-appender.d.ts"
-      ],
-      "./appender-utils": [
-        "dist/appender-utils.d.ts"
-      ],
-      "*": [
-        "dist/index.d.ts",
-        "dist/*"
-      ]
+    "dependencies": {
+        "kleur": "^4.1.4"
     }
-  }
 }

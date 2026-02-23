@@ -2,12 +2,13 @@
 
 # niceties
 
-Some nice but not mandatory things for nodejs and web development
+Some nice but not mandatory things for Node.js and web development
 
 ## Packages
 
-- [@niceties/logger](./logger/README.md) - logger for async tasks
-- [@niceties/draftlog-appender](./draftlog-appender/README.md) - appender that uses draftlog for animation
+- [@niceties/logger](./logger/README.md) - a logger for async tasks
+- [@niceties/draftlog-appender](./draftlog-appender/README.md) - an appender that uses draftlog for animation
 
 # License
+
 [MIT](./LICENSE)

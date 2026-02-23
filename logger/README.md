@@ -2,11 +2,11 @@
 
 Logger that can handle async tasks.
 
-- Provides normal logging API: log level, tag logger instance, custom log data
+- Provides a normal logging API: log level, tagged logger instance, custom log data
 
-- Provides API for reporting async events that can be later handled by custom appender.
+- Provides an API for reporting async events that can later be handled by a custom appender.
 
-- Provides a default appender that uses console for output.
+- Provides a default appender that uses the console for output.
 
 - Modular and configurable
 
@@ -43,46 +43,66 @@ try {
 Logger factory:
 
 ```typescript
-function createLogger<ErrorContext = Error>(...args: [] | [string | Identity | undefined] | [string, Identity]): ((message: string, loglevel?: LogLevel, context?: ErrorContext | undefined) => void) & {
-    start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
-    update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
-    finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
-    appender(appender?: Appender<ErrorContext> | undefined): (message: LogMessage<ErrorContext>) => void;
+function createLogger<ErrorContext = Error>(
+    ...args: [] | [string | Identity | undefined] | [string, Identity]
+): ((
+    message: string,
+    loglevel?: LogLevel,
+    context?: ErrorContext | undefined,
+) => void) & {
+    start(
+        message: string,
+        loglevel?: LogLevel | undefined,
+        context?: ErrorContext | undefined,
+    ): void;
+    update(
+        message: string,
+        loglevel?: LogLevel | undefined,
+        context?: ErrorContext | undefined,
+    ): void;
+    finish(
+        message: string,
+        loglevel?: LogLevel | undefined,
+        context?: ErrorContext | undefined,
+    ): void;
+    appender(
+        appender?: Appender<ErrorContext> | undefined,
+    ): (message: LogMessage<ErrorContext>) => void;
 };
 ```
 
-Will return a logger instance that can be viewed as an entry for a single async task.
+Returns a logger instance that can be viewed as an entry for a single async task.
 
 ```typescript
-const logger = createLogger('tag');
+const logger = createLogger("tag");
 const logger2 = createLogger(logger);
-const logger3 = createLogger('tag2', logger);
+const logger3 = createLogger("tag2", logger);
 ```
 
 `tag` can be used to distinguish between async tasks (will be provided to appender).
-logger can be used as parent of another logger (will be provided as parentId to appender).
+Logger can be used as a parent of another logger (will be provided as parentId to appender).
 
 ```typescript
 const log = createLogger();
 
 try {
     // some code
-    log('some message');
+    log("some message");
 } catch (e) {
-    log('some message', 1 /* LogLevel.info */, e);
+    log("some message", 1 /* LogLevel.info */, e);
 }
 ```
 
-Logger can be used as a function that logs message or error with context. Context type can be defined during creation of the logger (only in typescript).
+Logger can be used as a function that logs a message or error with context. Context type can be defined during creation of the logger (only in TypeScript).
 
 ```typescript
 const log = createLogger<Context>();
 
 try {
     // some code
-    log('some message');
+    log("some message");
 } catch (e: Context) {
-    log('some message', LogLevel.info, e);
+    log("some message", LogLevel.info, e);
 }
 ```
 
@@ -90,19 +110,19 @@ try {
 start(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits a start event inside a logger. If loglevel provided it will be remembered and used as default loglevel in subsequent events in the same logger instance. Default loglevel (if argument is not provided) is `info`.
+Emits a start event inside a logger. If a loglevel is provided, it will be remembered and used as the default loglevel in subsequent events in the same logger instance. Default loglevel (if the argument is not provided) is `info`.
 
 ```typescript
 update(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits update event. Can be used to inform an user that we are doing something else in the same async task. loglevel used to redefine default loglevel.
+Emits an update event. Can be used to inform a user that we are doing something else in the same async task. The loglevel parameter is used to redefine the default loglevel.
 
 ```typescript
 finish(message: string, loglevel?: LogLevel | undefined, context?: ErrorContext | undefined): void;
 ```
 
-Emits finish event. Can be used to inform an user that the task finished. loglevel is optional and equals initial loglevel if omitted.
+Emits a finish event. Can be used to inform a user that the task finished. loglevel is optional and equals the initial loglevel if omitted.
 
 ```typescript
 const logger = createLogger();
@@ -110,6 +130,34 @@ logger.appender(someFancyAppender);
 ```
 
 Sets a different appender for the specific instance of the logger.
+
+## Appender API
+
+Appenders can expose additional methods to the logger instance via the `api` property. When an appender with an `api` property is set on a logger, the `api` object is installed into the logger's prototype chain. This means the methods are accessible directly on the logger instance:
+
+```javascript
+import { createLogger } from "@niceties/logger";
+import { filterMessages } from "@niceties/logger/appender-utils";
+
+let minLevel = 1;
+const filtered = filterMessages(
+    (msg) => msg.loglevel >= minLevel,
+    someAppender,
+);
+filtered.api = {
+    setMinLevel(level) {
+        minLevel = level;
+    },
+};
+
+const logger = createLogger();
+logger.appender(filtered);
+
+// Method is available directly on the logger:
+logger.setMinLevel(0);
+```
+
+When the appender is swapped, old `api` methods are automatically cleaned up — they are removed from the logger and replaced with the new appender's `api` (if any).
 
 ```typescript
 const logger = createLogger();
@@ -125,7 +173,7 @@ const enum LogLevel {
     verbose, // for debugging logs, not for displaying on screen in normal cases
     info, // should be printed to user but not an error
     warn, // something is probably wrong, but we can continue
-    error // operation completely failed
+    error, // operation completely failed
 }
 ```
 
@@ -134,39 +182,71 @@ const enum LogLevel {
 User or another library can set another appender by calling:
 
 ```typescript
-function appender<ErrorContext = Error>(appender?: Appender<ErrorContext>): Appender<any>;
+function appender<ErrorContext = Error>(
+    appender?: Appender<ErrorContext>,
+): Appender<any>;
 ```
 
-where appender is a function with following type
+If the appender has an `api` property, its methods are installed into the `appender` function's prototype chain, making them directly accessible:
+
+```javascript
+import { appender } from "@niceties/logger";
+import { filterMessages } from "@niceties/logger/appender-utils";
+
+let minLevel = 1;
+const filtered = filterMessages(
+    (msg) => msg.loglevel >= minLevel,
+    someAppender,
+);
+filtered.api = {
+    setMinLevel(level) {
+        minLevel = level;
+    },
+};
+appender(filtered);
+
+// Method is available directly on the appender function:
+appender.setMinLevel(0);
+```
+
+When a new global appender is set, old `api` methods are automatically cleaned up and replaced.
+
+The appender is a function with the following type:
 
 ```typescript
-(message: LogMessage<ErrorContext>) => void;
+type Appender<ErrorContext = Error> = ((
+    message: LogMessage<ErrorContext>,
+) => void) & {
+    api?: object;
+};
 
 const enum Action {
     start,
     update,
-    success,
-    fail
+    finish,
+    log,
 }
 
-type LogMessage<ErrorContext = Error> = {
-    inputId: number;
-    loglevel: LogLevel;
-    message: string;
-    action: Action.start | Action.update | Action.finish;
-    tag?: string;
-    parentId?: string;
-    ref: WeakRef<never>;
-} | {
-    inputId?: number;
-    loglevel: LogLevel;
-    message: string;
-    action: Action.log;
-    tag?: string;
-    parentId?: string;
-    ref?: WeakRef<never>;
-    context?: ErrorContext;
-};
+type LogMessage<ErrorContext = Error> =
+    | {
+          inputId: number;
+          loglevel: LogLevel;
+          message: string;
+          action: Action.start | Action.update | Action.finish;
+          tag?: string;
+          parentId?: string;
+          ref: WeakRef<never>;
+      }
+    | {
+          inputId?: number;
+          loglevel: LogLevel;
+          message: string;
+          action: Action.log;
+          tag?: string;
+          parentId?: string;
+          ref?: WeakRef<never>;
+          context?: ErrorContext;
+      };
 ```
 
 Same appender function without arguments can be used to get the current appender.
@@ -175,7 +255,7 @@ Same appender function without arguments can be used to get the current appender
 
 ## Can I use more than 4 log levels
 
-Despite the fact loglevel defined as an enum it is just a number. Logger does not make assumptions about loglevels besides defining default loglevel as 1 (LogLevel.info).
+Despite the fact that loglevel is defined as an enum, it is just a number. Logger does not make assumptions about loglevels besides defining the default loglevel as 1 (LogLevel.info).
 
 It is generally safe to expand loglevels into both positive and negative range (finer debug messages) as far as appender takes them into account.
 
@@ -184,10 +264,10 @@ As an example:
 ```typescript
 const log = createLogger();
 
-log('some message', -1);
+log("some message", -1);
 ```
 
-will send a log message with finer loglevel than verbose through appender but default appender will ignore it.
+will send a log message with a finer loglevel than verbose through the appender, but the default appender will ignore it.
 
 ## Can I use multiple appenders?
 
@@ -200,21 +280,62 @@ import { combineAppenders } from "@niceties/logger/appender-utils";
 appender(combineAppenders(appender(), appender2));
 ```
 
-## Can I set filter for certain loglevel
+If any of the combined appenders have an `api` property, their methods are merged into the combined appender's `api`.
+
+## Can I set a filter for a certain loglevel?
 
 It is possible using filterMessages and appender functions:
 
 ```javascript
+import { appender } from "@niceties/logger";
 import { filterMessages } from "@niceties/logger/appender-utils";
 
 let desiredLoglevel = 0;
 
-appender(filterMessages((msg) => msg.loglevel >= desiredLoglevel, appender()));
+const filtered = filterMessages(
+    (msg) => msg.loglevel >= desiredLoglevel,
+    appender(),
+);
+filtered.api = {
+    setLoglevel(loglevel) {
+        desiredLoglevel = loglevel;
+    },
+};
+appender(filtered);
 
-function setLoglevel(loglevel) {
-    desiredLoglevel = loglevel;
-}
+// Available directly on the appender function:
+appender.setLoglevel(0);
 ```
+
+## How does `filterMessages` handle the `api` property?
+
+`filterMessages` automatically forwards the `api` property from the inner (wrapped) appender. If the inner appender has an `api`, the filtered appender will inherit it. You can extend it further by setting your own `api` on the result:
+
+```javascript
+const inner = createConsoleAppender(formatter);
+inner.api = {
+    someMethod() {
+        /* ... */
+    },
+};
+
+const filtered = filterMessages((msg) => msg.loglevel >= 1, inner);
+// filtered.api === inner.api (forwarded automatically)
+
+// To add more methods while preserving the inner api:
+filtered.api = {
+    ...filtered.api,
+    anotherMethod() {
+        /* ... */
+    },
+};
+```
+
+## Appender API: authoring guidelines
+
+When an appender exposes an `api` object, the `api` is installed into the prototype chain of the logger instance or the global `appender` function. Because built-in logger methods (`start`, `update`, `finish`, `appender`) and properties (`id`) are own properties of the logger, they naturally take precedence over prototype properties. This means that even if an `api` object accidentally contains a property with the same name as a built-in, the built-in will not be overwritten.
+
+However, appender authors should still avoid using built-in names in the `api` object, as the `api` methods would be silently shadowed and inaccessible.
 
 # Sub-packages
 
@@ -233,8 +354,6 @@ Sub-package `'@niceties/logger/format-utils'` exports `createFormatter()` and `t
 Sub-package `'@niceties/logger/global-appender'` exports `appender()` and `globalAppender`.
 
 Sub-package `'@niceties/logger/appender-utils'` exports `combineAppenders()` and `filterMessages()`.
-
-`simple` (default), `core` and `console-appender` exist as umd packages as well but probably require some effort to consume them.
 
 # Prior art
 

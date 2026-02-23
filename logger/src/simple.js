@@ -1,0 +1,68 @@
+/**
+ * @template [ErrorContext=Error]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
+ * @typedef {import('./types.js').Appender<ErrorContext, Api>} Appender
+ */
+
+/**
+ * @template [ErrorContext=Error]
+ * @typedef {import('./types.js').LogMessage<ErrorContext>} LogMessage
+ */
+
+import { globalAppender } from './global-appender.js';
+import { Action, LogLevel } from './types.js';
+
+/**
+ * @template [ErrorContext=Error]
+ * @template [Api=import('./types.js').DefaultExtendedApi]
+ * @param {string} [tag]
+ * @returns {((message: string, loglevel?: number, context?: ErrorContext) => void) & {
+ *   appender(appender?: Appender<ErrorContext, Api>): (message: LogMessage<ErrorContext>) => void;
+ * } & Api}
+ */
+export const createLogger = tag => {
+    /** @type {(message: LogMessage<ErrorContext>) => void} */
+    let myAppender = message => {
+        globalAppender?.(message);
+    };
+
+    const loggerInstance = Object.assign(
+        /**
+         * @param {string} message
+         * @param {number} [loglevel]
+         * @param {ErrorContext} [context]
+         */
+        (message, loglevel = LogLevel.info, context) => {
+            myAppender?.(
+                /** @type {LogMessage<ErrorContext>} */ ({
+                    action: Action.log,
+                    message,
+                    loglevel,
+                    tag,
+                    context,
+                })
+            );
+        },
+        {
+            /**
+             * @param {Appender<ErrorContext, Api>} [appender]
+             * @returns {(message: LogMessage<ErrorContext>) => void}
+             */
+            appender(appender) {
+                if (appender !== undefined) {
+                    myAppender = appender;
+                    const api = appender.api;
+                    if (api != null) {
+                        Object.setPrototypeOf(api, Function.prototype);
+                        Object.setPrototypeOf(loggerInstance, api);
+                    } else {
+                        Object.setPrototypeOf(loggerInstance, Function.prototype);
+                    }
+                }
+                return myAppender;
+            },
+        }
+    );
+
+    return /** @type {typeof loggerInstance & Api} */ (loggerInstance);
+};
