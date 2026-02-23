@@ -627,10 +627,16 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // Call the updater for the removed line — should be a no-op
-        updater('gone');
+        // Trigger a resize — should re-render only the remaining line without crashing
+        writeMock.mockClear();
+        for (const listener of resizeListeners) {
+            listener();
+        }
         await flushTicks();
-        expect(writeMock).not.toHaveBeenCalled();
+
+        // Should have re-rendered the remaining 'line2'
+        const contentWrites = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.includes('line2'));
+        expect(contentWrites.length).toBeGreaterThan(0);
     });
 
     it('shows cursor when last draft line is removed', () => {
