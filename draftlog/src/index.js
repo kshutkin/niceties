@@ -1,30 +1,89 @@
 import stringWidth from 'string-width';
 
-/** @type {{ content: string }[]} */
-const lines = [];
-
 let isInternalWrite = false;
 let updateScheduled = false;
 
 const originalWrite = process.stdout.write;
+const isTTY = process.stdout.isTTY === true;
 
-const SYNCHRONIZED_OUTPUT_ENABLE = '\x1B[?2026h';
-const SYNCHRONIZED_OUTPUT_DISABLE = '\x1B[?2026l';
-const useSynchronizedOutput = process.stdout.isTTY === true;
+/** @type {{ content: string }[]} */
+const lines = [];
+
+process.stdout.write = /** @type {typeof originalWrite} */ (
+    function (/** @type {string | Uint8Array} */ chunk, /** @type {any[]} */ ...args) {
+        if (!isInternalWrite && lines.length > 0) {
+            const str = typeof chunk === 'string' ? chunk : chunk.toString();
+            if (str.length > 0) {
+                const { startIndex, rowCount } = computeVisibleDraft();
+
+                isInternalWrite = true;
+                try {
+                    syncStart();
+                    // Move cursor up by the total terminal rows occupied by
+                    // visible draft lines, then erase to end of screen
+                    if (rowCount > 0) {
+                        originalWrite.call(this, `\x1B[${rowCount}A\r\x1B[J`);
+                    } else {
+                        originalWrite.call(this, `\r\x1B[J`);
+                    }
+                } finally {
+                    isInternalWrite = false;
+                }
+
+                // Pass through the external write
+                const result = originalWrite.call(this, chunk, ...args);
+
+                // Re-render only the visible draft lines at the bottom
+                // (lines that scrolled off the top are lost and cannot be updated)
+                isInternalWrite = true;
+                try {
+                    for (let i = startIndex; i < lines.length; i++) {
+                        originalWrite.call(this, `${lines[i].content}\n`);
+                    }
+                    syncEnd();
+                } finally {
+                    isInternalWrite = false;
+                }
+
+                return result;
+            }
+        }
+        return originalWrite.call(this, chunk, ...args);
+    }
+);
 
 /**
- * Compute how many terminal rows a single line of text occupies,
- * accounting for wide/CJK characters and ANSI escape codes.
- * @param {string} content
- * @returns {number}
+ * @param {string} text
+ * @returns {(text: string) => void}
  */
-function terminalRowsForLine(content) {
-    const columns = process.stdout.columns || 80;
-    const width = stringWidth(content);
-    if (width === 0) {
-        return 1;
+export function draft(text) {
+    const wasEmpty = lines.length === 0;
+
+    // Write the initial line
+    isInternalWrite = true;
+    try {
+        process.stdout.write(`${text}\n`);
+    } finally {
+        isInternalWrite = false;
     }
-    return Math.ceil(width / columns);
+
+    /** @type {{ content: string }} */
+    const line = { content: text };
+    lines.push(line);
+
+    if (wasEmpty) {
+        hideCursor();
+    }
+
+    /** @param {string} newText */
+    const updater = newText => {
+        line.content = newText;
+        scheduleUpdate();
+    };
+
+    registry.register(updater, line);
+
+    return updater;
 }
 
 /**
@@ -64,52 +123,18 @@ function computeVisibleDraft() {
     return { startIndex, rowCount };
 }
 
-process.stdout.write = /** @type {typeof originalWrite} */ (
-    function (/** @type {string | Uint8Array} */ chunk, /** @type {any[]} */ ...args) {
-        if (!isInternalWrite && lines.length > 0) {
-            const str = typeof chunk === 'string' ? chunk : chunk.toString();
-            if (str.length > 0) {
-                const { startIndex, rowCount } = computeVisibleDraft();
-
-                isInternalWrite = true;
-                try {
-                    if (useSynchronizedOutput) {
-                        originalWrite.call(this, SYNCHRONIZED_OUTPUT_ENABLE);
-                    }
-                    // Move cursor up by the total terminal rows occupied by
-                    // visible draft lines, then erase to end of screen
-                    if (rowCount > 0) {
-                        originalWrite.call(this, `\x1B[${rowCount}A\r\x1B[J`);
-                    } else {
-                        originalWrite.call(this, `\r\x1B[J`);
-                    }
-                } finally {
-                    isInternalWrite = false;
-                }
-
-                // Pass through the external write
-                const result = originalWrite.call(this, chunk, ...args);
-
-                // Re-render only the visible draft lines at the bottom
-                // (lines that scrolled off the top are lost and cannot be updated)
-                isInternalWrite = true;
-                try {
-                    for (let i = startIndex; i < lines.length; i++) {
-                        originalWrite.call(this, `${lines[i].content}\n`);
-                    }
-                    if (useSynchronizedOutput) {
-                        originalWrite.call(this, SYNCHRONIZED_OUTPUT_DISABLE);
-                    }
-                } finally {
-                    isInternalWrite = false;
-                }
-
-                return result;
-            }
-        }
-        return originalWrite.call(this, chunk, ...args);
-    }
-);
+/**
+ * Compute how many terminal rows a single line of text occupies,
+ * accounting for wide/CJK characters and ANSI escape codes.
+ * @param {string} content
+ * @returns {number}
+ */
+function terminalRowsForLine(content) {
+    // columns can be 0 in case isTTY is not set
+    const columns = process.stdout.columns || 80;
+    const width = stringWidth(content);
+    return width === 0 ? 1 : Math.ceil(width / columns);
+}
 
 const registry = new FinalizationRegistry((/** @type {{ content: string }} */ line) => {
     const index = lines.indexOf(line);
@@ -121,11 +146,29 @@ const registry = new FinalizationRegistry((/** @type {{ content: string }} */ li
     }
 });
 
-if (process.stdout.isTTY) {
+if (isTTY) {
     process.stdout.on('resize', scheduleUpdate);
+    process.on('exit', () => {
+        if (lines.length > 0) {
+            showCursor();
+        }
+    });
+}
+
+function syncStart() {
+    if (isTTY) {
+        originalWrite.call(process.stdout, '\x1B[?2026h');
+    }
+}
+
+function syncEnd() {
+    if (isTTY) {
+        originalWrite.call(process.stdout, '\x1B[?2026l');
+    }
 }
 
 function hideCursor() {
+    if (!isTTY) return;
     isInternalWrite = true;
     try {
         originalWrite.call(process.stdout, '\x1B[?25l');
@@ -135,6 +178,7 @@ function hideCursor() {
 }
 
 function showCursor() {
+    if (!isTTY) return;
     isInternalWrite = true;
     try {
         originalWrite.call(process.stdout, '\x1B[?25h');
@@ -163,9 +207,7 @@ function flushUpdates() {
 
     isInternalWrite = true;
     try {
-        if (useSynchronizedOutput) {
-            originalWrite.call(process.stdout, SYNCHRONIZED_OUTPUT_ENABLE);
-        }
+        syncStart();
         // Move cursor up by total terminal rows, then erase to end of screen.
         // Using \x1B[J instead of per-line \x1B[2K so that wrapped lines
         // (occupying multiple terminal rows) are fully cleared.
@@ -174,55 +216,9 @@ function flushUpdates() {
         for (let i = startIndex; i < lines.length; i++) {
             originalWrite.call(process.stdout, `${lines[i].content}\n`);
         }
-        if (useSynchronizedOutput) {
-            originalWrite.call(process.stdout, SYNCHRONIZED_OUTPUT_DISABLE);
-        }
+        syncEnd();
         // Cursor is now at the line below all drafts, at beginning
     } finally {
         isInternalWrite = false;
     }
-}
-
-// Ensure cursor is restored on exit
-function onExit() {
-    if (lines.length > 0) {
-        showCursor();
-    }
-}
-process.on('exit', onExit);
-
-/**
- * @param {string} text
- * @returns {(text: string) => void}
- */
-export function draft(text) {
-    const wasEmpty = lines.length === 0;
-
-    // Write the initial line
-    isInternalWrite = true;
-    try {
-        process.stdout.write(`${text}\n`);
-    } finally {
-        isInternalWrite = false;
-    }
-
-    /** @type {{ content: string }} */
-    const line = { content: text };
-    lines.push(line);
-
-    if (wasEmpty) {
-        hideCursor();
-    }
-
-    /** @param {string} newText */
-    const updater = newText => {
-        line.content = newText;
-        if (lines.indexOf(line) !== -1) {
-            scheduleUpdate();
-        }
-    };
-
-    registry.register(updater, line);
-
-    return updater;
 }
