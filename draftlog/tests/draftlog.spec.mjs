@@ -754,3 +754,195 @@ describe('draftlog - non-TTY', () => {
         expect(calls).toEqual(['v2\n', 'v3\n', 'v4\n']);
     });
 });
+
+describe('draftlog - viewport overflow', () => {
+    /** @type {ReturnType<typeof vi.fn>} */
+    let writeMock;
+    /** @type {boolean} */
+    let originalIsTTY;
+    /** @type {import('../src/index.js')} */
+    let draftlog;
+    /** @type {(() => void)[]} */
+    let resizeListeners;
+    /** @type {typeof process.stdout.write} */
+    let hookedWrite;
+    /** @type {number | undefined} */
+    let originalRows;
+
+    beforeEach(async () => {
+        vi.resetModules();
+        writeMock = vi.fn();
+        originalIsTTY = process.stdout.isTTY;
+        originalRows = process.stdout.rows;
+        process.stdout.isTTY = true;
+        resizeListeners = [];
+        const originalOn = process.stdout.on.bind(process.stdout);
+        vi.spyOn(process.stdout, 'on').mockImplementation((event, listener) => {
+            if (event === 'resize') {
+                resizeListeners.push(listener);
+            }
+            return originalOn(event, listener);
+        });
+        vi.spyOn(process.stdout, 'write').mockImplementation(writeMock);
+        draftlog = await import('../src/index.js');
+        hookedWrite = process.stdout.write;
+    });
+
+    afterEach(() => {
+        for (const listener of resizeListeners) {
+            process.stdout.removeListener('resize', listener);
+        }
+        vi.restoreAllMocks();
+        process.stdout.isTTY = originalIsTTY;
+        process.stdout.rows = originalRows;
+    });
+
+    it('external write uses \\r\\x1B[J when rowCount is 0 (all lines scrolled off)', () => {
+        // rows=1 means maxRows=0, so no draft line fits in the viewport
+        process.stdout.rows = 1;
+
+        draftlog.draft('offscreen');
+        writeMock.mockClear();
+
+        // External write — rowCount is 0, so the else branch runs
+        hookedWrite.call(process.stdout, 'external\n');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        // Should use \r\x1B[J (no cursor-up) instead of \x1B[...A\r\x1B[J
+        expect(calls).toContain('\r\x1B[J');
+        expect(calls.some(c => typeof c === 'string' && c.includes('A\r\x1B[J'))).toBe(false);
+        // The external content is still passed through
+        expect(calls).toContain('external\n');
+    });
+
+    it('computeVisibleDraft breaks when lines exceed viewport (only last line rendered)', async () => {
+        // rows=2 means maxRows=1, so only 1 draft row fits
+        process.stdout.rows = 2;
+
+        draftlog.draft('first');
+        draftlog.draft('second');
+        writeMock.mockClear();
+
+        // External write triggers re-render with only the visible (last) line
+        hookedWrite.call(process.stdout, 'log\n');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        // Only the second (last) draft line should be re-rendered
+        expect(calls).toContain('second\n');
+        expect(calls).not.toContain('first\n');
+        // Should move up 1 row (only 1 visible line)
+        expect(calls).toContain('\x1B[1A\r\x1B[J');
+    });
+
+    it('flushUpdates returns early when rowCount is 0', async () => {
+        // rows=1 means maxRows=0, no lines fit
+        process.stdout.rows = 1;
+
+        const updater = draftlog.draft('hello');
+        writeMock.mockClear();
+
+        // Schedule an update — flushUpdates should return early because rowCount=0
+        updater('updated');
+        await new Promise(resolve => process.nextTick(resolve));
+
+        // No sync/render writes should have occurred (early return)
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toHaveLength(0);
+    });
+
+    it('computeVisibleDraft partial visibility with updates', async () => {
+        // rows=3 means maxRows=2, so only 2 of 3 lines fit
+        process.stdout.rows = 3;
+
+        const updater1 = draftlog.draft('a');
+        draftlog.draft('b');
+        draftlog.draft('c');
+        writeMock.mockClear();
+
+        updater1('A');
+        await new Promise(resolve => process.nextTick(resolve));
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        // Only last 2 lines should be rendered (b and c), first line scrolled off
+        expect(calls).toContain('b\n');
+        expect(calls).toContain('c\n');
+        expect(calls).not.toContain('A\n');
+        expect(calls).not.toContain('a\n');
+    });
+});
+
+describe('draftlog - exit handler', () => {
+    /** @type {ReturnType<typeof vi.fn>} */
+    let writeMock;
+    /** @type {boolean} */
+    let originalIsTTY;
+    /** @type {import('../src/index.js')} */
+    let draftlog;
+    /** @type {(() => void)[]} */
+    let resizeListeners;
+    /** @type {(() => void)[]} */
+    let exitListeners;
+
+    beforeEach(async () => {
+        vi.resetModules();
+        writeMock = vi.fn();
+        originalIsTTY = process.stdout.isTTY;
+        process.stdout.isTTY = true;
+        resizeListeners = [];
+        exitListeners = [];
+        const originalStdoutOn = process.stdout.on.bind(process.stdout);
+        vi.spyOn(process.stdout, 'on').mockImplementation((event, listener) => {
+            if (event === 'resize') {
+                resizeListeners.push(listener);
+            }
+            return originalStdoutOn(event, listener);
+        });
+        const originalProcessOn = process.on.bind(process);
+        vi.spyOn(process, 'on').mockImplementation((event, listener) => {
+            if (event === 'exit') {
+                exitListeners.push(/** @type {() => void} */ (listener));
+            }
+            return originalProcessOn(event, listener);
+        });
+        vi.spyOn(process.stdout, 'write').mockImplementation(writeMock);
+        draftlog = await import('../src/index.js');
+    });
+
+    afterEach(() => {
+        for (const listener of resizeListeners) {
+            process.stdout.removeListener('resize', listener);
+        }
+        for (const listener of exitListeners) {
+            process.removeListener('exit', listener);
+        }
+        vi.restoreAllMocks();
+        process.stdout.isTTY = originalIsTTY;
+    });
+
+    it('exit handler shows cursor when draft lines are active', () => {
+        draftlog.draft('active line');
+        writeMock.mockClear();
+
+        // Invoke the captured exit listener
+        expect(exitListeners.length).toBeGreaterThan(0);
+        for (const listener of exitListeners) {
+            listener();
+        }
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toContain(CURSOR_SHOW);
+    });
+
+    it('exit handler does not show cursor when no draft lines exist', () => {
+        // No draft() calls — lines array is empty
+        writeMock.mockClear();
+
+        expect(exitListeners.length).toBeGreaterThan(0);
+        for (const listener of exitListeners) {
+            listener();
+        }
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).not.toContain(CURSOR_SHOW);
+    });
+});
