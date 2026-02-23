@@ -665,3 +665,92 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(showCursorCalls).toHaveLength(0);
     });
 });
+
+describe('draftlog - non-TTY', () => {
+    /** @type {ReturnType<typeof vi.fn>} */
+    let writeMock;
+    /** @type {boolean} */
+    let originalIsTTY;
+    /** @type {import('../src/index.js')} */
+    let draftlog;
+
+    beforeEach(async () => {
+        vi.resetModules();
+        writeMock = vi.fn();
+        originalIsTTY = process.stdout.isTTY;
+        process.stdout.isTTY = /** @type {any} */ (false);
+        vi.spyOn(process.stdout, 'write').mockImplementation(writeMock);
+        draftlog = await import('../src/index.js');
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        process.stdout.isTTY = originalIsTTY;
+    });
+
+    it('draft exists and is a function', () => {
+        expect(draftlog.draft).toBeDefined();
+        expect(typeof draftlog.draft).toBe('function');
+    });
+
+    it('writes initial text to stdout', () => {
+        draftlog.draft('hello');
+        expect(writeMock).toHaveBeenCalledWith('hello\n');
+    });
+
+    it('returns an updater function', () => {
+        const updater = draftlog.draft('hello');
+        expect(typeof updater).toBe('function');
+    });
+
+    it('updater writes new line to stdout', () => {
+        const updater = draftlog.draft('hello');
+        writeMock.mockClear();
+
+        updater('updated');
+        expect(writeMock).toHaveBeenCalledWith('updated\n');
+    });
+
+    it('does not emit any ANSI escape sequences', () => {
+        const updater = draftlog.draft('hello');
+        updater('world');
+
+        const allWrites = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        for (const write of allWrites) {
+            expect(write).not.toContain('\x1B');
+        }
+    });
+
+    it('does not intercept external writes', () => {
+        draftlog.draft('draft line');
+        writeMock.mockClear();
+
+        // stdout.write should not have been overridden — calling the mock directly
+        // simulates an external write; it should go straight through with no extras
+        process.stdout.write('external\n');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toEqual(['external\n']);
+    });
+
+    it('multiple drafts each print their own line', () => {
+        draftlog.draft('first');
+        draftlog.draft('second');
+        draftlog.draft('third');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toEqual(['first\n', 'second\n', 'third\n']);
+    });
+
+    it('multiple updates each print a new line', () => {
+        const updater = draftlog.draft('v1');
+        writeMock.mockClear();
+
+        updater('v2');
+        updater('v3');
+        updater('v4');
+
+        const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
+        expect(calls).toEqual(['v2\n', 'v3\n', 'v4\n']);
+    });
+});
