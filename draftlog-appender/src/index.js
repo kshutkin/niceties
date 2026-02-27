@@ -3,7 +3,14 @@
  */
 
 import { filterMessages } from '@niceties/logger/appender-utils';
-import { asciiPrefixes, colors, tagFactory, unicodePrefixes } from '@niceties/logger/default-formatting';
+import {
+    asciiLogPrefixes,
+    asciiPrefixes,
+    colors,
+    tagFactory,
+    unicodeLogPrefixes,
+    unicodePrefixes,
+} from '@niceties/logger/default-formatting';
 import { createFormatter, terminalSupportsUnicode } from '@niceties/logger/format-utils';
 import { appender } from '@niceties/logger/global-appender';
 import { LogLevel } from '@niceties/logger/types';
@@ -14,7 +21,12 @@ import { dots, line } from './spinners.js';
 if (!process.env.CI) {
     const supportsUnicode = terminalSupportsUnicode();
     const spinner = supportsUnicode ? dots : line;
-    const formatter = createFormatter(colors, supportsUnicode ? unicodePrefixes : asciiPrefixes, tagFactory);
+    const formatter = createFormatter(
+        colors,
+        supportsUnicode ? unicodePrefixes : asciiPrefixes,
+        supportsUnicode ? unicodeLogPrefixes : asciiLogPrefixes,
+        tagFactory
+    );
 
     let minLogLevel = LogLevel.info;
     const filtered = filterMessages(
