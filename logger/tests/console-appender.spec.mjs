@@ -1,10 +1,10 @@
 import kleur from 'kleur';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { blue, green, red, yellow } = kleur;
+const { blue, cyan, green, grey, red, yellow } = kleur;
 
 import { createConsoleAppender } from '../src/console-appender.js';
-import { colors, tagFactory, unicodePrefixes } from '../src/default-formatting.js';
+import { colors, tagFactory, unicodeLogPrefixes, unicodePrefixes } from '../src/default-formatting.js';
 import { createFormatter } from '../src/format-utils.js';
 import { Action, LogLevel } from '../src/types.js';
 
@@ -17,7 +17,7 @@ describe('console appender', () => {
 
     beforeEach(() => {
         consoleLogMock = vi.spyOn(global.console, 'log').mockImplementation(() => {});
-        const formatter = createFormatter(colors, unicodePrefixes, tagFactory);
+        const formatter = createFormatter(colors, unicodePrefixes, unicodeLogPrefixes, tagFactory);
         consoleAppender = createConsoleAppender(formatter);
     });
 
@@ -106,7 +106,7 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith('test');
+        expect(consoleLogMock).toBeCalledWith(`${cyan('ℹ')} test`);
     });
 
     it('log with warning', () => {
@@ -118,7 +118,7 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith(`${yellow('test')}`);
+        expect(consoleLogMock).toBeCalledWith(`${yellow('ℹ test')}`);
     });
 
     it('log with error', () => {
@@ -130,7 +130,7 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith(`${red('test')}`);
+        expect(consoleLogMock).toBeCalledWith(`${red('ℹ test')}`);
     });
 
     it('log with visible tag', () => {
@@ -143,7 +143,7 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith(`[${blue('atag')}] test`);
+        expect(consoleLogMock).toBeCalledWith(`${grey('ℹ')} [${blue('atag')}] test`);
     });
 
     it('log with context', () => {
@@ -156,6 +156,6 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith(`${red('test Error: error')}`);
+        expect(consoleLogMock).toBeCalledWith(`${red('ℹ test Error: error')}`);
     });
 });
