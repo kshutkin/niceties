@@ -56,7 +56,6 @@ describe('draftlog appender', () => {
                 /** @type {(...args: any[]) => void} */ /** @type {(...args: any[]) => void} */ callback,
                 /** @type {number} */ ms,
                 /** @type {any[]} */ ...args
-                // biome-ignore lint/suspicious/noAssignInExpressions: mock implementation
             ) => (interval = setIntervalCopy(callback, ms, ...args)),
             setIntervalCopy
         );
