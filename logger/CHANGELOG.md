@@ -1,5 +1,17 @@
 Changelog
 
+## 2.0.0
+
+### Major Changes
+
+- 1f04f30: - New API for exposing appender methods on logger instances
+  - ESM-only package
+- e27117e: formatter factory API changed
+
+### Patch Changes
+
+- a842b01: flatten packages
+
 ## 1.1.13
 
 ### Patch Changes

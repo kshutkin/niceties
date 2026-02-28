@@ -1,5 +1,16 @@
 # examples
 
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [1f04f30]
+- Updated dependencies [1f04f30]
+- Updated dependencies [e27117e]
+- Updated dependencies [a842b01]
+  - @niceties/logger@2.0.0
+  - @niceties/draftlog-appender@2.0.0
+
 ## 1.0.3
 
 ### Patch Changes
