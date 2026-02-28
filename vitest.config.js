@@ -6,11 +6,7 @@ export default defineConfig({
         exclude: ['**/node_modules/**'],
         environment: 'node',
         pool: 'forks',
-        poolOptions: {
-            forks: {
-                execArgv: ['--expose-gc'],
-            },
-        },
+        execArgv: ['--expose-gc'],
         coverage: {
             provider: 'v8',
             reportsDirectory: './coverage',
