@@ -17,6 +17,7 @@
         "@types/node": "^22.15.0",
         "@vitest/coverage-v8": "^3.2.4",
         "dts-buddy": "^0.6.2",
+        "pkgprn": "^0.3.1",
         "vitest": "^3.2.4"
     }
 }
