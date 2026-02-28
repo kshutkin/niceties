@@ -24,8 +24,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(typescript@5.5.2)
       pkgprn:
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.5.1
+        version: 0.5.1
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.11.0)
@@ -787,10 +787,6 @@ packages:
     resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
     hasBin: true
 
-  jsonata@2.1.0:
-    resolution: {integrity: sha512-OCzaRMK8HobtX8fp37uIVmL8CY1IGc/a6gLsDqz3quExFR09/U78HUzWYr7T31UEB6+Eu0/8dkVD5fFDOl9a8w==}
-    engines: {node: '>= 8'}
-
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
 
@@ -894,8 +890,8 @@ packages:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
 
-  pkgprn@0.4.1:
-    resolution: {integrity: sha512-KXUuw7CjJpeLHHoYUNQ0V+tyyyaeLgz58ifzTuK5sqOUVPAdyvk4/TeFlRqd3UZyeDZy+Pl0H8p9ZtxCcnqdtg==}
+  pkgprn@0.5.1:
+    resolution: {integrity: sha512-GYG/74y6rJGStAk0Ug6HHG++cdZvD5g6GeAwpvbzVOy3v8YaD7I3y8DZoI9nBJq5I8GuGVxTt1vTHgBJUnboQQ==}
     hasBin: true
 
   postcss@8.5.6:
@@ -1823,8 +1819,6 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsonata@2.1.0: {}
-
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
@@ -1904,12 +1898,11 @@ snapshots:
 
   pify@4.0.1: {}
 
-  pkgprn@0.4.1:
+  pkgprn@0.5.1:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@niceties/logger': 1.1.13
       cleye: 2.2.1
-      jsonata: 2.1.0
 
   postcss@8.5.6:
     dependencies:

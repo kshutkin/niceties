@@ -8,6 +8,7 @@ Some nice but not mandatory things for Node.js and web development
 
 - [@niceties/logger](./logger/README.md) - a logger for async tasks
 - [@niceties/draftlog-appender](./draftlog-appender/README.md) - an appender that uses draftlog for animation
+- [@niceties/draftlog](./draftlog/README.md) - create mutable log lines in the terminal
 
 # License
 
