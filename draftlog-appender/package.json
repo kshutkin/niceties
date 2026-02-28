@@ -49,7 +49,7 @@
     ],
     "scripts": {
         "build": "dts-buddy",
-        "prepack": "pkgprn --flatten types,src",
+        "prepack": "pkgprn --flatten types,src --strip-comments",
         "test": "vitest run --coverage --config ../vitest.config.js"
     },
     "devDependencies": {
