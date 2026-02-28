@@ -415,7 +415,7 @@ async function nativesWorkload() {
                 results.push(`FAIL: ${label} was NOT optimized after warm-up (status=${status})`);
             }
         } catch (e) {
-            results.push(`FAIL: ${label} — error during check: ${e.message}`);
+            results.push(`FAIL: ${label} - error during check: ${e.message}`);
         }
     }
 

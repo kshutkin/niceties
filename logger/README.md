@@ -157,7 +157,7 @@ logger.appender(filtered);
 logger.setMinLevel(0);
 ```
 
-When the appender is swapped, old `api` methods are automatically cleaned up — they are removed from the logger and replaced with the new appender's `api` (if any).
+When the appender is swapped, old `api` methods are automatically cleaned up - they are removed from the logger and replaced with the new appender's `api` (if any).
 
 ```typescript
 const logger = createLogger();

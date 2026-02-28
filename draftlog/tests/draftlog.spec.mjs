@@ -360,7 +360,7 @@ describe('draftlog', () => {
 
             writeMock.mockClear();
 
-            // Second external write — draft was re-rendered, so same clear sequence
+            // Second external write - draft was re-rendered, so same clear sequence
             externalWrite('log2\n');
 
             calls = getWriteCalls();
@@ -492,7 +492,7 @@ describe('draftlog', () => {
         it('draft writes (from draft()) are not intercepted as external writes', () => {
             writeMock.mockClear();
 
-            // First draft — no existing lines, so no clear-rerender
+            // First draft - no existing lines, so no clear-rerender
             draftlog.draft('first');
             let calls = getWriteCalls();
             // Should have the initial text write and cursor hide
@@ -503,7 +503,7 @@ describe('draftlog', () => {
 
             writeMock.mockClear();
 
-            // Second draft — there is 1 existing line, but this is an internal write
+            // Second draft - there is 1 existing line, but this is an internal write
             // so it should NOT trigger the clear-rerender cycle
             draftlog.draft('second');
             calls = getWriteCalls();
@@ -515,7 +515,7 @@ describe('draftlog', () => {
             const updater2 = draftlog.draft('b');
             writeMock.mockClear();
 
-            // Updates are batched — no immediate writes
+            // Updates are batched - no immediate writes
             updater1('A');
             updater2('B');
             updater1('A2');
@@ -603,13 +603,13 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // showCursor is called because lines is now empty — account for that write
+        // showCursor is called because lines is now empty - account for that write
         const showCursorCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg === CURSOR_SHOW);
         expect(showCursorCalls).toHaveLength(1);
 
         writeMock.mockClear();
 
-        // Now call the updater — the line is no longer tracked, so no update is scheduled
+        // Now call the updater - the line is no longer tracked, so no update is scheduled
         updater('updated');
         await flushTicks();
 
@@ -627,7 +627,7 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // Trigger a resize — should re-render only the remaining line without crashing
+        // Trigger a resize - should re-render only the remaining line without crashing
         writeMock.mockClear();
         for (const listener of resizeListeners) {
             listener();
@@ -725,7 +725,7 @@ describe('draftlog - non-TTY', () => {
         draftlog.draft('draft line');
         writeMock.mockClear();
 
-        // stdout.write should not have been overridden — calling the mock directly
+        // stdout.write should not have been overridden - calling the mock directly
         // simulates an external write; it should go straight through with no extras
         process.stdout.write('external\n');
 
@@ -804,7 +804,7 @@ describe('draftlog - viewport overflow', () => {
         draftlog.draft('offscreen');
         writeMock.mockClear();
 
-        // External write — rowCount is 0, so the else branch runs
+        // External write - rowCount is 0, so the else branch runs
         hookedWrite.call(process.stdout, 'external\n');
 
         const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
@@ -841,7 +841,7 @@ describe('draftlog - viewport overflow', () => {
         const updater = draftlog.draft('hello');
         writeMock.mockClear();
 
-        // Schedule an update — flushUpdates should return early because rowCount=0
+        // Schedule an update - flushUpdates should return early because rowCount=0
         updater('updated');
         await new Promise(resolve => process.nextTick(resolve));
 
@@ -934,7 +934,7 @@ describe('draftlog - exit handler', () => {
     });
 
     it('exit handler does not show cursor when no draft lines exist', () => {
-        // No draft() calls — lines array is empty
+        // No draft() calls - lines array is empty
         writeMock.mockClear();
 
         expect(exitListeners.length).toBeGreaterThan(0);

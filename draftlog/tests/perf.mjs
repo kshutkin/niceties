@@ -43,6 +43,6 @@ const max = Math.max(...durations);
 
 const log = (msg = '') => process.stderr.write(`${msg}\n`);
 log();
-log(`  @niceties/draftlog perf — ${LINES} lines × ${UPDATES} update rounds`);
+log(`  @niceties/draftlog perf - ${LINES} lines × ${UPDATES} update rounds`);
 log(`  avg ${avg.toFixed(2)}ms | med ${med.toFixed(2)}ms | min ${min.toFixed(2)}ms | max ${max.toFixed(2)}ms`);
 log();

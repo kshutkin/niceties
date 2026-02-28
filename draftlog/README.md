@@ -15,7 +15,7 @@ npm install @niceties/draftlog
 ```js
 import { draft } from "@niceties/draftlog";
 
-// Create a draft line — it prints "Loading..." to stdout
+// Create a draft line - it prints "Loading..." to stdout
 const update = draft("Loading...");
 
 // Later, update the same line in-place
@@ -82,8 +82,8 @@ update("Status: done ✔");
 
 Writes `text` to stdout as a new line and returns an **updater function**. Calling the updater replaces the content of that line in-place.
 
-- **`text`** — the initial text to display.
-- **Returns** — a function that accepts a new string and updates the line.
+- **`text`** - the initial text to display.
+- **Returns** - a function that accepts a new string and updates the line.
 
 Updates are batched: multiple calls to the updater within the same tick are coalesced into a single re-render on `process.nextTick`.
 

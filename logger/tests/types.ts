@@ -387,7 +387,7 @@ const withInputT: LogMessageWithInputTypes = {
 const logMsgT: LogMessageLogTypes = { loglevel: 0, message: '', action: 3 };
 
 // ============================================================================
-// Negative tests — all of these MUST fail to compile
+// Negative tests - all of these MUST fail to compile
 // ============================================================================
 
 // --- createLogger wrong arg types ---
