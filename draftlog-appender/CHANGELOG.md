@@ -1,5 +1,24 @@
 Changelog
 
+## 2.0.0
+
+### Major Changes
+
+- 1f04f30: - ESM-only package
+  - Use @niceties/draftlog instead of older draftlog
+- e27117e: formatter factory API changed
+
+### Patch Changes
+
+- a842b01: flatten packages
+- Updated dependencies [1f04f30]
+- Updated dependencies [1f04f30]
+- Updated dependencies [e27117e]
+- Updated dependencies [821b847]
+- Updated dependencies [a842b01]
+  - @niceties/logger@2.0.0
+  - @niceties/draftlog@1.0.0
+
 ## 1.3.3
 
 ### Patch Changes
