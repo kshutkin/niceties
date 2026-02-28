@@ -21,8 +21,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@22.19.3))
       dts-buddy:
-        specifier: ^0.6.2
-        version: 0.6.2(typescript@5.5.2)
+        specifier: ^0.7.0
+        version: 0.7.0(typescript@5.5.2)
       pkgprn:
         specifier: ^0.3.1
         version: 0.3.1
@@ -704,11 +704,11 @@ packages:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
 
-  dts-buddy@0.6.2:
-    resolution: {integrity: sha512-KUmYrRKpVpjmnqM/JY93p1PWezMXodKCiMd5CFvfLtRCRc5i2GZiojrkVQXO2Dd8HeaU1C3sgTKDWxCEK5cyXA==}
+  dts-buddy@0.7.0:
+    resolution: {integrity: sha512-smcL+Hg0HTt83U2rhBiqUaPRdPBTONItZU1rF42zBffHobyQird6/R/QcGFguem4aCrRwBozoz4l4KtMYcXEKA==}
     hasBin: true
     peerDependencies:
-      typescript: '>=5.0.4 <5.9'
+      typescript: '>=5.0.4 <6'
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -797,6 +797,7 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globby@11.1.0:
@@ -1858,7 +1859,7 @@ snapshots:
     dependencies:
       path-type: 4.0.0
 
-  dts-buddy@0.6.2(typescript@5.5.2):
+  dts-buddy@0.7.0(typescript@5.5.2):
     dependencies:
       '@jridgewell/source-map': 0.3.11
       '@jridgewell/sourcemap-codec': 1.5.5
