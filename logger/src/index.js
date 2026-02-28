@@ -9,7 +9,7 @@ import { LogLevel } from './types.js';
 
 if (!appender()) {
     const [
-        { asciiPrefixes, colors, unicodePrefixes, tagFactory },
+        { asciiPrefixes, asciiLogPrefixes, colors, unicodePrefixes, unicodeLogPrefixes, tagFactory },
         { createConsoleAppender },
         { createFormatter, terminalSupportsUnicode },
         { filterMessages },
@@ -19,7 +19,13 @@ if (!appender()) {
         import('./format-utils.js'),
         import('./appender-utils.js'),
     ]);
-    const formatter = createFormatter(colors, terminalSupportsUnicode() ? unicodePrefixes : asciiPrefixes, tagFactory);
+    const unicode = terminalSupportsUnicode();
+    const formatter = createFormatter(
+        colors,
+        unicode ? unicodePrefixes : asciiPrefixes,
+        unicode ? unicodeLogPrefixes : asciiLogPrefixes,
+        tagFactory
+    );
     let minLogLevel = LogLevel.info;
     const filtered = filterMessages(
         /** @param {LogMessage} message */

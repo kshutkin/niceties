@@ -70,6 +70,7 @@
     ],
     "scripts": {
         "build": "dts-buddy && node scripts/fix-types.js",
+        "prepack": "pkgprn --flatten types,src",
         "test": "vitest run --coverage --config ../vitest.config.js",
         "test:types": "tsc -p tsconfig.types.json"
     },

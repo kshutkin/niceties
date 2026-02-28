@@ -318,8 +318,9 @@ consoleApp({ loglevel: 0, message: 'test', action: 3 });
 
 const fmtColors: ColorFormattersFU = { 2: (t: string) => t };
 const fmtPrefixes: PrefixesFU = { 0: '+' };
+const fmtLogPrefixes: PrefixesFU = { 0: '>' };
 const fmtTagFactory = (tag: string) => `[${tag}]`;
-const fmtFormatter = createFormatter(fmtColors, fmtPrefixes, fmtTagFactory);
+const fmtFormatter = createFormatter(fmtColors, fmtPrefixes, fmtLogPrefixes, fmtTagFactory);
 const formatted: string = fmtFormatter({ loglevel: 0, message: 'hi', action: 3 });
 const formattedWithPrefix: string = fmtFormatter({ loglevel: 0, message: 'hi', action: 3 }, true);
 const formattedWithIndent: string = fmtFormatter({ loglevel: 0, message: 'hi', action: 3 }, false, 4);
@@ -448,11 +449,11 @@ createConsoleAppender('not a formatter');
 
 // --- createFormatter wrong types ---
 
-// @ts-expect-error - createFormatter requires 3 arguments
+// @ts-expect-error - createFormatter requires 4 arguments
 createFormatter();
 
 // @ts-expect-error - createFormatter first arg must be ColorFormatters, not string
-createFormatter('bad', {}, (t: string) => t);
+createFormatter('bad', {}, {}, (t: string) => t);
 
 // --- terminalSupportsUnicode takes no arguments ---
 
