@@ -4,5 +4,7 @@ packages:
     - draftlog-appender
     - examples
 
+hoistWorkspacePackages: false
+
 onlyBuiltDependencies:
     - esbuild
