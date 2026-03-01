@@ -18,6 +18,6 @@
         "@vitest/coverage-v8": "^4.0.18",
         "dts-buddy": "^0.7.0",
         "vitest": "^4.0.18",
-        "pkgprn-internal": "^0.5.2"
+        "pkgprn-internal": "^0.5.3"
     }
 }
