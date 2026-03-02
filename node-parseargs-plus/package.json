@@ -1,0 +1,48 @@
+{
+    "version": "0.0.0",
+    "license": "MIT",
+    "name": "@niceties/node-parseargs-plus",
+    "author": {
+        "name": "Konstantin Shutkin"
+    },
+    "type": "module",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./src/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "files": [
+        "src",
+        "types"
+    ],
+    "engines": {
+        "node": ">=18.3.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kshutkin/niceties.git"
+    },
+    "bugs": {
+        "url": "https://github.com/kshutkin/niceties/issues"
+    },
+    "homepage": "https://github.com/kshutkin/niceties/blob/main/node-parseargs-plus/README.md",
+    "readme": "README.md",
+    "description": "Enhanced wrapper around Node.js util.parseArgs",
+    "keywords": [
+        "@niceties",
+        "parseargs",
+        "cli",
+        "arguments",
+        "options"
+    ],
+    "scripts": {
+        "build": "dts-buddy",
+        "prepack": "pkgprn-internal --flatten types,src --strip-comments",
+        "test": "vitest run --coverage --config ../vitest.config.js"
+    }
+}
