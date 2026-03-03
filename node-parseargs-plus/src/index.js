@@ -1,14 +1,14 @@
 import { parseArgs } from 'node:util';
 
 /**
- * @typedef {import('node:util').ParseArgsConfig} ParseArgsConfig
+ * @template {import('./types.d.ts').ParseArgsPlusConfig} T
+ * @typedef {import('./types.d.ts').ParseArgsPlusResult<T>} ParseArgsPlusResult
  */
 
 /**
  * Enhanced parseArgs wrapper with additional features.
- * @param {ParseArgsConfig} config
- * @returns {ReturnType<typeof parseArgs>}
+ * @type {import('./types.d.ts').parseArgsPlus}
  */
 export function parseArgsPlus(config) {
-    return parseArgs(config);
+    return /** @type {any} */ (parseArgs(config));
 }
