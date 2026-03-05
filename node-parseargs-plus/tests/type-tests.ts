@@ -1,4 +1,4 @@
-import { parseArgsPlus } from '../src/types';
+import { helpMiddleware, parseArgsPlus } from '../src/types';
 
 // Helper: assert that two types are exactly equal
 type IsExact<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
@@ -125,3 +125,88 @@ const r15 = parseArgsPlus({
     strict: true,
 });
 type _15 = Assert<IsExact<typeof r15.values.name, string>>;
+
+// ---------------------------------------------------------------------------
+// Middleware & helpMiddleware type tests
+// ---------------------------------------------------------------------------
+
+// 16. helpMiddleware allows `description` on options
+const r16 = parseArgsPlus(
+    {
+        options: {
+            name: { type: 'string', default: 'world', description: 'Your name' },
+            verbose: { type: 'boolean', description: 'Enable verbose output' },
+        },
+    },
+    [helpMiddleware()]
+);
+type _16a = Assert<IsExact<typeof r16.values.name, string>>;
+type _16b = Assert<IsExact<typeof r16.values.verbose, boolean | undefined>>;
+type _16c = Assert<IsExact<typeof r16.positionals, string[]>>;
+
+// 17. helpMiddleware with config options
+const r17 = parseArgsPlus(
+    {
+        options: {
+            output: { type: 'string', description: 'Output file' },
+        },
+    },
+    [helpMiddleware({ name: 'my-cli', footer: 'Example: my-cli --output foo.txt' })]
+);
+type _17 = Assert<IsExact<typeof r17.values.output, string | undefined>>;
+
+// 18. helpMiddleware with no descriptions is fine (description is optional)
+const r18 = parseArgsPlus(
+    {
+        options: {
+            debug: { type: 'boolean' },
+        },
+    },
+    [helpMiddleware()]
+);
+type _18 = Assert<IsExact<typeof r18.values.debug, boolean | undefined>>;
+
+// 19. helpMiddleware with tokens: true still returns tokens
+const r19 = parseArgsPlus(
+    {
+        options: {
+            name: { type: 'string', description: 'Your name' },
+        },
+        tokens: true,
+    },
+    [helpMiddleware()]
+);
+type _19a = Assert<IsExact<typeof r19.values.name, string | undefined>>;
+type _19b = Assert<'tokens' extends keyof typeof r19 ? true : false>;
+
+// 20. helpMiddleware with multiple and default still works
+const r20 = parseArgsPlus(
+    {
+        options: {
+            files: { type: 'string', multiple: true, default: ['a.txt'], description: 'Input files' },
+            verbose: { type: 'boolean', default: false, description: 'Verbose mode' },
+        },
+    },
+    [helpMiddleware({ name: 'my-tool' })]
+);
+type _20a = Assert<IsExact<typeof r20.values.files, string[]>>;
+type _20b = Assert<IsExact<typeof r20.values.verbose, boolean>>;
+
+// 21. No middlewares still works as before (backward compatibility)
+const r21 = parseArgsPlus({
+    options: {
+        name: { type: 'string', default: 'test' },
+    },
+});
+type _21 = Assert<IsExact<typeof r21.values.name, string>>;
+
+// 22. Empty middleware array
+const r22 = parseArgsPlus(
+    {
+        options: {
+            name: { type: 'string' },
+        },
+    },
+    []
+);
+type _22 = Assert<IsExact<typeof r22.values.name, string | undefined>>;
