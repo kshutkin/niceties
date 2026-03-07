@@ -92,10 +92,12 @@ type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Re
 
 // Extract the option extension type from a single middleware
 // biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
+// biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
 type ExtractOptionExt<M> = M extends Middleware<infer E, any> ? E : {};
 
 // Extract the config extension type from a single middleware
 // biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
+// biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
 type ExtractConfigExt<M> = M extends Middleware<any, infer C> ? C : {};
 
 // Merge all option extensions from a tuple of middlewares into a single intersection
@@ -215,7 +217,7 @@ interface HelpConfigExtension {
  * it prints the version string and exits with code 0.
  * The `help` and `version` flags are removed from the returned `values`.
  */
-export const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigExtension>;
+export declare const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigExtension>;
 
 // ---------------------------------------------------------------------------
 // parseArgsPlus
