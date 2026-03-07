@@ -66,26 +66,29 @@ type ParsedValues<O extends Record<string, OptionConfig>> = Prettify<
 // ---------------------------------------------------------------------------
 
 /**
- * A middleware can extend the option config shape (via `OptionExt`)
- * and/or the top-level config shape (via `ConfigExt`),
- * transform the config before `parseArgs` is called, and transform
- * the result afterwards.
+ * A middleware is a tuple (array) where:
+ *   [0] transformConfig – receives the config and returns a (possibly modified) config
+ *   [1] transformResult – receives the result and original config, returns a (possibly modified) result
+ *
+ * The `OptionExt` and `ConfigExt` type parameters are carried at the type level
+ * so that `parseArgsPlus` can merge extensions from all middlewares.
  */
 // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
 // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
-interface Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> {
-    transformConfig(config: ParseArgsPlusConfig): ParseArgsPlusConfig;
-    transformResult(
+type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> = [
+    transformConfig: (config: ParseArgsPlusConfig) => ParseArgsPlusConfig,
+    transformResult: (
         // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
         result: { values: Record<string, any>; positionals: string[]; tokens?: Token[] },
         config: ParseArgsPlusConfig
         // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
-    ): { values: Record<string, any>; positionals: string[]; tokens?: Token[] };
+    ) => { values: Record<string, any>; positionals: string[]; tokens?: Token[] },
+] & {
     /** @internal marker to carry the option extension at the type level */
     readonly __optionExt?: OptionExt;
     /** @internal marker to carry the config extension at the type level */
     readonly __configExt?: ConfigExt;
-}
+};
 
 // Extract the option extension type from a single middleware
 // biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
@@ -204,15 +207,15 @@ interface HelpConfigExtension {
 }
 
 /**
- * Creates a help middleware.
+ * Help middleware that adds `--help` (`-h`) and `--version` (`-v`) flag support.
  *
- * When `--help` (or `-h`) is passed, the middleware prints usage information
+ * When `--help` is passed, the middleware prints usage information
  * derived from option `description` fields, then calls `process.exit(0)`.
- * When `--version` (or `-v`) is passed,
+ * When `--version` is passed,
  * it prints the version string and exits with code 0.
  * The `help` and `version` flags are removed from the returned `values`.
  */
-export function helpMiddleware(): Middleware<HelpOptionExtension, HelpConfigExtension>;
+export const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigExtension>;
 
 // ---------------------------------------------------------------------------
 // parseArgsPlus
@@ -233,7 +236,7 @@ export function helpMiddleware(): Middleware<HelpOptionExtension, HelpConfigExte
  *         name: { type: 'string', default: 'world', description: 'Your name' },
  *         verbose: { type: 'boolean', description: 'Enable verbose output' },
  *     },
- * }, [helpMiddleware()]);
+ * }, [helpMiddleware]);
  *
  * // values.name    → string          (required – has default)
  * // values.verbose → boolean | undefined (optional – no default)

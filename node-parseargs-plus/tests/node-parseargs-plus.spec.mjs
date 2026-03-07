@@ -86,16 +86,15 @@ describe('node-parseargs-plus', () => {
 
     describe('middleware system', () => {
         it('calls transformConfig on each middleware', () => {
-            const middleware = {
-                transformConfig: vi.fn(config => ({
-                    ...config,
-                    options: {
-                        ...config.options,
-                        extra: { type: 'boolean' },
-                    },
-                })),
-                transformResult: vi.fn(result => result),
-            };
+            const transformConfig = vi.fn(config => ({
+                ...config,
+                options: {
+                    ...config.options,
+                    extra: { type: 'boolean' },
+                },
+            }));
+            const transformResult = vi.fn(result => result);
+            const middleware = [transformConfig, transformResult];
 
             parseArgsPlus(
                 {
@@ -107,25 +106,25 @@ describe('node-parseargs-plus', () => {
                 [middleware]
             );
 
-            expect(middleware.transformConfig).toHaveBeenCalledOnce();
+            expect(transformConfig).toHaveBeenCalledOnce();
         });
 
         it('calls transformResult on each middleware in reverse order', () => {
             const order = [];
-            const middleware1 = {
-                transformConfig: config => config,
-                transformResult: result => {
+            const middleware1 = [
+                config => config,
+                result => {
                     order.push('mw1');
                     return result;
                 },
-            };
-            const middleware2 = {
-                transformConfig: config => config,
-                transformResult: result => {
+            ];
+            const middleware2 = [
+                config => config,
+                result => {
                     order.push('mw2');
                     return result;
                 },
-            };
+            ];
 
             parseArgsPlus(
                 {
@@ -146,27 +145,25 @@ describe('node-parseargs-plus', () => {
                 args: ['--name', 'test'],
             };
 
-            const middleware = {
-                transformConfig: config => config,
-                transformResult: vi.fn((result, config) => {
-                    expect(config).toBe(originalConfig);
-                    return result;
-                }),
-            };
+            const transformResult = vi.fn((result, config) => {
+                expect(config).toBe(originalConfig);
+                return result;
+            });
+            const middleware = [config => config, transformResult];
 
             parseArgsPlus(originalConfig, [middleware]);
 
-            expect(middleware.transformResult).toHaveBeenCalledOnce();
+            expect(transformResult).toHaveBeenCalledOnce();
         });
 
         it('allows middleware to modify the result', () => {
-            const middleware = {
-                transformConfig: config => config,
-                transformResult: result => ({
+            const middleware = [
+                config => config,
+                result => ({
                     ...result,
                     values: { ...result.values, injected: 'yes' },
                 }),
-            };
+            ];
 
             const result = parseArgsPlus(
                 {
@@ -180,26 +177,26 @@ describe('node-parseargs-plus', () => {
         });
 
         it('chains multiple middlewares transformConfig in order', () => {
-            const mw1 = {
-                transformConfig: config => ({
+            const mw1 = [
+                config => ({
                     ...config,
                     options: {
                         ...config.options,
                         flag1: { type: 'boolean' },
                     },
                 }),
-                transformResult: result => result,
-            };
-            const mw2 = {
-                transformConfig: config => ({
+                result => result,
+            ];
+            const mw2 = [
+                config => ({
                     ...config,
                     options: {
                         ...config.options,
                         flag2: { type: 'boolean' },
                     },
                 }),
-                transformResult: result => result,
-            };
+                result => result,
+            ];
 
             const result = parseArgsPlus(
                 {
@@ -243,8 +240,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('adds --help and --version options to config', () => {
-            const mw = helpMiddleware();
-            const transformed = mw.transformConfig({
+            const transformed = helpMiddleware[0]({
                 options: {
                     name: { type: 'string' },
                 },
@@ -255,8 +251,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('preserves existing options when adding help', () => {
-            const mw = helpMiddleware();
-            const transformed = mw.transformConfig({
+            const transformed = helpMiddleware[0]({
                 options: {
                     name: { type: 'string' },
                     verbose: { type: 'boolean', short: 'V' },
@@ -278,7 +273,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'test'],
                 },
-                [helpMiddleware()]
+                [helpMiddleware]
             );
 
             expect(result.values.name).toBe('test');
@@ -296,7 +291,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -315,7 +310,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['-h'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -334,7 +329,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -357,7 +352,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -379,7 +374,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -399,7 +394,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -419,7 +414,7 @@ describe('node-parseargs-plus', () => {
                         allowPositionals: true,
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -438,7 +433,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -457,7 +452,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--version'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -477,7 +472,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['-v'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -487,8 +482,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('always adds --version flag to config', () => {
-            const mw = helpMiddleware();
-            const transformed = mw.transformConfig({
+            const transformed = helpMiddleware[0]({
                 options: {
                     name: { type: 'string' },
                 },
@@ -510,7 +504,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -528,7 +522,7 @@ describe('node-parseargs-plus', () => {
                         version: '1.0.0',
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -549,7 +543,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware()]
+                    [helpMiddleware]
                 )
             ).toThrow('process.exit called');
 
@@ -557,11 +551,12 @@ describe('node-parseargs-plus', () => {
             expect(output).toContain('--silent');
         });
 
-        it('works with helpMiddleware with no config argument', () => {
-            const mw = helpMiddleware();
-            expect(mw).toBeDefined();
-            expect(typeof mw.transformConfig).toBe('function');
-            expect(typeof mw.transformResult).toBe('function');
+        it('helpMiddleware is a valid middleware tuple', () => {
+            expect(helpMiddleware).toBeDefined();
+            expect(Array.isArray(helpMiddleware)).toBe(true);
+            expect(helpMiddleware).toHaveLength(2);
+            expect(typeof helpMiddleware[0]).toBe('function');
+            expect(typeof helpMiddleware[1]).toBe('function');
         });
 
         it('does not interfere with other options when help is not passed', () => {
@@ -575,7 +570,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'Alice', '--verbose'],
                 },
-                [helpMiddleware()]
+                [helpMiddleware]
             );
 
             expect(result.values.name).toBe('Alice');
@@ -586,13 +581,13 @@ describe('node-parseargs-plus', () => {
         });
 
         it('works alongside other middlewares', () => {
-            const loggingMiddleware = {
-                transformConfig: config => config,
-                transformResult: result => ({
+            const loggingMiddleware = [
+                config => config,
+                result => ({
                     ...result,
                     values: { ...result.values, _logged: true },
                 }),
-            };
+            ];
 
             const result = parseArgsPlus(
                 {
@@ -603,7 +598,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'test'],
                 },
-                [helpMiddleware(), loggingMiddleware]
+                [helpMiddleware, loggingMiddleware]
             );
 
             expect(result.values.name).toBe('test');

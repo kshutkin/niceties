@@ -140,7 +140,7 @@ const r16 = parseArgsPlus(
             verbose: { type: 'boolean', description: 'Enable verbose output' },
         },
     },
-    [helpMiddleware()]
+    [helpMiddleware]
 );
 type _16a = Assert<IsExact<typeof r16.values.name, string>>;
 type _16b = Assert<IsExact<typeof r16.values.verbose, boolean | undefined>>;
@@ -155,7 +155,7 @@ const r17 = parseArgsPlus(
             output: { type: 'string', description: 'Output file' },
         },
     },
-    [helpMiddleware()]
+    [helpMiddleware]
 );
 type _17 = Assert<IsExact<typeof r17.values.output, string | undefined>>;
 
@@ -168,7 +168,7 @@ const r18 = parseArgsPlus(
             debug: { type: 'boolean' },
         },
     },
-    [helpMiddleware()]
+    [helpMiddleware]
 );
 type _18 = Assert<IsExact<typeof r18.values.debug, boolean | undefined>>;
 
@@ -182,7 +182,7 @@ const r19 = parseArgsPlus(
         },
         tokens: true,
     },
-    [helpMiddleware()]
+    [helpMiddleware]
 );
 type _19a = Assert<IsExact<typeof r19.values.name, string | undefined>>;
 type _19b = Assert<'tokens' extends keyof typeof r19 ? true : false>;
@@ -197,7 +197,7 @@ const r20 = parseArgsPlus(
             verbose: { type: 'boolean', default: false, description: 'Verbose mode' },
         },
     },
-    [helpMiddleware()]
+    [helpMiddleware]
 );
 type _20a = Assert<IsExact<typeof r20.values.files, string[]>>;
 type _20b = Assert<IsExact<typeof r20.values.verbose, boolean>>;

@@ -15,7 +15,7 @@ export function parseArgsPlus(config, middlewares = []) {
     // Let middlewares transform the config before calling parseArgs
     let transformedConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ (config);
     for (const mw of middlewares) {
-        transformedConfig = mw.transformConfig(transformedConfig);
+        transformedConfig = mw[0](transformedConfig);
     }
 
     // Call the native parseArgs
@@ -23,45 +23,43 @@ export function parseArgsPlus(config, middlewares = []) {
 
     // Let middlewares transform the result (reverse order for proper unwinding)
     for (let i = middlewares.length - 1; i >= 0; i--) {
-        result = middlewares[i].transformResult(result, config);
+        result = middlewares[i][1](result, config);
     }
 
     return result;
 }
 
 /**
- * Creates a help middleware that adds --help/-h and --version/-V flag support.
+ * Help middleware that adds --help/-h and --version/-v flag support.
  * When --help is passed, it prints usage information (based on option descriptions)
  * and exits with code 0. When --version is passed, it prints the version and exits
  * with code 0. The help and version flags are removed from the returned values.
- * @returns {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
+ * @type {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
-export function helpMiddleware() {
-    return {
-        transformConfig(config) {
-            return {
-                ...config,
-                options: {
-                    ...config.options,
-                    help: { type: 'boolean', short: 'h' },
-                    version: { type: 'boolean', short: 'v' },
-                },
-            };
-        },
-        transformResult(result, originalConfig) {
-            const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (originalConfig);
-            if (result.values.version) {
-                console.log(extConfig.version);
-                process.exit(0);
-            }
-            if (result.values.help) {
-                printHelp(extConfig);
-                process.exit(0);
-            }
-            return result;
-        },
-    };
-}
+export const helpMiddleware = [
+    function transformConfig(config) {
+        return {
+            ...config,
+            options: {
+                ...config.options,
+                help: { type: 'boolean', short: 'h' },
+                version: { type: 'boolean', short: 'v' },
+            },
+        };
+    },
+    function transformResult(result, originalConfig) {
+        const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (originalConfig);
+        if (result.values.version) {
+            console.log(extConfig.version);
+            process.exit(0);
+        }
+        if (result.values.help) {
+            printHelp(extConfig);
+            process.exit(0);
+        }
+        return result;
+    },
+];
 
 /**
  * Prints help text based on the original config's options and their descriptions.
