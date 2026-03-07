@@ -6,10 +6,14 @@ import { parseArgs } from 'node:util';
  */
 
 /**
+ * @typedef {import('./types.d.ts').ParseArgsPlusResultBase & { tokens?: import('./types.d.ts').Token[] }} ParseArgsPlusAnyResult
+ */
+
+/**
  * Enhanced parseArgs wrapper with additional features.
  * @param {import('./types.d.ts').ParseArgsPlusConfig} config
  * @param {import('./types.d.ts').Middleware<any>[]} [middlewares]
- * @returns {any}
+ * @returns {ParseArgsPlusAnyResult}
  */
 export function parseArgsPlus(config, middlewares = []) {
     // Let middlewares transform the config before calling parseArgs
@@ -19,7 +23,7 @@ export function parseArgsPlus(config, middlewares = []) {
     }
 
     // Call the native parseArgs
-    let result = /** @type {any} */ (parseArgs(transformedConfig));
+    let result = /** @type {ParseArgsPlusAnyResult} */ (parseArgs(transformedConfig));
 
     // Let middlewares transform the result (reverse order for proper unwinding)
     for (let i = middlewares.length - 1; i >= 0; i--) {
@@ -48,7 +52,9 @@ export const helpMiddleware = [
         };
     },
     function transformResult(result, originalConfig) {
-        const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (originalConfig);
+        const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (
+            originalConfig
+        );
         if (result.values.version) {
             console.log(extConfig.version);
             process.exit(0);
