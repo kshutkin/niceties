@@ -19,10 +19,10 @@ interface OptionTerminatorToken {
     index: number;
 }
 
-type Token = OptionToken | PositionalToken | OptionTerminatorToken;
+export type Token = OptionToken | PositionalToken | OptionTerminatorToken;
 
 // Shape of a single option in the config
-interface OptionConfig {
+export interface OptionConfig {
     type: 'string' | 'boolean';
     multiple?: boolean;
     short?: string;
@@ -75,7 +75,7 @@ type ParsedValues<O extends Record<string, OptionConfig>> = Prettify<
  */
 // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
 // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
-type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> = [
+export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> = [
     transformConfig: (config: ParseArgsPlusConfig) => ParseArgsPlusConfig,
     transformResult: (
         // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
@@ -104,9 +104,9 @@ type ExtractConfigExt<M> = M extends Middleware<any, infer C> ? C : {};
 // biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractOptionExt<M[number]>>;
+export type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractOptionExt<M[number]>>;
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractConfigExt<M[number]>>;
+export type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractConfigExt<M[number]>>;
 
 // An OptionConfig extended with the extra fields contributed by middlewares
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
@@ -117,7 +117,7 @@ type ExtendedOptionConfig<Ext extends Record<string, any>> = OptionConfig & Ext;
 // ---------------------------------------------------------------------------
 
 // The config accepted by parseArgsPlus (no middlewares or unresolvable middlewares)
-interface ParseArgsPlusConfig {
+export interface ParseArgsPlusConfig {
     options?: Record<string, OptionConfig>;
     allowPositionals?: boolean;
     allowNegative?: boolean;
@@ -129,7 +129,7 @@ interface ParseArgsPlusConfig {
 // The config accepted by parseArgsPlus when middlewares extend the option and/or config shape.
 // The `ConfigExt` fields are merged into the top-level config via intersection.
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
-type ParseArgsPlusConfigWithMiddleware<OptionExt extends Record<string, any>, ConfigExt extends Record<string, any>> = {
+export type ParseArgsPlusConfigWithMiddleware<OptionExt extends Record<string, any>, ConfigExt extends Record<string, any>> = {
     options?: Record<string, ExtendedOptionConfig<OptionExt>>;
     allowPositionals?: boolean;
     allowNegative?: boolean;
@@ -143,7 +143,7 @@ type ParseArgsPlusConfigWithMiddleware<OptionExt extends Record<string, any>, Co
 // ---------------------------------------------------------------------------
 
 // Base result shape (no options or unresolvable options)
-interface ParseArgsPlusResultBase {
+export interface ParseArgsPlusResultBase {
     values: Record<string, string | boolean | string[] | boolean[] | undefined>;
     positionals: string[];
 }
@@ -163,7 +163,7 @@ interface ParseArgsPlusResultTypedWithTokens<O extends Record<string, OptionConf
 }
 
 // Select the correct result type based on config
-type ParseArgsPlusResult<T extends ParseArgsPlusConfig> = T extends { options: infer O extends Record<string, OptionConfig> }
+export type ParseArgsPlusResult<T extends ParseArgsPlusConfig> = T extends { options: infer O extends Record<string, OptionConfig> }
     ? T extends { tokens: true }
         ? ParseArgsPlusResultTypedWithTokens<O>
         : ParseArgsPlusResultTyped<O>
@@ -179,7 +179,7 @@ type StripExtFromOptions<O extends Record<string, any>> = {
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
-type ParseArgsPlusResultFromExtended<T extends ParseArgsPlusConfigWithMiddleware<any, any>> = T extends {
+export type ParseArgsPlusResultFromExtended<T extends ParseArgsPlusConfigWithMiddleware<any, any>> = T extends {
     // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
     options: infer O extends Record<string, any>;
 }
@@ -195,58 +195,15 @@ type ParseArgsPlusResultFromExtended<T extends ParseArgsPlusConfigWithMiddleware
 // ---------------------------------------------------------------------------
 
 /** Extension that help middleware adds to each option. */
-interface HelpOptionExtension {
+export interface HelpOptionExtension {
     /** A human-readable description shown in the help text. */
     description?: string;
 }
 
 /** Extension that help middleware adds to the top-level config. */
-interface HelpConfigExtension {
+export interface HelpConfigExtension {
     /** Program name used in the auto-generated usage line (e.g. "my-cli"). */
     name: string;
     /** Program version string (e.g. "1.0.0"). When `--version` is passed, prints the version and exits. */
     version: string;
 }
-
-/**
- * Help middleware that adds `--help` (`-h`) and `--version` (`-v`) flag support.
- *
- * When `--help` is passed, the middleware prints usage information
- * derived from option `description` fields, then calls `process.exit(0)`.
- * When `--version` is passed,
- * it prints the version string and exits with code 0.
- * The `help` and `version` flags are removed from the returned `values`.
- */
-export declare const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigExtension>;
-
-// ---------------------------------------------------------------------------
-// parseArgsPlus
-// ---------------------------------------------------------------------------
-
-/**
- * Enhanced wrapper around Node.js `util.parseArgs` with strong config-driven
- * typings and middleware support.
- *
- * @example
- * ```ts
- * import { parseArgsPlus, helpMiddleware } from '@niceties/node-parseargs-plus';
- *
- * const { values } = parseArgsPlus({
- *     name: 'my-cli',
- *     version: '1.0.0',
- *     options: {
- *         name: { type: 'string', default: 'world', description: 'Your name' },
- *         verbose: { type: 'boolean', description: 'Enable verbose output' },
- *     },
- * }, [helpMiddleware]);
- *
- * // values.name    → string          (required – has default)
- * // values.verbose → boolean | undefined (optional – no default)
- * ```
- */
-export function parseArgsPlus<const T extends ParseArgsPlusConfig>(config: T): ParseArgsPlusResult<T>;
-export function parseArgsPlus<
-    // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-    const M extends Middleware<any, any>[],
-    const T extends ParseArgsPlusConfigWithMiddleware<MergeMiddlewareOptionExts<M>, MergeMiddlewareConfigExts<M>>,
->(config: T, middlewares: M): ParseArgsPlusResultFromExtended<T>;

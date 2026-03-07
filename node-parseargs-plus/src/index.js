@@ -1,19 +1,10 @@
 import { parseArgs } from 'node:util';
 
 /**
- * @template {import('./types.d.ts').ParseArgsPlusConfig} T
- * @typedef {import('./types.d.ts').ParseArgsPlusResult<T>} ParseArgsPlusResult
- */
-
-/**
- * @typedef {import('./types.d.ts').ParseArgsPlusResultBase & { tokens?: import('./types.d.ts').Token[] }} ParseArgsPlusAnyResult
- */
-
-/**
  * Enhanced parseArgs wrapper with additional features.
  * @param {import('./types.d.ts').ParseArgsPlusConfig} config
- * @param {import('./types.d.ts').Middleware<any>[]} [middlewares]
- * @returns {ParseArgsPlusAnyResult}
+ * @param {import('./types.d.ts').Middleware<any, any>[]} [middlewares]
+ * @returns {import('./types.d.ts').ParseArgsPlusResultBase & { tokens?: import('./types.d.ts').Token[] }}
  */
 export function parseArgsPlus(config, middlewares = []) {
     // Let middlewares transform the config before calling parseArgs
@@ -23,7 +14,9 @@ export function parseArgsPlus(config, middlewares = []) {
     }
 
     // Call the native parseArgs
-    let result = /** @type {ParseArgsPlusAnyResult} */ (parseArgs(transformedConfig));
+    let result = /** @type {import('./types.d.ts').ParseArgsPlusResultBase & { tokens?: import('./types.d.ts').Token[] }} */ (
+        parseArgs(transformedConfig)
+    );
 
     // Let middlewares transform the result (reverse order for proper unwinding)
     for (let i = middlewares.length - 1; i >= 0; i--) {

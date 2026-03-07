@@ -1,4 +1,4 @@
-import { helpMiddleware, parseArgsPlus } from '../src/types';
+import { helpMiddleware, parseArgsPlus } from '@niceties/node-parseargs-plus';
 
 // Helper: assert that two types are exactly equal
 type IsExact<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;

@@ -41,7 +41,7 @@
         "options"
     ],
     "scripts": {
-        "build": "dts-buddy",
+        "build": "dts-buddy -m @niceties/node-parseargs-plus:src/exports.d.ts",
         "prepack": "pkgprn-internal --flatten types,src --strip-comments",
         "test": "vitest run --coverage --config ../vitest.config.js"
     }
