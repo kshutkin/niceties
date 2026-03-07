@@ -242,7 +242,7 @@ describe('node-parseargs-plus', () => {
             consoleLogSpy.mockRestore();
         });
 
-        it('adds --help option to config', () => {
+        it('adds --help and --version options to config', () => {
             const mw = helpMiddleware();
             const transformed = mw.transformConfig({
                 options: {
@@ -250,6 +250,7 @@ describe('node-parseargs-plus', () => {
                 },
             });
             expect(transformed.options.help).toEqual({ type: 'boolean', short: 'h' });
+            expect(transformed.options.version).toEqual({ type: 'boolean', short: 'v' });
             expect(transformed.options.name).toEqual({ type: 'string' });
         });
 
@@ -258,17 +259,20 @@ describe('node-parseargs-plus', () => {
             const transformed = mw.transformConfig({
                 options: {
                     name: { type: 'string' },
-                    verbose: { type: 'boolean', short: 'v' },
+                    verbose: { type: 'boolean', short: 'V' },
                 },
             });
             expect(transformed.options.name).toEqual({ type: 'string' });
-            expect(transformed.options.verbose).toEqual({ type: 'boolean', short: 'v' });
+            expect(transformed.options.verbose).toEqual({ type: 'boolean', short: 'V' });
             expect(transformed.options.help).toBeDefined();
+            expect(transformed.options.version).toBeDefined();
         });
 
         it('removes help from result values when --help is not passed', () => {
             const result = parseArgsPlus(
                 {
+                    name: 'test-cli',
+                    version: '1.0.0',
                     options: {
                         name: { type: 'string' },
                     },
@@ -285,6 +289,8 @@ describe('node-parseargs-plus', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string', description: 'Your name' },
                         },
@@ -302,6 +308,8 @@ describe('node-parseargs-plus', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string', description: 'Your name' },
                         },
@@ -318,9 +326,11 @@ describe('node-parseargs-plus', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string', description: 'Your name' },
-                            verbose: { type: 'boolean', short: 'v', description: 'Enable verbose mode' },
+                            verbose: { type: 'boolean', short: 'V', description: 'Enable verbose mode' },
                         },
                         args: ['--help'],
                     },
@@ -333,13 +343,15 @@ describe('node-parseargs-plus', () => {
             expect(output).toContain('Enable verbose mode');
             expect(output).toContain('--name');
             expect(output).toContain('--verbose');
-            expect(output).toContain('-v');
+            expect(output).toContain('-V');
         });
 
         it('displays --help itself in the help output', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string', description: 'Your name' },
                         },
@@ -359,6 +371,8 @@ describe('node-parseargs-plus', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             output: { type: 'string', description: 'Output file' },
                             debug: { type: 'boolean', description: 'Debug mode' },
@@ -374,97 +388,144 @@ describe('node-parseargs-plus', () => {
             expect(output).not.toContain('--debug <value>');
         });
 
-        it('shows custom header when provided', () => {
-            expect(() =>
-                parseArgsPlus(
-                    {
-                        options: {
-                            name: { type: 'string' },
-                        },
-                        args: ['--help'],
-                    },
-                    [helpMiddleware({ header: 'My Custom CLI Tool v1.0' })]
-                )
-            ).toThrow('process.exit called');
-
-            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('My Custom CLI Tool v1.0');
-        });
-
-        it('shows custom footer when provided', () => {
-            expect(() =>
-                parseArgsPlus(
-                    {
-                        options: {
-                            name: { type: 'string' },
-                        },
-                        args: ['--help'],
-                    },
-                    [helpMiddleware({ footer: 'For more info visit https://example.com' })]
-                )
-            ).toThrow('process.exit called');
-
-            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('For more info visit https://example.com');
-        });
-
         it('shows auto-generated usage line with program name', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'my-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string' },
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware({ name: 'my-cli' })]
+                    [helpMiddleware()]
                 )
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Usage: my-cli [options]');
+            expect(output).toContain('Usage: my-cli');
         });
 
         it('shows [arguments] in usage line when allowPositionals is true', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'my-cli',
+                        version: '1.0.0',
                         options: {
                             name: { type: 'string' },
                         },
                         allowPositionals: true,
                         args: ['--help'],
                     },
-                    [helpMiddleware({ name: 'my-cli' })]
+                    [helpMiddleware()]
                 )
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Usage: my-cli [options] [arguments]');
+            expect(output).toContain('Usage: my-cli v1.0.0 [options] [arguments]');
         });
 
-        it('header takes priority over auto-generated usage line', () => {
+        it('shows version in usage line', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'my-cli',
+                        version: '1.2.3',
                         options: {
                             name: { type: 'string' },
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware({ name: 'my-cli', header: 'Custom Header' })]
+                    [helpMiddleware()]
                 )
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Custom Header');
-            expect(output).not.toContain('Usage: my-cli');
+            expect(output).toContain('Usage: my-cli v1.2.3 [options]');
+        });
+
+        it('prints version and exits when --version is passed', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '2.0.0',
+                        options: {
+                            name: { type: 'string' },
+                        },
+                        args: ['--version'],
+                    },
+                    [helpMiddleware()]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('2.0.0');
+        });
+
+        it('prints version and exits when -v is passed', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '3.1.0',
+                        options: {
+                            name: { type: 'string' },
+                        },
+                        args: ['-v'],
+                    },
+                    [helpMiddleware()]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('3.1.0');
+        });
+
+        it('always adds --version flag to config', () => {
+            const mw = helpMiddleware();
+            const transformed = mw.transformConfig({
+                options: {
+                    name: { type: 'string' },
+                },
+            });
+            expect(transformed.options).toHaveProperty('help');
+            expect(transformed.options).toHaveProperty('version');
+            expect(transformed.options.version.type).toBe('boolean');
+            expect(transformed.options.version.short).toBe('v');
+        });
+
+        it('displays --version in help output', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {
+                            name: { type: 'string', description: 'Your name' },
+                        },
+                        args: ['--help'],
+                    },
+                    [helpMiddleware()]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--version');
+            expect(output).toContain('-v');
+            expect(output).toContain('Show version number');
         });
 
         it('works with no options in config', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         args: ['--help'],
                     },
                     [helpMiddleware()]
@@ -474,12 +535,15 @@ describe('node-parseargs-plus', () => {
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
             expect(output).toContain('Options:');
             expect(output).toContain('--help');
+            expect(output).toContain('--version');
         });
 
         it('options without description are still listed', () => {
             expect(() =>
                 parseArgsPlus(
                     {
+                        name: 'test-cli',
+                        version: '1.0.0',
                         options: {
                             silent: { type: 'boolean' },
                         },
@@ -503,13 +567,15 @@ describe('node-parseargs-plus', () => {
         it('does not interfere with other options when help is not passed', () => {
             const result = parseArgsPlus(
                 {
+                    name: 'test-cli',
+                    version: '1.0.0',
                     options: {
                         name: { type: 'string', default: 'world', description: 'Your name' },
                         verbose: { type: 'boolean', description: 'Enable verbose output' },
                     },
                     args: ['--name', 'Alice', '--verbose'],
                 },
-                [helpMiddleware({ name: 'test-cli' })]
+                [helpMiddleware()]
             );
 
             expect(result.values.name).toBe('Alice');
@@ -530,6 +596,8 @@ describe('node-parseargs-plus', () => {
 
             const result = parseArgsPlus(
                 {
+                    name: 'test-cli',
+                    version: '1.0.0',
                     options: {
                         name: { type: 'string' },
                     },

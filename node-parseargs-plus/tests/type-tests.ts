@@ -133,6 +133,8 @@ type _15 = Assert<IsExact<typeof r15.values.name, string>>;
 // 16. helpMiddleware allows `description` on options
 const r16 = parseArgsPlus(
     {
+        name: 'my-cli',
+        version: '1.0.0',
         options: {
             name: { type: 'string', default: 'world', description: 'Your name' },
             verbose: { type: 'boolean', description: 'Enable verbose output' },
@@ -144,20 +146,24 @@ type _16a = Assert<IsExact<typeof r16.values.name, string>>;
 type _16b = Assert<IsExact<typeof r16.values.verbose, boolean | undefined>>;
 type _16c = Assert<IsExact<typeof r16.positionals, string[]>>;
 
-// 17. helpMiddleware with config options
+// 17. helpMiddleware with name and version in config
 const r17 = parseArgsPlus(
     {
+        name: 'my-cli',
+        version: '2.0.0',
         options: {
             output: { type: 'string', description: 'Output file' },
         },
     },
-    [helpMiddleware({ name: 'my-cli', footer: 'Example: my-cli --output foo.txt' })]
+    [helpMiddleware()]
 );
 type _17 = Assert<IsExact<typeof r17.values.output, string | undefined>>;
 
 // 18. helpMiddleware with no descriptions is fine (description is optional)
 const r18 = parseArgsPlus(
     {
+        name: 'my-cli',
+        version: '1.0.0',
         options: {
             debug: { type: 'boolean' },
         },
@@ -169,6 +175,8 @@ type _18 = Assert<IsExact<typeof r18.values.debug, boolean | undefined>>;
 // 19. helpMiddleware with tokens: true still returns tokens
 const r19 = parseArgsPlus(
     {
+        name: 'my-cli',
+        version: '1.0.0',
         options: {
             name: { type: 'string', description: 'Your name' },
         },
@@ -182,12 +190,14 @@ type _19b = Assert<'tokens' extends keyof typeof r19 ? true : false>;
 // 20. helpMiddleware with multiple and default still works
 const r20 = parseArgsPlus(
     {
+        name: 'my-tool',
+        version: '1.0.0',
         options: {
             files: { type: 'string', multiple: true, default: ['a.txt'], description: 'Input files' },
             verbose: { type: 'boolean', default: false, description: 'Verbose mode' },
         },
     },
-    [helpMiddleware({ name: 'my-tool' })]
+    [helpMiddleware()]
 );
 type _20a = Assert<IsExact<typeof r20.values.files, string[]>>;
 type _20b = Assert<IsExact<typeof r20.values.verbose, boolean>>;

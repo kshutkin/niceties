@@ -30,17 +30,13 @@ export function parseArgsPlus(config, middlewares = []) {
 }
 
 /**
- * Creates a help middleware that adds --help/-h flag support.
+ * Creates a help middleware that adds --help/-h and --version/-V flag support.
  * When --help is passed, it prints usage information (based on option descriptions)
- * and exits with code 0. The help flag is removed from the returned values.
- * @param {import('./types.d.ts').HelpMiddlewareConfig} [helpConfig]
- * @returns {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension>}
+ * and exits with code 0. When --version is passed, it prints the version and exits
+ * with code 0. The help and version flags are removed from the returned values.
+ * @returns {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
-export function helpMiddleware(helpConfig) {
-    const header = helpConfig?.header;
-    const footer = helpConfig?.footer;
-    const programName = helpConfig?.name;
-
+export function helpMiddleware() {
     return {
         transformConfig(config) {
             return {
@@ -48,36 +44,37 @@ export function helpMiddleware(helpConfig) {
                 options: {
                     ...config.options,
                     help: { type: 'boolean', short: 'h' },
+                    version: { type: 'boolean', short: 'v' },
                 },
             };
         },
         transformResult(result, originalConfig) {
-            if (result.values.help) {
-                printHelp(originalConfig, programName, header, footer);
+            const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (originalConfig);
+            if (result.values.version) {
+                console.log(extConfig.version);
                 process.exit(0);
             }
-            // Remove help from values
-            const { help: _help, ...restValues } = /** @type {Record<string, any>} */ (result.values);
-            return { ...result, values: restValues };
+            if (result.values.help) {
+                printHelp(extConfig);
+                process.exit(0);
+            }
+            return result;
         },
     };
 }
 
 /**
  * Prints help text based on the original config's options and their descriptions.
- * @param {import('./types.d.ts').ParseArgsPlusConfig} config
- * @param {string | undefined} programName
- * @param {string | undefined} header
- * @param {string | undefined} footer
+ * @param {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} config
  */
-function printHelp(config, programName, header, footer) {
+function printHelp(config) {
+    const programName = config.name;
+    const version = config.version;
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
 
-    if (header) {
-        console.log(header);
-        console.log();
-    } else if (programName) {
-        console.log(`Usage: ${programName} [options]${config.allowPositionals ? ' [arguments]' : ''}`);
+    if (programName) {
+        const versionSuffix = version ? ` v${version}` : '';
+        console.log(`Usage: ${programName}${versionSuffix} [options]${config.allowPositionals ? ' [arguments]' : ''}`);
         console.log();
     }
 
@@ -87,8 +84,12 @@ function printHelp(config, programName, header, footer) {
     const rows = [];
     let maxFlagsLen = 0;
 
-    // Always include --help in the displayed options
-    const allOptions = { ...options, help: /** @type {any} */ ({ type: 'boolean', short: 'h', description: 'Show this help message' }) };
+    // Always include --help and --version in the displayed options
+    const allOptions = /** @type {Record<string, any>} */ ({
+        ...options,
+        help: { type: 'boolean', short: 'h', description: 'Show this help message' },
+        version: { type: 'boolean', short: 'v', description: 'Show version number' },
+    });
 
     for (const [name, opt] of Object.entries(allOptions)) {
         const shortPart = opt.short ? `-${opt.short}, ` : '    ';
@@ -108,10 +109,5 @@ function printHelp(config, programName, header, footer) {
         } else {
             console.log(row.flags);
         }
-    }
-
-    if (footer) {
-        console.log();
-        console.log(footer);
     }
 }
