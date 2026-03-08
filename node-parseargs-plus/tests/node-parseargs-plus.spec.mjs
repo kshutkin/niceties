@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { helpMiddleware, parseArgsPlus } from '../src/index.js';
+import { help } from '../src/help.js';
+import { parseArgsPlus } from '../src/index.js';
 
 describe('node-parseargs-plus', () => {
     describe('parseArgsPlus without middlewares', () => {
@@ -223,7 +224,7 @@ describe('node-parseargs-plus', () => {
         });
     });
 
-    describe('helpMiddleware', () => {
+    describe('help middleware', () => {
         let exitSpy;
         let consoleLogSpy;
 
@@ -240,7 +241,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('adds --help and --version options to config', () => {
-            const transformed = helpMiddleware[0]({
+            const transformed = help[0]({
                 options: {
                     name: { type: 'string' },
                 },
@@ -251,7 +252,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('preserves existing options when adding help', () => {
-            const transformed = helpMiddleware[0]({
+            const transformed = help[0]({
                 options: {
                     name: { type: 'string' },
                     verbose: { type: 'boolean', short: 'V' },
@@ -273,7 +274,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'test'],
                 },
-                [helpMiddleware]
+                [help]
             );
 
             expect(result.values.name).toBe('test');
@@ -291,7 +292,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -310,7 +311,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['-h'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -329,7 +330,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -352,7 +353,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -374,7 +375,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -394,7 +395,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -414,7 +415,7 @@ describe('node-parseargs-plus', () => {
                         allowPositionals: true,
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -433,7 +434,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -452,7 +453,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--version'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -472,7 +473,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['-v'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -482,7 +483,7 @@ describe('node-parseargs-plus', () => {
         });
 
         it('always adds --version flag to config', () => {
-            const transformed = helpMiddleware[0]({
+            const transformed = help[0]({
                 options: {
                     name: { type: 'string' },
                 },
@@ -504,7 +505,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -522,7 +523,7 @@ describe('node-parseargs-plus', () => {
                         version: '1.0.0',
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -543,7 +544,7 @@ describe('node-parseargs-plus', () => {
                         },
                         args: ['--help'],
                     },
-                    [helpMiddleware]
+                    [help]
                 )
             ).toThrow('process.exit called');
 
@@ -551,12 +552,12 @@ describe('node-parseargs-plus', () => {
             expect(output).toContain('--silent');
         });
 
-        it('helpMiddleware is a valid middleware tuple', () => {
-            expect(helpMiddleware).toBeDefined();
-            expect(Array.isArray(helpMiddleware)).toBe(true);
-            expect(helpMiddleware).toHaveLength(2);
-            expect(typeof helpMiddleware[0]).toBe('function');
-            expect(typeof helpMiddleware[1]).toBe('function');
+        it('help is a valid middleware tuple', () => {
+            expect(help).toBeDefined();
+            expect(Array.isArray(help)).toBe(true);
+            expect(help).toHaveLength(2);
+            expect(typeof help[0]).toBe('function');
+            expect(typeof help[1]).toBe('function');
         });
 
         it('does not interfere with other options when help is not passed', () => {
@@ -570,7 +571,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'Alice', '--verbose'],
                 },
-                [helpMiddleware]
+                [help]
             );
 
             expect(result.values.name).toBe('Alice');
@@ -598,7 +599,7 @@ describe('node-parseargs-plus', () => {
                     },
                     args: ['--name', 'test'],
                 },
-                [helpMiddleware, loggingMiddleware]
+                [help, loggingMiddleware]
             );
 
             expect(result.values.name).toBe('test');

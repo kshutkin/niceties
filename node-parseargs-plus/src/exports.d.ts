@@ -1,6 +1,4 @@
 import type {
-    HelpConfigExtension,
-    HelpOptionExtension,
     MergeMiddlewareConfigExts,
     MergeMiddlewareOptionExts,
     Middleware,
@@ -11,23 +9,13 @@ import type {
 } from './types.d.ts';
 
 /**
- * Help middleware that adds `--help` (`-h`) and `--version` (`-v`) flag support.
- *
- * When `--help` is passed, the middleware prints usage information
- * derived from option `description` fields, then calls `process.exit(0)`.
- * When `--version` is passed,
- * it prints the version string and exits with code 0.
- * The `help` and `version` flags are removed from the returned `values`.
- */
-export declare const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigExtension>;
-
-/**
  * Enhanced wrapper around Node.js `util.parseArgs` with strong config-driven
  * typings and middleware support.
  *
  * @example
  * ```ts
- * import { parseArgsPlus, helpMiddleware } from '@niceties/node-parseargs-plus';
+ * import { parseArgsPlus } from '@niceties/node-parseargs-plus';
+ * import { help } from '@niceties/node-parseargs-plus/help';
  *
  * const { values } = parseArgsPlus({
  *     name: 'my-cli',
@@ -36,7 +24,7 @@ export declare const helpMiddleware: Middleware<HelpOptionExtension, HelpConfigE
  *         name: { type: 'string', default: 'world', description: 'Your name' },
  *         verbose: { type: 'boolean', description: 'Enable verbose output' },
  *     },
- * }, [helpMiddleware]);
+ * }, [help]);
  *
  * // values.name    → string          (required – has default)
  * // values.verbose → boolean | undefined (optional – no default)

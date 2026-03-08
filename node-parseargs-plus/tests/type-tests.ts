@@ -1,4 +1,5 @@
-import { helpMiddleware, parseArgsPlus } from '@niceties/node-parseargs-plus';
+import { parseArgsPlus } from '@niceties/node-parseargs-plus';
+import { help } from '@niceties/node-parseargs-plus/help';
 
 // Helper: assert that two types are exactly equal
 type IsExact<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
@@ -127,10 +128,10 @@ const r15 = parseArgsPlus({
 type _15 = Assert<IsExact<typeof r15.values.name, string>>;
 
 // ---------------------------------------------------------------------------
-// Middleware & helpMiddleware type tests
+// Middleware & help type tests
 // ---------------------------------------------------------------------------
 
-// 16. helpMiddleware allows `description` on options
+// 16. help middleware allows `description` on options
 const r16 = parseArgsPlus(
     {
         name: 'my-cli',
@@ -140,13 +141,13 @@ const r16 = parseArgsPlus(
             verbose: { type: 'boolean', description: 'Enable verbose output' },
         },
     },
-    [helpMiddleware]
+    [help]
 );
 type _16a = Assert<IsExact<typeof r16.values.name, string>>;
 type _16b = Assert<IsExact<typeof r16.values.verbose, boolean | undefined>>;
 type _16c = Assert<IsExact<typeof r16.positionals, string[]>>;
 
-// 17. helpMiddleware with name and version in config
+// 17. help middleware with name and version in config
 const r17 = parseArgsPlus(
     {
         name: 'my-cli',
@@ -155,11 +156,11 @@ const r17 = parseArgsPlus(
             output: { type: 'string', description: 'Output file' },
         },
     },
-    [helpMiddleware]
+    [help]
 );
 type _17 = Assert<IsExact<typeof r17.values.output, string | undefined>>;
 
-// 18. helpMiddleware with no descriptions is fine (description is optional)
+// 18. help middleware with no descriptions is fine (description is optional)
 const r18 = parseArgsPlus(
     {
         name: 'my-cli',
@@ -168,11 +169,11 @@ const r18 = parseArgsPlus(
             debug: { type: 'boolean' },
         },
     },
-    [helpMiddleware]
+    [help]
 );
 type _18 = Assert<IsExact<typeof r18.values.debug, boolean | undefined>>;
 
-// 19. helpMiddleware with tokens: true still returns tokens
+// 19. help middleware with tokens: true still returns tokens
 const r19 = parseArgsPlus(
     {
         name: 'my-cli',
@@ -182,12 +183,12 @@ const r19 = parseArgsPlus(
         },
         tokens: true,
     },
-    [helpMiddleware]
+    [help]
 );
 type _19a = Assert<IsExact<typeof r19.values.name, string | undefined>>;
 type _19b = Assert<'tokens' extends keyof typeof r19 ? true : false>;
 
-// 20. helpMiddleware with multiple and default still works
+// 20. help middleware with multiple and default still works
 const r20 = parseArgsPlus(
     {
         name: 'my-tool',
@@ -197,7 +198,7 @@ const r20 = parseArgsPlus(
             verbose: { type: 'boolean', default: false, description: 'Verbose mode' },
         },
     },
-    [helpMiddleware]
+    [help]
 );
 type _20a = Assert<IsExact<typeof r20.values.files, string[]>>;
 type _20b = Assert<IsExact<typeof r20.values.verbose, boolean>>;
@@ -225,7 +226,8 @@ type _22 = Assert<IsExact<typeof r22.values.name, string | undefined>>;
 // JS implementation return type tests (import from the actual .js module)
 // ---------------------------------------------------------------------------
 
-import { helpMiddleware as helpMiddlewareJs, parseArgsPlus as parseArgsPlusJs } from '../src/index';
+import { help as helpJs } from '../src/help';
+import { parseArgsPlus as parseArgsPlusJs } from '../src/index';
 
 // The JS implementation returns ParseArgsPlusResultBase & { tokens?: Token[] }
 // so values is always Record<string, string | boolean | string[] | boolean[] | undefined>,
@@ -271,14 +273,14 @@ const jr4 = parseArgsPlusJs(
 );
 type _26 = Assert<IsExact<typeof jr4.values, Record<string, string | boolean | string[] | boolean[] | undefined>>>;
 
-// 27. JS impl: with helpMiddleware returns the same base shape
+// 27. JS impl: with help middleware returns the same base shape
 const jr5 = parseArgsPlusJs(
     {
         options: {
             name: { type: 'string' },
         },
     },
-    [helpMiddlewareJs]
+    [helpJs]
 );
 type _27a = Assert<IsExact<typeof jr5.values, Record<string, string | boolean | string[] | boolean[] | undefined>>>;
 type _27b = Assert<IsExact<typeof jr5.positionals, string[]>>;
