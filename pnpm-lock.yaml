@@ -57,6 +57,9 @@ importers:
       '@niceties/logger':
         specifier: workspace:*
         version: link:../logger
+      '@niceties/node-parseargs-plus':
+        specifier: workspace:*
+        version: link:../node-parseargs-plus
       kleur:
         specifier: ^4.1.4
         version: 4.1.5

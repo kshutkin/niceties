@@ -6,7 +6,7 @@
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
 export const help = [
-    function transformConfig(config) {
+    config => {
         return {
             ...config,
             options: {
@@ -16,7 +16,7 @@ export const help = [
             },
         };
     },
-    function transformResult(result, originalConfig) {
+    (result, originalConfig) => {
         const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (
             originalConfig
         );
@@ -38,12 +38,10 @@ export const help = [
  */
 function printHelp(config) {
     const programName = config.name;
-    const version = config.version;
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
 
     if (programName) {
-        const versionSuffix = version ? ` v${version}` : '';
-        console.log(`Usage: ${programName}${versionSuffix} [options]${config.allowPositionals ? ' [arguments]' : ''}`);
+        console.log(`Usage: ${programName} [options]${config.allowPositionals ? ' [arguments]' : ''}`);
         console.log();
     }
 
