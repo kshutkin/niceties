@@ -206,4 +206,6 @@ export interface HelpConfigExtension {
     name: string;
     /** Program version string (e.g. "1.0.0"). When `--version` is passed, prints the version and exits. */
     version: string;
+    /** Optional program description displayed in the help text between the usage line and the options list. */
+    description?: string;
 }

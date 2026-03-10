@@ -420,10 +420,11 @@ describe('node-parseargs-plus', () => {
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Usage: my-cli v1.0.0 [options] [arguments]');
+            expect(output).toContain('my-cli v1.0.0');
+            expect(output).toContain('Usage: my-cli [options] [arguments]');
         });
 
-        it('shows version in usage line', () => {
+        it('shows version in header line', () => {
             expect(() =>
                 parseArgsPlus(
                     {
@@ -439,7 +440,28 @@ describe('node-parseargs-plus', () => {
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Usage: my-cli v1.2.3 [options]');
+            expect(output).toContain('my-cli v1.2.3');
+            expect(output).toContain('Usage: my-cli [options]');
+        });
+
+        it('shows description in help output when config has description', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        description: 'A fantastic CLI tool',
+                        options: {
+                            name: { type: 'string' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c.join(' ')).join('\n');
+            expect(output).toContain('A fantastic CLI tool');
         });
 
         it('prints version and exits when --version is passed', () => {

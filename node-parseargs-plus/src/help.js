@@ -37,13 +37,15 @@ export const help = [
  * @param {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} config
  */
 function printHelp(config) {
-    const programName = config.name;
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
 
-    if (programName) {
-        console.log(`Usage: ${programName} [options]${config.allowPositionals ? ' [arguments]' : ''}`);
-        console.log();
+    console.log(`${config.name} v${config.version}\n`);
+
+    if (config.description) {
+        console.log(config.description, '\n');
     }
+
+    console.log(`Usage: ${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}\n`);
 
     console.log('Options:');
 
