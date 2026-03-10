@@ -66,11 +66,15 @@ importers:
 
   logger:
     dependencies:
-      kleur:
-        specifier: ^4.1.4
-        version: 4.1.5
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
 
-  node-parseargs-plus: {}
+  node-parseargs-plus:
+    dependencies:
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
 
 packages:
 

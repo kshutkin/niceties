@@ -1,3 +1,5 @@
+import { whiteBright } from 'picocolors';
+
 /**
  * Help middleware that adds --help/-h and --version/-v flag support.
  * When --help is passed, it prints usage information (based on option descriptions)
@@ -45,9 +47,9 @@ function printHelp(config) {
         console.log(config.description, '\n');
     }
 
-    console.log(`Usage: ${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}\n`);
+    console.log(`${whiteBright('Usage:')}\n  ${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}\n`);
 
-    console.log('Options:');
+    console.log(whiteBright('Options:'));
 
     /** @type {{ flags: string; description: string }[]} */
     const rows = [];

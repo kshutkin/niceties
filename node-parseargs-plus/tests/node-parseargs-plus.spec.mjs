@@ -1,3 +1,4 @@
+import { whiteBright } from 'picocolors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { help } from '../src/help.js';
@@ -400,7 +401,8 @@ describe('node-parseargs-plus', () => {
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Usage: my-cli');
+            expect(output).toContain('Usage:');
+            expect(output).toContain('my-cli [options]');
         });
 
         it('shows [arguments] in usage line when allowPositionals is true', () => {
@@ -421,7 +423,8 @@ describe('node-parseargs-plus', () => {
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
             expect(output).toContain('my-cli v1.0.0');
-            expect(output).toContain('Usage: my-cli [options] [arguments]');
+            expect(output).toContain('Usage:');
+            expect(output).toContain('my-cli [options] [arguments]');
         });
 
         it('shows version in header line', () => {
@@ -441,7 +444,8 @@ describe('node-parseargs-plus', () => {
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
             expect(output).toContain('my-cli v1.2.3');
-            expect(output).toContain('Usage: my-cli [options]');
+            expect(output).toContain('Usage:');
+            expect(output).toContain('my-cli [options]');
         });
 
         it('shows description in help output when config has description', () => {
@@ -550,7 +554,7 @@ describe('node-parseargs-plus', () => {
             ).toThrow('process.exit called');
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
-            expect(output).toContain('Options:');
+            expect(output).toContain(whiteBright('Options:'));
             expect(output).toContain('--help');
             expect(output).toContain('--version');
         });
