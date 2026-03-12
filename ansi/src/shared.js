@@ -16,7 +16,7 @@ const replaceClose = (string, close, replace, index) => {
         result += string.substring(cursor, index) + replace;
         cursor = index + close.length;
         index = string.indexOf(close, cursor);
-    } while (~index);
+    } while (index !== -1);
     return result + string.substring(cursor);
 };
 
@@ -31,5 +31,5 @@ export const formatter =
     input => {
         const string = '' + input;
         const index = string.indexOf(close, open.length);
-        return ~index ? open + replaceClose(string, close, replace, index) + close : open + string + close;
+        return index !== -1 ? open + replaceClose(string, close, replace, index) + close : open + string + close;
     };
