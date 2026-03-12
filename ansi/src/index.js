@@ -7,7 +7,6 @@ import { formatter, modifier } from './shared.js';
 const env = globalThis.process?.env ?? {};
 
 const RESET = '\x1b[0m';
-const BOLD_DIM_CLOSE = '\x1b[22m';
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
 
@@ -27,9 +26,9 @@ const fM = isColorSupported ? modifier : () => identity;
 /** @type {Formatter} */
 export const reset = f(RESET, RESET);
 /** @type {Formatter} */
-export const bold = fM('\x1b[1m', BOLD_DIM_CLOSE, BOLD_DIM_CLOSE + '\x1b[1m');
+export const bold = fM('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
-export const dim = fM('\x1b[2m', BOLD_DIM_CLOSE, BOLD_DIM_CLOSE + '\x1b[2m');
+export const dim = fM('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
 /** @type {Formatter} */
 export const italic = f('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */
