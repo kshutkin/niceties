@@ -12,9 +12,10 @@
 const replaceClose = (string, close, replace, index) => {
     let result = '';
     let cursor = 0;
+    const closeLength = close.length;
     do {
         result += string.substring(cursor, index) + replace;
-        cursor = index + close.length;
+        cursor = index + closeLength;
         index = string.indexOf(close, cursor);
     } while (index !== -1);
     return result + string.substring(cursor);
@@ -26,10 +27,11 @@ const replaceClose = (string, close, replace, index) => {
  * @param {string} [replace]
  * @returns {Formatter}
  */
-export const formatter =
-    (open, close, replace = open) =>
-    input => {
+export const formatter = (open, close, replace = open) => {
+    const skip = open.length;
+    return input => {
         const string = '' + input;
-        const index = string.indexOf(close, open.length);
-        return index !== -1 ? open + replaceClose(string, close, replace, index) + close : open + string + close;
+        const index = string.indexOf(close, skip);
+        return ~index ? open + replaceClose(string, close, replace, index) + close : open + string + close;
     };
+};
