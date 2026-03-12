@@ -2,7 +2,7 @@
  * @typedef {(input: string | number) => string} Formatter
  */
 
-import { formatter } from './shared.js';
+import { formatter, modifier } from './shared.js';
 
 const env = globalThis.process?.env ?? {};
 
@@ -16,14 +16,15 @@ export const isColorSupported =
 const identity = input => '' + input;
 
 const f = isColorSupported ? formatter : () => identity;
+const fM = isColorSupported ? modifier : () => identity;
 
 // modifiers
 /** @type {Formatter} */
 export const reset = f('\x1b[0m', '\x1b[0m');
 /** @type {Formatter} */
-export const bold = f('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
+export const bold = fM('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
-export const dim = f('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
+export const dim = fM('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
 /** @type {Formatter} */
 export const italic = f('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */
