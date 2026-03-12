@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import * as colorette from 'colorette';
 import kleur from 'kleur';
 import * as kleurColors from 'kleur/colors';
-import { bench, boxplot, run } from 'mitata';
+import { bench, run, summary } from 'mitata';
 import picocolors from 'picocolors';
 
 import * as niceties from '../src/index.js';
@@ -15,7 +15,7 @@ console.log(ansiColors.green('ansi-colors'));
 console.log(picocolors.green('picocolors'));
 console.log(niceties.green('@niceties/ansi'));
 
-boxplot(() => {
+summary(() => {
     bench('chalk', () => {
         return chalk.red('Add plugin to use time limit');
     });

@@ -33,6 +33,7 @@ const replaceClose = (string, close, replace, index) => {
 export const formatter = (open, close) => {
     const skip = open.length;
     return input => {
+        // biome-ignore lint/style/useTemplate: optimization
         const string = '' + input;
         const index = string.indexOf(close, skip);
         return ~index ? open + replaceClose(string, close, open, index) + close : open + string + close;
@@ -48,6 +49,7 @@ export const formatter = (open, close) => {
 export const modifier = (open, close, replace) => {
     const skip = open.length;
     return input => {
+        // biome-ignore lint/style/useTemplate: optimization
         const string = '' + input;
         const index = string.indexOf(close, skip);
         return ~index ? open + replaceClose(string, close, replace, index) + close : open + string + close;
