@@ -1,4 +1,7 @@
-import { blue, cyan, gray, green, red, yellow } from 'picocolors';
+import pc from 'picocolors';
+
+const { blue, cyan, gray, green, red, yellow } = pc;
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createConsoleAppender } from '../src/console-appender.js';

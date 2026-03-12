@@ -1,4 +1,7 @@
-import { whiteBright } from 'picocolors';
+import pc from 'picocolors';
+
+const { whiteBright } = pc;
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { help } from '../src/help.js';

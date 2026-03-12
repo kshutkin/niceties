@@ -1,4 +1,6 @@
-import { whiteBright } from 'picocolors';
+import pc from 'picocolors';
+
+const { whiteBright } = pc;
 
 /**
  * Help middleware that adds --help/-h and --version/-v flag support.
