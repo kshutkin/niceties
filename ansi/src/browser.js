@@ -4,18 +4,9 @@
 
 import { formatter } from './shared.js';
 
-const env = globalThis.process?.env ?? {};
+export const isColorSupported = true;
 
-export const isColorSupported =
-    !('NO_COLOR' in env) &&
-    !('NODE_DISABLE_COLORS' in env) &&
-    env.TERM !== 'dumb' &&
-    (('FORCE_COLOR' in env && env.FORCE_COLOR !== '0') || globalThis.process?.stdout?.isTTY === true);
-
-/** @type {Formatter} */
-const identity = input => '' + input;
-
-const f = isColorSupported ? formatter : () => identity;
+const f = formatter;
 
 // modifiers
 /** @type {Formatter} */

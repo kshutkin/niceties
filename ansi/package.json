@@ -10,6 +10,7 @@
     "exports": {
         ".": {
             "types": "./types/index.d.ts",
+            "browser": "./src/browser.js",
             "default": "./src/index.js"
         },
         "./package.json": "./package.json"

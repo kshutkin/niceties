@@ -30,6 +30,8 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.11.0)
 
+  ansi: {}
+
   draftlog:
     dependencies:
       string-width:
