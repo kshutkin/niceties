@@ -4,15 +4,20 @@
 
 import { formatter, modifier } from './shared.js';
 
+const RESET = '\x1b[0m';
+const BOLD_DIM_CLOSE = '\x1b[22m';
+const FG_CLOSE = '\x1b[39m';
+const BG_CLOSE = '\x1b[49m';
+
 export const isColorSupported = true;
 
 // modifiers
 /** @type {Formatter} */
-export const reset = formatter('\x1b[0m', '\x1b[0m');
+export const reset = formatter(RESET, RESET);
 /** @type {Formatter} */
-export const bold = modifier('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
+export const bold = modifier('\x1b[1m', BOLD_DIM_CLOSE, BOLD_DIM_CLOSE + '\x1b[1m');
 /** @type {Formatter} */
-export const dim = modifier('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
+export const dim = modifier('\x1b[2m', BOLD_DIM_CLOSE, BOLD_DIM_CLOSE + '\x1b[2m');
 /** @type {Formatter} */
 export const italic = formatter('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */
@@ -26,74 +31,74 @@ export const strikethrough = formatter('\x1b[9m', '\x1b[29m');
 
 // foreground colors
 /** @type {Formatter} */
-export const black = formatter('\x1b[30m', '\x1b[39m');
+export const black = formatter('\x1b[30m', FG_CLOSE);
 /** @type {Formatter} */
-export const red = formatter('\x1b[31m', '\x1b[39m');
+export const red = formatter('\x1b[31m', FG_CLOSE);
 /** @type {Formatter} */
-export const green = formatter('\x1b[32m', '\x1b[39m');
+export const green = formatter('\x1b[32m', FG_CLOSE);
 /** @type {Formatter} */
-export const yellow = formatter('\x1b[33m', '\x1b[39m');
+export const yellow = formatter('\x1b[33m', FG_CLOSE);
 /** @type {Formatter} */
-export const blue = formatter('\x1b[34m', '\x1b[39m');
+export const blue = formatter('\x1b[34m', FG_CLOSE);
 /** @type {Formatter} */
-export const magenta = formatter('\x1b[35m', '\x1b[39m');
+export const magenta = formatter('\x1b[35m', FG_CLOSE);
 /** @type {Formatter} */
-export const cyan = formatter('\x1b[36m', '\x1b[39m');
+export const cyan = formatter('\x1b[36m', FG_CLOSE);
 /** @type {Formatter} */
-export const white = formatter('\x1b[37m', '\x1b[39m');
+export const white = formatter('\x1b[37m', FG_CLOSE);
 /** @type {Formatter} */
-export const gray = formatter('\x1b[90m', '\x1b[39m');
+export const gray = formatter('\x1b[90m', FG_CLOSE);
 
 // background colors
 /** @type {Formatter} */
-export const bgBlack = formatter('\x1b[40m', '\x1b[49m');
+export const bgBlack = formatter('\x1b[40m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgRed = formatter('\x1b[41m', '\x1b[49m');
+export const bgRed = formatter('\x1b[41m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgGreen = formatter('\x1b[42m', '\x1b[49m');
+export const bgGreen = formatter('\x1b[42m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgYellow = formatter('\x1b[43m', '\x1b[49m');
+export const bgYellow = formatter('\x1b[43m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgBlue = formatter('\x1b[44m', '\x1b[49m');
+export const bgBlue = formatter('\x1b[44m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgMagenta = formatter('\x1b[45m', '\x1b[49m');
+export const bgMagenta = formatter('\x1b[45m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgCyan = formatter('\x1b[46m', '\x1b[49m');
+export const bgCyan = formatter('\x1b[46m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgWhite = formatter('\x1b[47m', '\x1b[49m');
+export const bgWhite = formatter('\x1b[47m', BG_CLOSE);
 
 // bright foreground colors
 /** @type {Formatter} */
-export const blackBright = formatter('\x1b[90m', '\x1b[39m');
+export const blackBright = formatter('\x1b[90m', FG_CLOSE);
 /** @type {Formatter} */
-export const redBright = formatter('\x1b[91m', '\x1b[39m');
+export const redBright = formatter('\x1b[91m', FG_CLOSE);
 /** @type {Formatter} */
-export const greenBright = formatter('\x1b[92m', '\x1b[39m');
+export const greenBright = formatter('\x1b[92m', FG_CLOSE);
 /** @type {Formatter} */
-export const yellowBright = formatter('\x1b[93m', '\x1b[39m');
+export const yellowBright = formatter('\x1b[93m', FG_CLOSE);
 /** @type {Formatter} */
-export const blueBright = formatter('\x1b[94m', '\x1b[39m');
+export const blueBright = formatter('\x1b[94m', FG_CLOSE);
 /** @type {Formatter} */
-export const magentaBright = formatter('\x1b[95m', '\x1b[39m');
+export const magentaBright = formatter('\x1b[95m', FG_CLOSE);
 /** @type {Formatter} */
-export const cyanBright = formatter('\x1b[96m', '\x1b[39m');
+export const cyanBright = formatter('\x1b[96m', FG_CLOSE);
 /** @type {Formatter} */
-export const whiteBright = formatter('\x1b[97m', '\x1b[39m');
+export const whiteBright = formatter('\x1b[97m', FG_CLOSE);
 
 // bright background colors
 /** @type {Formatter} */
-export const bgBlackBright = formatter('\x1b[100m', '\x1b[49m');
+export const bgBlackBright = formatter('\x1b[100m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgRedBright = formatter('\x1b[101m', '\x1b[49m');
+export const bgRedBright = formatter('\x1b[101m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgGreenBright = formatter('\x1b[102m', '\x1b[49m');
+export const bgGreenBright = formatter('\x1b[102m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgYellowBright = formatter('\x1b[103m', '\x1b[49m');
+export const bgYellowBright = formatter('\x1b[103m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgBlueBright = formatter('\x1b[104m', '\x1b[49m');
+export const bgBlueBright = formatter('\x1b[104m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgMagentaBright = formatter('\x1b[105m', '\x1b[49m');
+export const bgMagentaBright = formatter('\x1b[105m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgCyanBright = formatter('\x1b[106m', '\x1b[49m');
+export const bgCyanBright = formatter('\x1b[106m', BG_CLOSE);
 /** @type {Formatter} */
-export const bgWhiteBright = formatter('\x1b[107m', '\x1b[49m');
+export const bgWhiteBright = formatter('\x1b[107m', BG_CLOSE);
