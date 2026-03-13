@@ -11,42 +11,24 @@
  */
 const replaceClose = (string, close, replace, index) => {
     const closeLength = close.length;
-    let cursor = index + closeLength;
-    let next = string.indexOf(close, cursor);
-    if (next === -1) {
-        return string.substring(0, index) + replace + string.substring(cursor);
-    }
     let result = string.substring(0, index) + replace;
-    do {
+    let cursor = index + closeLength;
+    let next;
+    // biome-ignore lint/suspicious/noAssignInExpressions: optimization
+    while (~(next = string.indexOf(close, cursor))) {
         result += string.substring(cursor, next) + replace;
         cursor = next + closeLength;
-        next = string.indexOf(close, cursor);
-    } while (next !== -1);
+    }
     return result + string.substring(cursor);
 };
 
 /**
  * @param {string} open
  * @param {string} close
+ * @param {string} [replace=open]
  * @returns {Formatter}
  */
-export const formatter = (open, close) => {
-    const skip = open.length;
-    return input => {
-        // biome-ignore lint/style/useTemplate: optimization
-        const string = '' + input;
-        const index = string.indexOf(close, skip);
-        return ~index ? open + replaceClose(string, close, open, index) + close : open + string + close;
-    };
-};
-
-/**
- * @param {string} open
- * @param {string} close
- * @param {string} replace
- * @returns {Formatter}
- */
-export const modifier = (open, close, replace) => {
+export const formatter = (open, close, replace = open) => {
     const skip = open.length;
     return input => {
         // biome-ignore lint/style/useTemplate: optimization

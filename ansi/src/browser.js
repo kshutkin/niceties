@@ -2,7 +2,7 @@
  * @typedef {(input: string | number) => string} Formatter
  */
 
-import { formatter, modifier } from './shared.js';
+import { formatter } from './shared.js';
 
 const RESET = '\x1b[0m';
 const FG_CLOSE = '\x1b[39m';
@@ -14,9 +14,9 @@ export const isColorSupported = true;
 /** @type {Formatter} */
 export const reset = formatter(RESET, RESET);
 /** @type {Formatter} */
-export const bold = modifier('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
+export const bold = formatter('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
-export const dim = modifier('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
+export const dim = formatter('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
 /** @type {Formatter} */
 export const italic = formatter('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */
