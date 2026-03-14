@@ -63,10 +63,6 @@ summary(() => {
     bench('@niceties/ansi', () => {
         return niceties.red('Add plugin to use time limit');
     });
-
-    bench('@niceties/ansi/string', () => {
-        return c`${sRed('Add plugin to use time limit')}`;
-    });
 });
 
 await run();

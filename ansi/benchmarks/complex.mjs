@@ -10,7 +10,6 @@ import picocolors from 'picocolors';
 import * as yoctocolors from 'yoctocolors';
 
 import * as niceties from '../src/index.js';
-import { c, bgRed as sBgRed, black as sBlack, green as sGreen, red as sRed, yellow as sYellow } from '../src/string.js';
 
 summary(() => {
     let index = 1e8;
@@ -23,12 +22,6 @@ summary(() => {
             niceties.green('.') +
             niceties.bgRed(niceties.black(' ERROR ')) +
             niceties.red(' Add plugin ' + niceties.yellow('name') + ' to use time limit with ' + niceties.yellow(`${++index}`))
-    );
-
-    bench(
-        '@niceties/ansi/string',
-        () =>
-            c`${sRed('.')}${sYellow('.')}${sGreen('.')}${sBgRed(sBlack(' ERROR '))} Add plugin ${sYellow('name')} to use time limit with ${sYellow(`${++index}`)}`
     );
 
     bench(

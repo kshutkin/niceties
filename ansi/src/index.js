@@ -11,7 +11,7 @@ const BG_CLOSE = '\x1b[49m';
 const BOLD_DIM_CLOSE = '\x1b[22m';
 
 // biome-ignore lint/style/useTemplate: optimization
-const f = process.stdout.hasColors() ? formatter : () => /** @type {Formatter} */ (input => '' + input);
+const f = process.stdout?.hasColors?.() ? formatter : () => /** @type {Formatter} */ (input => '' + input);
 
 // modifiers
 /** @type {Formatter} */

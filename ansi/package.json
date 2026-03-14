@@ -13,11 +13,6 @@
             "browser": "./src/browser.js",
             "default": "./src/index.js"
         },
-        "./string": {
-            "types": "./types/string.d.ts",
-            "browser": "./src/string-browser.js",
-            "default": "./src/string.js"
-        },
         "./package.json": "./package.json"
     },
     "main": "./src/index.js",

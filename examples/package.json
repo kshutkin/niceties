@@ -1,6 +1,7 @@
 {
     "name": "examples",
     "version": "1.0.4",
+    "type": "module",
     "description": "Examples for @liceties/logger and basic integration tests",
     "main": "index.js",
     "scripts": {
