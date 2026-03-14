@@ -10,18 +10,6 @@ import picocolors from 'picocolors';
 import * as yoctocolors from 'yoctocolors';
 
 import * as niceties from '../src/index.js';
-import { c, red as sRed } from '../src/string.js';
-
-console.log(colorette.green('colorette'));
-console.log(kleur.green('kleur'));
-console.log(chalk.green('chalk'));
-console.log(ansiColors.green('ansi-colors'));
-console.log(picocolors.green('picocolors'));
-console.log(yoctocolors.green('yoctocolors'));
-console.log(nanocolors.green('nanocolors'));
-console.log(cliColor.green('cli-color'));
-console.log(niceties.green('@niceties/ansi'));
-console.log(c`${sRed('@niceties/ansi/string')}`);
 
 summary(() => {
     bench('chalk', () => {
