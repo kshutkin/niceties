@@ -20,13 +20,7 @@ Appender for [`'@niceties/logger'`](../logger/README.md) implemented using the @
 # Installation
 
 ```
-yarn add @niceties/draftlog-appender
-```
-
-or
-
-```
-npm install --save @niceties/draftlog-appender
+npm install @niceties/draftlog-appender
 ```
 
 # Example

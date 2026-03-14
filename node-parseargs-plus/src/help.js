@@ -1,6 +1,4 @@
-import pc from 'picocolors';
-
-const { whiteBright } = pc;
+import { whiteBright } from '@niceties/ansi';
 
 /**
  * Help middleware that adds --help/-h and --version/-v flag support.

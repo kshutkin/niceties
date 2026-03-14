@@ -50,6 +50,6 @@
         "test": "vitest run --coverage --config ../vitest.config.js"
     },
     "dependencies": {
-        "picocolors": "^1.1.1"
+        "@niceties/ansi": "workspace:^"
     }
 }

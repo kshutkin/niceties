@@ -1,8 +1,6 @@
-import pc from 'picocolors';
-
-const { blue, cyan, gray, green, red, yellow } = pc;
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { blue, cyan, gray, green, red, yellow } from '@niceties/ansi';
 
 import { createConsoleAppender } from '../src/console-appender.js';
 import { colors, tagFactory, unicodeLogPrefixes, unicodePrefixes } from '../src/default-formatting.js';

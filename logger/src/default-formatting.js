@@ -3,9 +3,7 @@
  * @typedef {import('./types.js').Prefixes} Prefixes
  */
 
-import pc from 'picocolors';
-
-const { blue, cyan, gray, green, red, yellow } = pc;
+import { blue, cyan, gray, green, red, yellow } from '@niceties/ansi';
 
 /** @type {Prefixes} */
 export const unicodePrefixes = [`${green('✓')}`, `${green('✓')}`, '⚠', '✕'];

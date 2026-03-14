@@ -1,10 +1,13 @@
 import ansiColors from 'ansi-colors';
 import chalk from 'chalk';
+import cliColor from 'cli-color';
 import * as colorette from 'colorette';
 import kleur from 'kleur';
 import * as kleurColors from 'kleur/colors';
 import { bench, run, summary } from 'mitata';
+import * as nanocolors from 'nanocolors';
 import picocolors from 'picocolors';
+import * as yoctocolors from 'yoctocolors';
 
 import * as niceties from '../src/index.js';
 
@@ -79,6 +82,36 @@ summary(() => {
             ansiColors.green('.') +
             ansiColors.bgRed(ansiColors.black(' ERROR ')) +
             ansiColors.red(' Add plugin ' + ansiColors.yellow('name') + ' to use time limit with ' + ansiColors.yellow(`${++index}`))
+    );
+
+    bench(
+        'yoctocolors',
+        () =>
+            yoctocolors.red('.') +
+            yoctocolors.yellow('.') +
+            yoctocolors.green('.') +
+            yoctocolors.bgRed(yoctocolors.black(' ERROR ')) +
+            yoctocolors.red(' Add plugin ' + yoctocolors.yellow('name') + ' to use time limit with ' + yoctocolors.yellow(`${++index}`))
+    );
+
+    bench(
+        'nanocolors',
+        () =>
+            nanocolors.red('.') +
+            nanocolors.yellow('.') +
+            nanocolors.green('.') +
+            nanocolors.bgRed(nanocolors.black(' ERROR ')) +
+            nanocolors.red(' Add plugin ' + nanocolors.yellow('name') + ' to use time limit with ' + nanocolors.yellow(`${++index}`))
+    );
+
+    bench(
+        'cli-color',
+        () =>
+            cliColor.red('.') +
+            cliColor.yellow('.') +
+            cliColor.green('.') +
+            cliColor.bgRed(cliColor.black(' ERROR ')) +
+            cliColor.red(' Add plugin ' + cliColor.yellow('name') + ' to use time limit with ' + cliColor.yellow(`${++index}`))
     );
 });
 

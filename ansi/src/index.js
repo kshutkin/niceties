@@ -1,33 +1,25 @@
 /**
  * @typedef {(input: string | number) => string} Formatter
  */
+import process from 'node:process';
 
 import { formatter } from './shared.js';
-
-const env = globalThis.process?.env ?? {};
 
 const RESET = '\x1b[0m';
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
+const BOLD_DIM_CLOSE = '\x1b[22m';
 
-export const isColorSupported =
-    !('NO_COLOR' in env) &&
-    !('NODE_DISABLE_COLORS' in env) &&
-    env.TERM !== 'dumb' &&
-    (('FORCE_COLOR' in env && env.FORCE_COLOR !== '0') || globalThis.process?.stdout?.isTTY === true);
-
-/** @type {Formatter} */
-const identity = input => '' + input;
-
-const f = isColorSupported ? formatter : () => identity;
+// biome-ignore lint/style/useTemplate: optimization
+const f = process.stdout.hasColors() ? formatter : () => /** @type {Formatter} */ (input => '' + input);
 
 // modifiers
 /** @type {Formatter} */
 export const reset = f(RESET, RESET);
 /** @type {Formatter} */
-export const bold = f('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
+export const bold = f('\x1b[1m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
-export const dim = f('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
+export const dim = f('\x1b[2m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[2m');
 /** @type {Formatter} */
 export const italic = f('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */

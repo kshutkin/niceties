@@ -1,8 +1,6 @@
-import pc from 'picocolors';
-
-const { whiteBright } = pc;
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { whiteBright } from '@niceties/ansi';
 
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';

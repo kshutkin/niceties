@@ -7,16 +7,15 @@ import { formatter } from './shared.js';
 const RESET = '\x1b[0m';
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
-
-export const isColorSupported = true;
+const BOLD_DIM_CLOSE = '\x1b[22m';
 
 // modifiers
 /** @type {Formatter} */
 export const reset = formatter(RESET, RESET);
 /** @type {Formatter} */
-export const bold = formatter('\x1b[1m', '\x1b[22m', '\x1b[22m\x1b[1m');
+export const bold = formatter('\x1b[1m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
-export const dim = formatter('\x1b[2m', '\x1b[22m', '\x1b[22m\x1b[2m');
+export const dim = formatter('\x1b[2m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[2m');
 /** @type {Formatter} */
 export const italic = formatter('\x1b[3m', '\x1b[23m');
 /** @type {Formatter} */

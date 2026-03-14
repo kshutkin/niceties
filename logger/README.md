@@ -15,7 +15,7 @@ Logger that can handle async tasks.
 # Installation
 
 ```
-npm install --save @niceties/logger
+npm install @niceties/logger
 ```
 
 ### [Changelog](./CHANGELOG.md)

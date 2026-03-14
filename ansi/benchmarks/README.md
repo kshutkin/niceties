@@ -8,39 +8,27 @@ Install benchmark dependencies:
 
 ```sh
 cd benchmarks
-pnpm install
+npm install
 ```
 
 ## Running benchmarks
 
-### Simple — single color application
+### Simple - single color application
 
 ```sh
 node simple.mjs
 ```
 
-### Complex — multiple nested and combined colors
+### Complex - multiple nested and combined colors
 
 ```sh
 node complex.mjs
 ```
 
-### Recursion — nested color with repeated strings
+### Recursion - nested color with repeated strings
 
 ```sh
 node recursion.mjs
-```
-
-### Loading time — how fast each library initializes
-
-```sh
-node loading.mjs
-```
-
-### Bundle size — minified bundle size of each library
-
-```sh
-node size.mjs
 ```
 
 ## Competitors

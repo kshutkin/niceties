@@ -1,10 +1,13 @@
 import ansiColors from 'ansi-colors';
 import chalk from 'chalk';
+import cliColor from 'cli-color';
 import * as colorette from 'colorette';
 import kleur from 'kleur';
 import * as kleurColors from 'kleur/colors';
 import { bench, run, summary } from 'mitata';
+import * as nanocolors from 'nanocolors';
 import picocolors from 'picocolors';
+import * as yoctocolors from 'yoctocolors';
 
 import * as niceties from '../src/index.js';
 
@@ -38,6 +41,18 @@ summary(() => {
 
     bench('ansi-colors', () => {
         return ansiColors.blue(ansiColors.red(input).repeat(count));
+    });
+
+    bench('yoctocolors', () => {
+        return yoctocolors.blue(yoctocolors.red(input).repeat(count));
+    });
+
+    bench('nanocolors', () => {
+        return nanocolors.blue(nanocolors.red(input).repeat(count));
+    });
+
+    bench('cli-color', () => {
+        return cliColor.blue(cliColor.red(input).repeat(count));
     });
 });
 
