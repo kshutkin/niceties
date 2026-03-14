@@ -31,9 +31,12 @@ node complex.mjs
 node recursion.mjs
 ```
 
+Each benchmark includes `@niceties/ansi/string` — the tagged template variant that uses `c` to assemble color-coded strings in a single pass instead of nested function calls and string concatenation.
+
 ## Competitors
 
 - [@niceties/ansi](https://github.com/kshutkin/niceties/tree/main/ansi)
+- [@niceties/ansi/string](https://github.com/kshutkin/niceties/tree/main/ansi) (tagged template variant)
 - [picocolors](https://github.com/alexeyraspopov/picocolors)
 - [kleur](https://github.com/lukeed/kleur)
 - [kleur/colors](https://github.com/lukeed/kleur)

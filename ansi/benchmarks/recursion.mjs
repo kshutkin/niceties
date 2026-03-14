@@ -10,6 +10,7 @@ import picocolors from 'picocolors';
 import * as yoctocolors from 'yoctocolors';
 
 import * as niceties from '../src/index.js';
+import { c, blue as sBlue, red as sRed } from '../src/string.js';
 
 const count = 1000;
 const input = 'lorem ipsum dolor sit amet';
@@ -17,6 +18,10 @@ const input = 'lorem ipsum dolor sit amet';
 summary(() => {
     bench('@niceties/ansi', () => {
         return niceties.blue(niceties.red(input).repeat(count));
+    });
+
+    bench('@niceties/ansi/string', () => {
+        return c`${sBlue(sRed(input).join('').repeat(count))}`;
     });
 
     bench('picocolors', () => {
