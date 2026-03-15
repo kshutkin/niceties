@@ -2756,8 +2756,8 @@ describe('node-parseargs-plus', () => {
             expect(typeof parameters[1]).toBe('function');
         });
 
-        it('has resultOrder 5 on transformResult', () => {
-            expect(parameters[1].order).toBe(5);
+        it('has resultOrder 15 on transformResult', () => {
+            expect(parameters[1].order).toBe(15);
         });
 
         it('works with options alongside parameters', () => {
@@ -2822,6 +2822,405 @@ describe('node-parseargs-plus', () => {
                 [parameters]
             );
             expect(result.parameters).toEqual({ command: 'build', targets: undefined });
+        });
+    });
+
+    describe('commands + parameters middleware cooperation', () => {
+        it('parses command-level parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                            description: 'Install a package',
+                        },
+                    },
+                    args: ['install', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ package: 'lodash' });
+        });
+
+        it('parses command-level parameters with multiple required params', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        copy: {
+                            parameters: ['<source>', '<destination>'],
+                            description: 'Copy files',
+                        },
+                    },
+                    args: ['copy', 'src/file.txt', 'dist/file.txt'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('copy');
+            expect(result.parameters).toEqual({ source: 'src/file.txt', destination: 'dist/file.txt' });
+        });
+
+        it('parses command-level optional parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        greet: {
+                            parameters: ['<name>', '[greeting]'],
+                        },
+                    },
+                    args: ['greet', 'Alice'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('greet');
+            expect(result.parameters).toEqual({ name: 'Alice', greeting: undefined });
+        });
+
+        it('parses command-level optional parameters when provided', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        greet: {
+                            parameters: ['<name>', '[greeting]'],
+                        },
+                    },
+                    args: ['greet', 'Alice', 'Hello'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('greet');
+            expect(result.parameters).toEqual({ name: 'Alice', greeting: 'Hello' });
+        });
+
+        it('parses command-level spread parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<packages...>'],
+                        },
+                    },
+                    args: ['install', 'lodash', 'express', 'chalk'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ packages: ['lodash', 'express', 'chalk'] });
+        });
+
+        it('parses command-level required param followed by optional spread', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        deploy: {
+                            parameters: ['<target>', '[files...]'],
+                        },
+                    },
+                    args: ['deploy', 'production', 'app.js', 'config.json'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('deploy');
+            expect(result.parameters).toEqual({ target: 'production', files: ['app.js', 'config.json'] });
+        });
+
+        it('parses command-level required param followed by optional spread when spread is empty', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        deploy: {
+                            parameters: ['<target>', '[files...]'],
+                        },
+                    },
+                    args: ['deploy', 'production'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('deploy');
+            expect(result.parameters).toEqual({ target: 'production', files: undefined });
+        });
+
+        it('enables allowPositionals automatically when command has parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                        },
+                    },
+                    args: ['install', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ package: 'lodash' });
+            expect(result.positionals).toEqual(['lodash']);
+        });
+
+        it('does not add parameters when command has no parameters defined', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--watch'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('build');
+            expect(result.parameters).toBeUndefined();
+        });
+
+        it('works with command options alongside command parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                            options: {
+                                'save-dev': { type: 'boolean', short: 'D' },
+                            },
+                        },
+                    },
+                    args: ['install', '-D', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.values['save-dev']).toBe(true);
+            expect(result.parameters).toEqual({ package: 'lodash' });
+        });
+
+        it('works with global options alongside command parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean', short: 'v' },
+                    },
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                        },
+                    },
+                    args: ['-v', 'install', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.values.verbose).toBe(true);
+            expect(result.parameters).toEqual({ package: 'lodash' });
+        });
+
+        it('works with all three middlewares: help, commands, and parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        install: {
+                            parameters: ['<package>', '[version]'],
+                            description: 'Install a package',
+                        },
+                    },
+                    args: ['install', 'lodash', '4.17.21'],
+                },
+                [help, commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ package: 'lodash', version: '4.17.21' });
+        });
+
+        it('different commands can have different parameters', () => {
+            const r1 = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<packages...>'],
+                        },
+                        copy: {
+                            parameters: ['<source>', '<destination>'],
+                        },
+                    },
+                    args: ['install', 'lodash', 'express'],
+                },
+                [commands, parameters]
+            );
+            expect(r1.command).toBe('install');
+            expect(r1.parameters).toEqual({ packages: ['lodash', 'express'] });
+
+            const r2 = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<packages...>'],
+                        },
+                        copy: {
+                            parameters: ['<source>', '<destination>'],
+                        },
+                    },
+                    args: ['copy', 'a.txt', 'b.txt'],
+                },
+                [commands, parameters]
+            );
+            expect(r2.command).toBe('copy');
+            expect(r2.parameters).toEqual({ source: 'a.txt', destination: 'b.txt' });
+        });
+
+        it('throws on missing required command parameter', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        commands: {
+                            install: {
+                                parameters: ['<package>'],
+                            },
+                        },
+                        args: ['install'],
+                    },
+                    [commands, parameters]
+                );
+            }).toThrow("Missing required parameter '<package>'.");
+        });
+
+        it('throws on missing required spread command parameter', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        commands: {
+                            install: {
+                                parameters: ['<packages...>'],
+                            },
+                        },
+                        args: ['install'],
+                    },
+                    [commands, parameters]
+                );
+            }).toThrow("Missing required parameter '<packages...>'.");
+        });
+
+        it('converts hyphenated command parameter names to camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package-name>'],
+                        },
+                    },
+                    args: ['install', '@scope/pkg'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ packageName: '@scope/pkg' });
+        });
+
+        it('converts space-separated command parameter names to camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package name>'],
+                        },
+                    },
+                    args: ['install', '@scope/pkg'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ packageName: '@scope/pkg' });
+        });
+
+        it('uses top-level parameters when no commands config is present', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>'],
+                    args: ['hello'],
+                },
+                [commands, parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'hello' });
+        });
+
+        it('does not set allowPositionals on top-level config when commands are present', () => {
+            const transformConfig = parameters[0];
+            const result = transformConfig({
+                parameters: ['<name>'],
+                commands: { install: {} },
+                args: ['install', 'hello'],
+            });
+            // Should NOT set allowPositionals because commands middleware handles it
+            expect(result.allowPositionals).toBeUndefined();
+        });
+
+        it('ignores top-level parameters when command is resolved', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<top-level>'],
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                        },
+                    },
+                    args: ['install', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.parameters).toEqual({ package: 'lodash' });
+        });
+
+        it('works with defaultCommand and command parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        run: {
+                            parameters: ['<script>'],
+                        },
+                    },
+                    defaultCommand: 'run',
+                    args: ['build'],
+                },
+                [commands, parameters]
+            );
+            expect(result.command).toBe('run');
+            expect(result.parameters).toEqual({ script: 'build' });
+        });
+
+        it('middleware order does not matter (commands before parameters)', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                        },
+                    },
+                    args: ['install', 'lodash'],
+                },
+                [commands, parameters]
+            );
+            expect(result.parameters).toEqual({ package: 'lodash' });
+        });
+
+        it('middleware order does not matter (parameters before commands)', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        install: {
+                            parameters: ['<package>'],
+                        },
+                    },
+                    args: ['install', 'lodash'],
+                },
+                [parameters, commands]
+            );
+            expect(result.parameters).toEqual({ package: 'lodash' });
         });
     });
 });

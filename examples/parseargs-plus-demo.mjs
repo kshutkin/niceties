@@ -1,6 +1,7 @@
 import { parseArgsPlus } from '@niceties/node-parseargs-plus';
 import { commands } from '@niceties/node-parseargs-plus/commands';
 import { help } from '@niceties/node-parseargs-plus/help';
+import { parameters } from '@niceties/node-parseargs-plus/parameters';
 
 const result = parseArgsPlus(
     {
@@ -25,16 +26,8 @@ const result = parseArgsPlus(
         commands: {
             greet: {
                 description: 'Greet a person or entity with a friendly message.',
-                allowPositionals: true,
+                parameters: ['<name>', '[extra-names...]'],
                 options: {
-                    veryVeryLongNameOption: {
-                        type: 'string',
-                        default: 'world',
-                        description:
-                            'The name of the person or entity to greet. ' +
-                            'This can be any string value and will be interpolated into the greeting template. ' +
-                            'Defaults to "world" when not specified.',
-                    },
                     count: {
                         type: 'string',
                         default: '1',
@@ -49,6 +42,17 @@ const result = parseArgsPlus(
                         description:
                             'A greeting template string. Use {{name}} as a placeholder for the name value. ' +
                             'Defaults to "Hello, {{name}}!" when not specified.',
+                    },
+                },
+            },
+            install: {
+                description: 'Install one or more packages into the project.',
+                parameters: ['<packages...>'],
+                options: {
+                    'save-dev': {
+                        type: 'boolean',
+                        short: 'D',
+                        description: 'Save packages as dev dependencies instead of production dependencies.',
                     },
                 },
             },
@@ -71,7 +75,7 @@ const result = parseArgsPlus(
         },
         defaultCommand: 'greet',
     },
-    [help, commands]
+    [help, commands, parameters]
 );
 
 console.log(result);

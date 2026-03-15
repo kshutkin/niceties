@@ -6,9 +6,11 @@
  * and `[names...]` (optional spread).
  *
  * Has `configOrder: 0` (default), so `transformConfig` runs at normal priority.
- * Has `resultOrder: 5`, so `transformResult` runs after default middlewares
- * but before commands (10) and help (20).
+ * Has `resultOrder: 15`, so `transformResult` runs after commands (10)
+ * but before help (20).
  */
+
+const kCommandState = Symbol.for('parseArgsPlus.commandState');
 
 const paramRegex = /^([<[])([a-zA-Z][a-zA-Z0-9 -]*?)(\.\.\.)?([>\]])$/;
 
@@ -49,15 +51,11 @@ function toCamelCase(name) {
         .join('');
 }
 
-/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
-function parametersTransformConfig(config) {
-    const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').ParametersConfigExtension} */ (config);
-    if (!extConfig.parameters || extConfig.parameters.length === 0) {
-        return config;
-    }
-
-    // Validate parameter definitions at runtime
-    const defs = extConfig.parameters.map(parseParam);
+/**
+ * Validate parameter definitions at runtime.
+ * @param {{ name: string; camelName: string; required: boolean; spread: boolean }[]} defs
+ */
+function validateDefs(defs) {
     let seenOptional = false;
     let spreadCount = 0;
 
@@ -79,29 +77,17 @@ function parametersTransformConfig(config) {
             seenOptional = true;
         }
     }
-
-    // Enable positionals so parseArgs collects them
-    return {
-        ...config,
-        allowPositionals: true,
-    };
 }
 
 /**
- * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
- * @param {import('./types.d.ts').ParseArgsPlusConfig} config
+ * Extract named parameters from positionals according to parameter definitions.
+ * @param {string[]} positionals
+ * @param {{ name: string; camelName: string; required: boolean; spread: boolean }[]} defs
+ * @returns {Record<string, string | string[] | undefined>}
  */
-function parametersTransformResult(result, config) {
-    const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').ParametersConfigExtension} */ (config);
-    if (!extConfig.parameters || extConfig.parameters.length === 0) {
-        return result;
-    }
-
-    const defs = extConfig.parameters.map(parseParam);
-    const positionals = result.positionals;
+function extractParameters(positionals, defs) {
     /** @type {Record<string, string | string[] | undefined>} */
     const parameters = {};
-
     let positionalIndex = 0;
 
     for (const def of defs) {
@@ -126,11 +112,74 @@ function parametersTransformResult(result, config) {
         }
     }
 
+    return parameters;
+}
+
+/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
+function parametersTransformConfig(config) {
+    const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').ParametersConfigExtension} */ (config);
+    if (!extConfig.parameters || extConfig.parameters.length === 0) {
+        return config;
+    }
+
+    // When commands middleware is active, don't modify allowPositionals here —
+    // the commands middleware handles that in its own pass-2 parsing.
+    if (/** @type {any} */ (config).commands) {
+        return config;
+    }
+
+    // Validate parameter definitions at runtime
+    const defs = extConfig.parameters.map(parseParam);
+    validateDefs(defs);
+
+    // Enable positionals so parseArgs collects them
+    return {
+        ...config,
+        allowPositionals: true,
+    };
+}
+
+/**
+ * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
+ * @param {import('./types.d.ts').ParseArgsPlusConfig} config
+ */
+function parametersTransformResult(result, config) {
+    // Skip parameter extraction when help or version flags are set —
+    // the help middleware (order 20) will handle them and exit.
+    if (result.values.help || result.values.version) {
+        return result;
+    }
+
+    const commandState = /** @type {any} */ (config)[kCommandState];
+
+    /** @type {readonly string[] | undefined} */
+    let parametersDef;
+
+    if (commandState?.commandName && commandState.commandConfig) {
+        // Commands middleware is active and a command was resolved.
+        // Use the command's parameters definition if it has one.
+        parametersDef = commandState.commandConfig.parameters;
+    } else {
+        // No commands middleware or no command resolved — use top-level parameters.
+        const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').ParametersConfigExtension} */ (
+            config
+        );
+        parametersDef = extConfig.parameters;
+    }
+
+    if (!parametersDef || parametersDef.length === 0) {
+        return result;
+    }
+
+    const defs = parametersDef.map(parseParam);
+    validateDefs(defs);
+    const parameters = extractParameters(result.positionals, defs);
+
     return {
         ...result,
         parameters,
     };
 }
-parametersTransformResult.order = 5;
+parametersTransformResult.order = 15;
 
 export const parameters = /** @type {any} */ ([parametersTransformConfig, parametersTransformResult]);

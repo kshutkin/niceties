@@ -328,7 +328,7 @@ type StripExtFromOptions<O extends Record<string, any>> = {
 
 // Build a single arm of the command discriminated union:
 // { command: CommandName; values: Prettify<MergedParsedValues<GlobalOpts, CmdOpts>>; positionals: string[] }
-type CommandArm<
+type CommandArmBase<
     GlobalOpts extends Record<string, OptionConfig>,
     CmdName extends string,
     Cmd extends CommandConfig,
@@ -341,6 +341,25 @@ type CommandArm<
       ? { command: CmdName; values: ParsedValues<GlobalOpts>; positionals: string[]; tokens: Token[] }
       : { command: CmdName; values: ParsedValues<GlobalOpts>; positionals: string[] };
 
+/** Conditionally add `parameters` to a command arm when the command defines parameters */
+type CommandArmWithParameters<
+    Base,
+    Cmd extends CommandConfig,
+    HasParametersMiddleware extends boolean,
+> = HasParametersMiddleware extends true
+    ? Cmd extends { parameters: infer P extends readonly string[] }
+        ? Base & { parameters: ParametersResult<P> }
+        : Base
+    : Base;
+
+type CommandArm<
+    GlobalOpts extends Record<string, OptionConfig>,
+    CmdName extends string,
+    Cmd extends CommandConfig,
+    WithTokens extends boolean,
+    HasParametersMiddleware extends boolean = false,
+> = CommandArmWithParameters<CommandArmBase<GlobalOpts, CmdName, Cmd, WithTokens>, Cmd, HasParametersMiddleware>;
+
 // Build the "no command matched" arm
 type NoCommandArm<GlobalOpts extends Record<string, OptionConfig>, WithTokens extends boolean> = WithTokens extends true
     ? { command: undefined; values: ParsedValues<GlobalOpts>; positionals: string[]; tokens: Token[] }
@@ -351,9 +370,10 @@ type CommandUnion<
     GlobalOpts extends Record<string, OptionConfig>,
     Commands extends Record<string, CommandConfig>,
     WithTokens extends boolean,
+    HasParametersMiddleware extends boolean = false,
 > =
     | {
-          [K in keyof Commands & string]: CommandArm<GlobalOpts, K, Commands[K], WithTokens>;
+          [K in keyof Commands & string]: CommandArm<GlobalOpts, K, Commands[K], WithTokens, HasParametersMiddleware>;
       }[keyof Commands & string]
     | NoCommandArm<GlobalOpts, WithTokens>;
 
@@ -361,7 +381,7 @@ type CommandUnion<
 // Extended result type (with middleware result extensions)
 // ---------------------------------------------------------------------------
 
-/** Helper: conditionally intersect with parameters result when the marker is present */
+/** Helper: conditionally intersect with parameters result when the marker is present (non-commands case) */
 type MaybeWithParameters<
     Base,
     // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
@@ -369,6 +389,10 @@ type MaybeWithParameters<
     // biome-ignore lint/suspicious/noExplicitAny: result extension is open-ended
     RE extends Record<string, any>,
 > = RE extends ResultParametersMarker ? Base & BuildParametersResult<T> : Base;
+
+/** Check whether the result extension includes the parameters marker */
+// biome-ignore lint/suspicious/noExplicitAny: result extension is open-ended
+type HasParametersMarker<RE extends Record<string, any>> = RE extends ResultParametersMarker ? true : false;
 
 export type ParseArgsPlusResultFromExtended<
     // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
@@ -385,17 +409,19 @@ export type ParseArgsPlusResultFromExtended<
               options: infer O extends Record<string, any>;
               commands: infer C extends Record<string, CommandConfig>;
           }
-            ? MaybeWithParameters<
-                  CommandUnion<MergeExtraValues<StripExtFromOptions<O>, RE>, C, T extends { tokens: true } ? true : false>,
-                  T,
-                  RE
+            ? CommandUnion<
+                  MergeExtraValues<StripExtFromOptions<O>, RE>,
+                  C,
+                  T extends { tokens: true } ? true : false,
+                  HasParametersMarker<RE>
               >
             : T extends { commands: infer C extends Record<string, CommandConfig> }
-              ? MaybeWithParameters<
+              ? CommandUnion<
                     // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no options
-                    CommandUnion<RE extends ResultExtraValues ? RE['extraValues'] : {}, C, T extends { tokens: true } ? true : false>,
-                    T,
-                    RE
+                    RE extends ResultExtraValues ? RE['extraValues'] : {},
+                    C,
+                    T extends { tokens: true } ? true : false,
+                    HasParametersMarker<RE>
                 >
               : T extends {
                       // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
@@ -439,6 +465,8 @@ export interface CommandConfig {
     options?: Record<string, OptionConfig>;
     /** Whether this command accepts positional arguments. Default: false. */
     allowPositionals?: boolean;
+    /** Positional parameter definitions for this command. Each string must be `<name>`, `[name]`, `<name...>`, or `[name...]`. */
+    parameters?: readonly string[];
 }
 
 /** Extension that the commands middleware adds to the top-level config. */
@@ -665,8 +693,8 @@ export type ParametersOptionExtension = {};
 
 /** Extension that the parameters middleware adds to the top-level config. */
 export interface ParametersConfigExtension {
-    /** Positional parameter definitions. Each string must be `<name>`, `[name]`, `<name...>`, or `[name...]`. */
-    parameters: readonly string[];
+    /** Positional parameter definitions. Each string must be `<name>`, `[name]`, `<name...>`, or `[name...]`. When using commands, parameters can be defined per-command instead. */
+    parameters?: readonly string[];
 }
 
 /**
@@ -688,9 +716,26 @@ export type ParametersResultExtension = ResultParametersMarker;
  */
 type BuildParametersResult<T> = T extends { parameters: infer P extends readonly string[] }
     ? { parameters: ParametersResult<P> }
-    : { parameters: Record<string, never> };
+    : // biome-ignore lint/complexity/noBannedTypes: empty intersection is intentional when no parameters defined
+      {};
 
-/** Validate the `parameters` field in a config object */
-export type ValidateParameters<T> = T extends { parameters: infer P extends readonly string[] }
-    ? Omit<T, 'parameters'> & { parameters: ValidateParametersTuple<P> }
-    : T;
+/** Validate the `parameters` field on a single command config */
+type ValidateCommandParameters<C extends CommandConfig> = C extends { parameters: infer P extends readonly string[] }
+    ? Omit<C, 'parameters'> & { parameters: ValidateParametersTuple<P> }
+    : C;
+
+/** Validate `parameters` on all commands in a commands map */
+type ValidateCommandsParameters<Commands extends Record<string, CommandConfig>> = {
+    [K in keyof Commands]: ValidateCommandParameters<Commands[K]>;
+};
+
+/** Validate the `parameters` field in a config object (top-level and per-command) */
+export type ValidateParameters<T> = (
+    T extends { parameters: infer P extends readonly string[] }
+        ? Omit<T, 'parameters'> & { parameters: ValidateParametersTuple<P> }
+        : T
+) extends infer V
+    ? V extends { commands: infer C extends Record<string, CommandConfig> }
+        ? Omit<V, 'commands'> & { commands: ValidateCommandsParameters<C> }
+        : V
+    : never;

@@ -153,10 +153,13 @@ function commandsTransformResult(result, config) {
     const mergedOptions = { ...globalOptions, ...commandOptions };
 
     // Pass 2: parse command-specific args with merged options
+    // Enable positionals if the command explicitly allows them or has parameters defined
+    const hasParameters = Array.isArray(commandConfig.parameters) && commandConfig.parameters.length > 0;
+    const allowPositionals = hasParameters || commandConfig.allowPositionals || false;
     const pass2 = parseArgs({
         args: commandArgs,
         strict: config.strict ?? true,
-        allowPositionals: commandConfig.allowPositionals ?? false,
+        allowPositionals,
         options: /** @type {any} */ (mergedOptions),
     });
 

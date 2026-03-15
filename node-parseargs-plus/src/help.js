@@ -392,21 +392,31 @@ function renderHelp(header, description, sections, userSections) {
  * This is the original help output when no commands are configured.
  * @param {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} config
  */
+
+/**
+ * Format a parameters array into a usage string fragment.
+ * E.g. ['<name>', '[files...]'] → ' <name> [files...]'
+ * @param {readonly string[] | undefined} params
+ * @returns {string}
+ */
+function formatParametersUsage(params) {
+    if (!params || params.length === 0) return '';
+    return ' ' + params.join(' ');
+}
+
+/** @param {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} config */
 function printHelp(config) {
     const userSections = config.helpSections || {};
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options);
+    const params = /** @type {any} */ (config).parameters;
+    const paramsSuffix = formatParametersUsage(params);
+    const positionalsSuffix = !paramsSuffix && config.allowPositionals ? ' [arguments]' : '';
 
     renderHelp(
         `${config.name} v${config.version}`,
         config.description,
         {
-            usage: buildSection(
-                'usage',
-                'Usage',
-                `${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}`,
-                0,
-                userSections
-            ),
+            usage: buildSection('usage', 'Usage', `${config.name} [options]${paramsSuffix}${positionalsSuffix}`, 0, userSections),
             options: buildSection('options', 'Options', buildOptionsText(options), 1, userSections),
         },
         userSections
@@ -447,12 +457,16 @@ function printCommandHelp(config, commandName, commandConfig, _commands) {
     const commandOptions =
         /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (commandConfig.options) || {};
 
+    const params = /** @type {any} */ (commandConfig).parameters;
+    const paramsSuffix = formatParametersUsage(params);
+    const positionalsSuffix = !paramsSuffix && commandConfig.allowPositionals ? ' [arguments]' : '';
+
     /** @type {Record<string, { title: string; text?: string | string[]; order: number }>} */
     const sections = {
         usage: buildSection(
             'usage',
             'Usage',
-            `${config.name} ${commandName} [options]${commandConfig.allowPositionals ? ' [arguments]' : ''}`,
+            `${config.name} ${commandName} [options]${paramsSuffix}${positionalsSuffix}`,
             0,
             userSections
         ),

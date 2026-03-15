@@ -889,3 +889,154 @@ type _64a = Assert<IsExact<typeof r64.parameters, { command: string; targets?: s
 //     { parameters: ['<a...>', '<b...>'], args: [] },  // ← two spreads
 //     [parameters]
 // );
+
+// ---------------------------------------------------------------------------
+// Commands + Parameters middleware cooperation type tests
+// ---------------------------------------------------------------------------
+
+// 69. Command with parameters → per-command typed parameters
+const r69 = parseArgsPlus(
+    {
+        commands: {
+            install: {
+                parameters: ['<package>'],
+                description: 'Install a package',
+            },
+            build: {
+                options: {
+                    watch: { type: 'boolean' as const },
+                },
+            },
+        },
+        args: ['install', 'lodash'],
+    },
+    [commands, parameters]
+);
+
+type R69 = typeof r69;
+type R69Install = Extract<R69, { command: 'install' }>;
+type _69a = Assert<IsExact<R69Install['command'], 'install'>>;
+type _69b = Assert<IsExact<R69Install['parameters'], { package: string }>>;
+
+type R69Build = Extract<R69, { command: 'build' }>;
+type _69c = Assert<IsExact<R69Build['command'], 'build'>>;
+// Build has no parameters — should not have a parameters field
+type _69d = Assert<IsExact<'parameters' extends keyof R69Build ? true : false, false>>;
+
+// 70. Command with multiple parameters and spread
+const r70 = parseArgsPlus(
+    {
+        commands: {
+            deploy: {
+                parameters: ['<target>', '[files...]'],
+            },
+        },
+        args: ['deploy', 'production', 'app.js'],
+    },
+    [commands, parameters]
+);
+type R70 = typeof r70;
+type R70Deploy = Extract<R70, { command: 'deploy' }>;
+type _70a = Assert<IsExact<R70Deploy['parameters'], { target: string; files?: string[] }>>;
+
+// 71. Commands + parameters + help all together
+const r71 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean' as const, description: 'Verbose' },
+        },
+        commands: {
+            install: {
+                parameters: ['<package>', '[version]'],
+                description: 'Install a package',
+            },
+        },
+        args: ['install', 'lodash', '4.17.21'],
+    },
+    [help, commands, parameters]
+);
+type R71 = typeof r71;
+type R71Install = Extract<R71, { command: 'install' }>;
+type _71a = Assert<IsExact<R71Install['parameters'], { package: string; version?: string }>>;
+type _71b = Assert<IsExact<R71Install['values']['verbose'], boolean | undefined>>;
+
+// 72. Different commands with different parameter shapes
+const r72 = parseArgsPlus(
+    {
+        commands: {
+            copy: {
+                parameters: ['<source>', '<destination>'],
+            },
+            install: {
+                parameters: ['<packages...>'],
+            },
+        },
+        args: ['copy', 'a.txt', 'b.txt'],
+    },
+    [commands, parameters]
+);
+type R72 = typeof r72;
+type R72Copy = Extract<R72, { command: 'copy' }>;
+type _72a = Assert<IsExact<R72Copy['parameters'], { source: string; destination: string }>>;
+type R72Install = Extract<R72, { command: 'install' }>;
+type _72b = Assert<IsExact<R72Install['parameters'], { packages: string[] }>>;
+
+// 73. Command with camelCase parameter names
+const r73 = parseArgsPlus(
+    {
+        commands: {
+            install: {
+                parameters: ['<package-name>'],
+            },
+        },
+        args: ['install', '@scope/pkg'],
+    },
+    [commands, parameters]
+);
+type R73Install = Extract<typeof r73, { command: 'install' }>;
+type _73a = Assert<IsExact<R73Install['parameters'], { packageName: string }>>;
+
+// 74. Commands with options + parameters on same command
+const r74 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' as const },
+        },
+        commands: {
+            install: {
+                parameters: ['<package>'],
+                options: {
+                    'save-dev': { type: 'boolean' as const },
+                },
+            },
+        },
+        args: ['install', '--save-dev', 'lodash'],
+    },
+    [commands, parameters]
+);
+type R74 = typeof r74;
+type R74Install = Extract<R74, { command: 'install' }>;
+type _74a = Assert<IsExact<R74Install['parameters'], { package: string }>>;
+type _74b = Assert<IsExact<R74Install['values']['save-dev'], boolean | undefined>>;
+type _74c = Assert<IsExact<R74Install['values']['verbose'], boolean | undefined>>;
+
+// 75. No command matched arm should not have parameters
+type R74None = Extract<R74, { command: undefined }>;
+type _75a = Assert<IsExact<R74None['command'], undefined>>;
+
+// 76. Commands with no parameters middleware → no parameters field
+const r76 = parseArgsPlus(
+    {
+        commands: {
+            install: {
+                parameters: ['<package>'],
+            },
+        },
+        args: ['install', 'lodash'],
+    },
+    [commands]
+);
+type R76Install = Extract<typeof r76, { command: 'install' }>;
+type _76a = Assert<IsExact<'parameters' extends keyof R76Install ? true : false, false>>;
