@@ -1,3 +1,5 @@
+import { styleText as s } from 'node:util';
+
 import ansiColors from 'ansi-colors';
 import chalk from 'chalk';
 import cliColor from 'cli-color';
@@ -112,6 +114,16 @@ summary(() => {
             cliColor.green('.') +
             cliColor.bgRed(cliColor.black(' ERROR ')) +
             cliColor.red(' Add plugin ' + cliColor.yellow('name') + ' to use time limit with ' + cliColor.yellow(`${++index}`))
+    );
+
+    bench(
+        'node:util styleText',
+        () =>
+            s('red', '.') +
+            s('yellow', '.') +
+            s('green', '.') +
+            s(['bgRed'], s('black', ' ERROR ')) +
+            s('red', ' Add plugin ' + s('yellow', 'name') + ' to use time limit with ' + s('yellow', `${++index}`))
     );
 });
 

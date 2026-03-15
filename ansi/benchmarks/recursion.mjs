@@ -1,3 +1,5 @@
+import { styleText as s } from 'node:util';
+
 import ansiColors from 'ansi-colors';
 import chalk from 'chalk';
 import cliColor from 'cli-color';
@@ -53,6 +55,10 @@ summary(() => {
 
     bench('cli-color', () => {
         return cliColor.blue(cliColor.red(input).repeat(count));
+    });
+
+    bench('node:util styleText', () => {
+        return s('blue', s('red', input).repeat(count));
     });
 });
 

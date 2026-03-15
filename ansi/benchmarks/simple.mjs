@@ -1,3 +1,5 @@
+import { styleText as s } from 'node:util';
+
 import ansiColors from 'ansi-colors';
 import chalk from 'chalk';
 import cliColor from 'cli-color';
@@ -50,6 +52,10 @@ summary(() => {
 
     bench('@niceties/ansi', () => {
         return niceties.red('Add plugin to use time limit');
+    });
+
+    bench('node:util styleText', () => {
+        return s('red', 'Add plugin to use time limit');
     });
 });
 
