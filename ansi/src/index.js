@@ -5,17 +5,18 @@ import process from 'node:process';
 
 import { formatter } from './shared.js';
 
-const RESET = '\x1b[0m';
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
 const BOLD_DIM_CLOSE = '\x1b[22m';
 
+const hasColors = process.stdout?.hasColors?.();
 // biome-ignore lint/style/useTemplate: optimization
-const f = process.stdout?.hasColors?.() ? formatter : () => /** @type {Formatter} */ (input => '' + input);
+const noColorsFormatter = /** @type {Formatter} */ (input => '' + input);
+const f = hasColors ? formatter : () => noColorsFormatter;
 
 // modifiers
 /** @type {Formatter} */
-export const reset = f(RESET, RESET);
+export const reset = hasColors ? s => `\x1b[0m${s}\x1b[0m` : noColorsFormatter;
 /** @type {Formatter} */
 export const bold = f('\x1b[1m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[1m');
 /** @type {Formatter} */

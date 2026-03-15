@@ -15,7 +15,7 @@ const replaceClose = (string, close, replace, index) => {
     let cursor = index + closeLength;
     let next;
     // biome-ignore lint/suspicious/noAssignInExpressions: optimization
-    while (~(next = string.indexOf(close, cursor))) {
+    while ((next = string.indexOf(close, cursor)) !== -1) {
         result += string.substring(cursor, next) + replace;
         cursor = next + closeLength;
     }
@@ -34,6 +34,6 @@ export const formatter = (open, close, replace = open) => {
         // biome-ignore lint/style/useTemplate: optimization
         const string = '' + input;
         const index = string.indexOf(close, skip);
-        return ~index ? open + replaceClose(string, close, replace, index) + close : open + string + close;
+        return index !== -1 ? open + replaceClose(string, close, replace, index) + close : open + string + close;
     };
 };

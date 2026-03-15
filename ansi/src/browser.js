@@ -4,14 +4,13 @@
 
 import { formatter } from './shared.js';
 
-const RESET = '\x1b[0m';
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
 const BOLD_DIM_CLOSE = '\x1b[22m';
 
 // modifiers
 /** @type {Formatter} */
-export const reset = formatter(RESET, RESET);
+export const reset = s => `\x1b[0m${s}\x1b[0m`;
 /** @type {Formatter} */
 export const bold = formatter('\x1b[1m', BOLD_DIM_CLOSE, '\x1b[22m\x1b[1m');
 /** @type {Formatter} */
