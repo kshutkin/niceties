@@ -23,6 +23,7 @@ export type Token = OptionToken | PositionalToken | OptionTerminatorToken;
 
 /** Symbol used for cross-middleware communication of resolved command state. */
 export declare const kCommandState: unique symbol;
+export type KCommandState = typeof kCommandState;
 
 /** Shape of the command state stashed on the config by the commands middleware. */
 export interface CommandState {
@@ -121,9 +122,15 @@ type ExtractConfigExt<M> = M extends Middleware<any, infer C> ? C : {};
 // biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-export type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractOptionExt<M[number]>>;
+export type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any>[]> =
+    // biome-ignore lint/suspicious/noExplicitAny: fallback constraint must be open-ended
+    // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
+    UnionToIntersection<ExtractOptionExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-export type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any>[]> = UnionToIntersection<ExtractConfigExt<M[number]>>;
+export type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any>[]> =
+    // biome-ignore lint/suspicious/noExplicitAny: fallback constraint must be open-ended
+    // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
+    UnionToIntersection<ExtractConfigExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
 
 // An OptionConfig extended with the extra fields contributed by middlewares
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended

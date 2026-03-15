@@ -15,7 +15,7 @@ import type {
  * under this key during `transformConfig`, making it available to other
  * middlewares (e.g. help) regardless of middleware ordering.
  */
-export declare const kCommandState: typeof import('./types.d.ts').kCommandState;
+export declare const kCommandState: import('./types.d.ts').KCommandState;
 
 /**
  * Enhanced wrapper around Node.js `util.parseArgs` with strong config-driven
