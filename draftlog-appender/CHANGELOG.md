@@ -1,5 +1,16 @@
 Changelog
 
+## 2.1.0
+
+### Minor Changes
+
+- fb8159d: use @niceties/ansi color library
+
+### Patch Changes
+
+- Updated dependencies [fb8159d]
+  - @niceties/logger@2.1.0
+
 ## 2.0.0
 
 ### Major Changes

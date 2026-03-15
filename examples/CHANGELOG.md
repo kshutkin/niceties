@@ -1,5 +1,15 @@
 # examples
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [fb8159d]
+- Updated dependencies [fb8159d]
+  - @niceties/draftlog-appender@2.1.0
+  - @niceties/logger@2.1.0
+  - @niceties/node-parseargs-plus@0.1.0
+
 ## 1.0.4
 
 ### Patch Changes
