@@ -137,16 +137,12 @@ helpTransformResult.order = 20;
 export const help = /** @type {any} */ ([helpTransformConfig, helpTransformResult]);
 
 /**
- * Builds the options text block for the help output.
+ * Collects all option entries, including --help/--version if requested.
  * @param {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} options
- * @param {boolean} [includeHelpVersion] Whether to include --help and --version in the output.
- * @returns {string[]}
+ * @param {boolean} includeHelpVersion
+ * @returns {{ name: string; opt: any }[]}
  */
-function buildOptionsText(options, includeHelpVersion = true) {
-    /** @type {{ flags: string; description: string }[]} */
-    const rows = [];
-    let maxFlagsLen = 0;
-
+function collectOptions(options, includeHelpVersion) {
     const allOptions = /** @type {Record<string, any>} */ (
         includeHelpVersion
             ? {
@@ -156,8 +152,22 @@ function buildOptionsText(options, includeHelpVersion = true) {
               }
             : { ...options }
     );
+    return Object.entries(allOptions).map(([name, opt]) => ({ name, opt }));
+}
 
-    for (const [name, opt] of Object.entries(allOptions)) {
+/**
+ * Builds the options text block for wide terminals (≥ 80 columns).
+ * Columnar layout: flags left-aligned, descriptions at a computed column.
+ * @param {{ name: string; opt: any }[]} entries
+ * @param {number | undefined} termWidth
+ * @returns {string[]}
+ */
+function buildOptionsTextWide(entries, termWidth) {
+    /** @type {{ flags: string; description: string }[]} */
+    const rows = [];
+    let maxFlagsLen = 0;
+
+    for (const { name, opt } of entries) {
         const shortPart = opt.short ? `-${opt.short}, ` : '    ';
         const typeSuffix = opt.type === 'string' ? ' <value>' : '';
         const flags = `  ${shortPart}--${name}${typeSuffix}`;
@@ -169,7 +179,6 @@ function buildOptionsText(options, includeHelpVersion = true) {
     }
 
     const descriptionCol = maxFlagsLen + 2;
-    const termWidth = getTerminalWidth();
 
     /** @type {string[]} */
     const lines = [];
@@ -187,6 +196,73 @@ function buildOptionsText(options, includeHelpVersion = true) {
     }
 
     return lines;
+}
+
+/**
+ * Builds the options text block for narrow terminals (< 80 columns).
+ * Compact layout: comma-separated flags on one line, description on the next line,
+ * both indented 2 spaces from the left. Text wraps at terminal width.
+ * If terminal width is undefined or < 30, no wrapping is applied.
+ * @param {{ name: string; opt: any }[]} entries
+ * @param {number | undefined} termWidth
+ * @returns {string[]}
+ */
+function buildOptionsTextNarrow(entries, termWidth) {
+    // If width < 30 or undefined, treat as no wrapping
+    const wrapWidth = termWidth != null && termWidth >= 30 ? termWidth : undefined;
+    const indent = 2;
+    const descIndent = 4;
+
+    /** @type {string[]} */
+    const lines = [];
+
+    for (const { name, opt } of entries) {
+        // Build comma-separated flags string
+        const typeSuffix = opt.type === 'string' ? ' <value>' : '';
+        const parts = [];
+        if (opt.short) {
+            parts.push(`-${opt.short}`);
+        }
+        parts.push(`--${name}${typeSuffix}`);
+        const flagsText = parts.join(', ');
+
+        // Flags line, indented 2 spaces, wrapped at terminal width
+        const wrappedFlags = wrapText(flagsText, indent, wrapWidth, indent);
+        lines.push(`  ${wrappedFlags[0]}`);
+        for (let i = 1; i < wrappedFlags.length; i++) {
+            lines.push(' '.repeat(indent) + wrappedFlags[i]);
+        }
+
+        // Description line, indented 4 spaces, wrapped at terminal width
+        const description = /** @type {string} */ (/** @type {any} */ (opt).description) || '';
+        if (description) {
+            const wrappedDesc = wrapText(description, descIndent, wrapWidth, descIndent);
+            lines.push(' '.repeat(descIndent) + wrappedDesc[0]);
+            for (let i = 1; i < wrappedDesc.length; i++) {
+                lines.push(' '.repeat(descIndent) + wrappedDesc[i]);
+            }
+        }
+    }
+
+    return lines;
+}
+
+/**
+ * Builds the options text block for the help output.
+ * Uses a columnar layout for wide terminals (≥ 80 columns) and a compact
+ * two-line layout (flags then description) for narrow terminals (< 80 columns).
+ * @param {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} options
+ * @param {boolean} [includeHelpVersion] Whether to include --help and --version in the output.
+ * @returns {string[]}
+ */
+function buildOptionsText(options, includeHelpVersion = true) {
+    const entries = collectOptions(options, includeHelpVersion);
+    const termWidth = getTerminalWidth();
+
+    if (termWidth != null && termWidth < 80) {
+        return buildOptionsTextNarrow(entries, termWidth);
+    }
+    return buildOptionsTextWide(entries, termWidth);
 }
 
 /**

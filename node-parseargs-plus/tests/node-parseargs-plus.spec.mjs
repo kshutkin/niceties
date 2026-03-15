@@ -1951,15 +1951,14 @@ describe('node-parseargs-plus', () => {
             });
             const output = getHelpOutput();
             const outputLines = output.split('\n');
-            // Find lines containing the description
-            const descLines = outputLines.filter(
-                l => l.includes('A very long') || (l.match(/^\s+/) && l.trim().length > 0 && !l.includes('--'))
-            );
-            // Continuation lines should be indented to align with the description column
-            for (let i = 1; i < descLines.length; i++) {
-                const leadingSpaces = descLines[i].match(/^(\s*)/)[1].length;
-                // Should be indented at least past the flags column
-                expect(leadingSpaces).toBeGreaterThan(4);
+            // In narrow mode (< 80 cols), flags and description are on separate lines,
+            // both indented: flags at 2 spaces, description at 4 spaces.
+            // Find lines containing the description text (not flags lines)
+            const descLines = outputLines.filter(l => l.includes('A very long') || (l.match(/^\s{4}\S/) && !l.includes('--')));
+            // All description lines (including continuations) should be indented 4 spaces
+            for (const line of descLines) {
+                const leadingSpaces = line.match(/^(\s*)/)[1].length;
+                expect(leadingSpaces).toBeGreaterThanOrEqual(4);
             }
         });
 
@@ -2130,6 +2129,147 @@ describe('node-parseargs-plus', () => {
             expect(output).toContain('--loud');
             expect(output).toContain('--help');
             expect(output).toContain('--version');
+        });
+
+        it('uses narrow layout with flags and description on separate lines when width < 80', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        short: 'o',
+                        description: 'Output file path',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // In narrow mode, flags are comma-separated on one line: "  -o, --output <value>"
+            const flagsLine = outputLines.find(l => l.includes('-o, --output'));
+            expect(flagsLine).toBeDefined();
+            expect(flagsLine).toMatch(/^\s{2}-o, --output <value>$/);
+            // Description should be on a separate line, indented 4 spaces
+            const flagsIndex = outputLines.indexOf(flagsLine);
+            const descLine = outputLines[flagsIndex + 1];
+            expect(descLine).toMatch(/^\s{4}Output file path$/);
+        });
+
+        it('narrow layout does not use columnar alignment', () => {
+            setTerminalWidth(50);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    name: {
+                        type: 'string',
+                        description: 'Your name',
+                    },
+                    verbose: {
+                        type: 'boolean',
+                        short: 'V',
+                        description: 'Enable verbose output',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Flags and descriptions should be on separate lines, not on the same line
+            const nameFlagsLine = outputLines.find(l => l.includes('--name'));
+            expect(nameFlagsLine).not.toContain('Your name');
+            const verboseFlagsLine = outputLines.find(l => l.includes('--verbose'));
+            expect(verboseFlagsLine).not.toContain('Enable verbose');
+        });
+
+        it('narrow layout wraps description text at terminal width', () => {
+            setTerminalWidth(35);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description: 'Path to an output file where the greeting will be written',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(35);
+            }
+            expect(output).toContain('Path');
+            expect(output).toContain('greeting');
+            expect(output).toContain('written');
+        });
+
+        it('narrow layout options without description only show flags line', () => {
+            setTerminalWidth(50);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    silent: {
+                        type: 'boolean',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            const flagsLine = outputLines.find(l => l.includes('--silent'));
+            expect(flagsLine).toBeDefined();
+            expect(flagsLine).toMatch(/^\s{2}--silent$/);
+        });
+
+        it('narrow layout shows short and long flags comma-separated', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {},
+            });
+            const output = getHelpOutput();
+            // --help has short -h
+            expect(output).toContain('  -h, --help');
+            // --version has short -v
+            expect(output).toContain('  -v, --version');
+        });
+
+        it('uses wide columnar layout when width is exactly 80', () => {
+            setTerminalWidth(80);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description: 'Output file path',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // In wide mode, flags and description are on the same line
+            const flagsLine = outputLines.find(l => l.includes('--output'));
+            expect(flagsLine).toContain('Output file path');
+        });
+
+        it('narrow layout does not wrap when terminal width is under 30', () => {
+            setTerminalWidth(20);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description: 'A very long description that would normally wrap but should not wrap here',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // Description should appear unbroken on one line (no wrapping for width < 30)
+            expect(output).toContain('A very long description that would normally wrap but should not wrap here');
         });
     });
 
