@@ -421,3 +421,15 @@ const r36 = parseArgsPlus(
 );
 type _36a = Assert<IsExact<typeof r36.values.verbose, boolean | undefined>>;
 type _36b = Assert<IsExact<typeof r36.positionals, string[]>>;
+
+// ---------------------------------------------------------------------------
+// Function-level order on middleware transform functions
+// ---------------------------------------------------------------------------
+
+// 37. help middleware transform functions carry order
+type _37a = Assert<typeof help extends [infer C, unknown] ? (C extends { order?: number } ? true : false) : false>;
+type _37b = Assert<typeof help extends [unknown, infer R] ? (R extends { order?: number } ? true : false) : false>;
+
+// 38. commands middleware transform functions carry order
+type _38a = Assert<typeof commands extends [infer C, unknown] ? (C extends { order?: number } ? true : false) : false>;
+type _38b = Assert<typeof commands extends [unknown, infer R] ? (R extends { order?: number } ? true : false) : false>;

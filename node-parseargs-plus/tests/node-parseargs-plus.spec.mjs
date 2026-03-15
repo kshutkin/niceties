@@ -904,6 +904,39 @@ describe('node-parseargs-plus', () => {
             expect(order).toEqual(['mw2-config', 'mw1-config', 'mw1-result', 'mw2-result']);
         });
 
+        it('sorts middlewares by function-level order', () => {
+            const order = [];
+            function transformConfig1(config) {
+                order.push('mw1-config');
+                return config;
+            }
+            transformConfig1.order = 10;
+            function transformResult1(result) {
+                order.push('mw1-result');
+                return result;
+            }
+            transformResult1.order = -10;
+            function transformConfig2(config) {
+                order.push('mw2-config');
+                return config;
+            }
+            transformConfig2.order = -10;
+            function transformResult2(result) {
+                order.push('mw2-result');
+                return result;
+            }
+            transformResult2.order = 10;
+
+            const mw1 = [transformConfig1, transformResult1];
+            const mw2 = [transformConfig2, transformResult2];
+
+            parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
+
+            // mw2 (config order -10) config runs first, mw1 (config order 10) config runs second
+            // mw1 (result order -10) result runs first, mw2 (result order 10) result runs second
+            expect(order).toEqual(['mw2-config', 'mw1-config', 'mw1-result', 'mw2-result']);
+        });
+
         it('preserves insertion order for equal order values', () => {
             const order = [];
             const mw1 = [
@@ -968,6 +1001,33 @@ describe('node-parseargs-plus', () => {
             expect(order).toEqual(['neg', 'default', 'pos']);
         });
 
+        it('treats undefined function-level order as 0', () => {
+            const order = [];
+            function negConfig(config) {
+                order.push('neg');
+                return config;
+            }
+            negConfig.order = -1;
+            const mwNeg = [negConfig, result => result];
+            const mwDefault = [
+                config => {
+                    order.push('default');
+                    return config;
+                },
+                result => result,
+            ];
+            function posConfig(config) {
+                order.push('pos');
+                return config;
+            }
+            posConfig.order = 1;
+            const mwPos = [posConfig, result => result];
+
+            parseArgsPlus({ args: [], strict: false }, [mwPos, mwDefault, mwNeg]);
+
+            expect(order).toEqual(['neg', 'default', 'pos']);
+        });
+
         it('sorts transformResult by resultOrder independently from configOrder', () => {
             const order = [];
             const mw1 = Object.assign(
@@ -1001,6 +1061,39 @@ describe('node-parseargs-plus', () => {
 
             // mw1 config first (configOrder -5), mw2 config second (configOrder 5)
             // mw2 result first (resultOrder -5), mw1 result second (resultOrder 5)
+            expect(order).toEqual(['mw1-config', 'mw2-config', 'mw2-result', 'mw1-result']);
+        });
+
+        it('function-level order takes precedence over tuple-level configOrder/resultOrder', () => {
+            const order = [];
+            function mw1Config(config) {
+                order.push('mw1-config');
+                return config;
+            }
+            mw1Config.order = -5;
+            function mw1Result(result) {
+                order.push('mw1-result');
+                return result;
+            }
+            mw1Result.order = 5;
+            const mw1 = Object.assign([mw1Config, mw1Result], { configOrder: 100, resultOrder: -100 });
+
+            function mw2Config(config) {
+                order.push('mw2-config');
+                return config;
+            }
+            mw2Config.order = 5;
+            function mw2Result(result) {
+                order.push('mw2-result');
+                return result;
+            }
+            mw2Result.order = -5;
+            const mw2 = Object.assign([mw2Config, mw2Result], { configOrder: -100, resultOrder: 100 });
+
+            parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
+
+            // Function-level order wins: mw1 config (-5) before mw2 config (5)
+            // Function-level order wins: mw2 result (-5) before mw1 result (5)
             expect(order).toEqual(['mw1-config', 'mw2-config', 'mw2-result', 'mw1-result']);
         });
     });
@@ -1360,9 +1453,9 @@ describe('node-parseargs-plus', () => {
             expect(result.command).toBeUndefined();
         });
 
-        it('has configOrder 10 and resultOrder 10', () => {
-            expect(commands.configOrder).toBe(10);
-            expect(commands.resultOrder).toBe(10);
+        it('has order 10 on both transform functions', () => {
+            expect(commands[0].order).toBe(10);
+            expect(commands[1].order).toBe(10);
         });
 
         it('is a valid middleware tuple', () => {
@@ -1720,9 +1813,9 @@ describe('node-parseargs-plus', () => {
             expect(result.positionals).toEqual(['lodash']);
         });
 
-        it('help has configOrder -10 and resultOrder -10', () => {
-            expect(help.configOrder).toBe(-10);
-            expect(help.resultOrder).toBe(-10);
+        it('help has order -10 on both transform functions', () => {
+            expect(help[0].order).toBe(-10);
+            expect(help[1].order).toBe(-10);
         });
     });
 });

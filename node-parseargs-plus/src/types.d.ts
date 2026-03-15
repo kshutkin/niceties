@@ -80,9 +80,40 @@ type ParsedValues<O extends Record<string, OptionConfig>> = Prettify<
 // ---------------------------------------------------------------------------
 
 /**
+ * A transform function that can optionally carry an `order` property
+ * to control its execution priority. Lower values run earlier. Default: 0.
+ */
+export interface TransformConfigFn {
+    (config: ParseArgsPlusConfig): ParseArgsPlusConfig;
+    /** Execution priority. Lower values run earlier. Default: 0. */
+    readonly order?: number;
+}
+
+/**
+ * A transform function that can optionally carry an `order` property
+ * to control its execution priority. Lower values run earlier. Default: 0.
+ */
+export interface TransformResultFn {
+    (
+        // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
+        result: { values: Record<string, any>; positionals: string[]; tokens?: Token[] },
+        config: ParseArgsPlusConfig
+        // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
+    ): { values: Record<string, any>; positionals: string[]; tokens?: Token[] };
+    /** Execution priority. Lower values run earlier. Default: 0. */
+    readonly order?: number;
+}
+
+/**
  * A middleware is a tuple (array) where:
  *   [0] transformConfig – receives the config and returns a (possibly modified) config
  *   [1] transformResult – receives the result and original config, returns a (possibly modified) result
+ *
+ * Execution order can be controlled in two ways:
+ *   - Per-function: assign an `order` property directly on a transform function.
+ *   - Per-middleware: set `configOrder` / `resultOrder` on the tuple object.
+ *
+ * When both are present, the function-level `order` takes precedence.
  *
  * The `OptionExt` and `ConfigExt` type parameters are carried at the type level
  * so that `parseArgsPlus` can merge extensions from all middlewares.
@@ -90,21 +121,16 @@ type ParsedValues<O extends Record<string, OptionConfig>> = Prettify<
 // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
 // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
 export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> = [
-    transformConfig: (config: ParseArgsPlusConfig) => ParseArgsPlusConfig,
-    transformResult: (
-        // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
-        result: { values: Record<string, any>; positionals: string[]; tokens?: Token[] },
-        config: ParseArgsPlusConfig
-        // biome-ignore lint/suspicious/noExplicitAny: middleware results are dynamically shaped
-    ) => { values: Record<string, any>; positionals: string[]; tokens?: Token[] },
+    transformConfig: TransformConfigFn,
+    transformResult: TransformResultFn,
 ] & {
     /** @internal marker to carry the option extension at the type level */
     readonly __optionExt?: OptionExt;
     /** @internal marker to carry the config extension at the type level */
     readonly __configExt?: ConfigExt;
-    /** Execution priority for transformConfig. Lower values run earlier. Default: 0. */
+    /** Execution priority for transformConfig. Lower values run earlier. Default: 0. Overridden by transformConfig.order if set. */
     readonly configOrder?: number;
-    /** Execution priority for transformResult. Lower values run earlier. Default: 0. */
+    /** Execution priority for transformResult. Lower values run earlier. Default: 0. Overridden by transformResult.order if set. */
     readonly resultOrder?: number;
 };
 

@@ -202,115 +202,112 @@ function splitArgs(args, globalOptions, commandOptions) {
  * - Pass 2 (in transformResult): parses the command-specific args with the
  *   command's own options.
  *
- * Has configOrder: 10, so transformConfig runs after other middlewares
- * (e.g. help adds --help/--version to global options first).
- * Has resultOrder: 10, so transformResult runs late (does pass 2 parsing last).
+ * Each transform function carries `order: 10`, so transformConfig runs after
+ * other middlewares (e.g. help adds --help/--version to global options first)
+ * and transformResult runs late (does pass-2 parsing last).
  *
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').CommandsOptionExtension, import('./types.d.ts').CommandsConfigExtension>}
  */
-export const commands = /** @type {any} */ (
-    Object.assign(
-        [
-            // [0] transformConfig
-            (/** @type {import('./types.d.ts').ParseArgsPlusConfig} */ config) => {
-                const extConfig =
-                    /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').CommandsConfigExtension} */ (config);
-                const commandMap = extConfig.commands;
-                if (!commandMap) {
-                    return config;
-                }
 
-                const args = config.args ?? process.argv.slice(2);
-                const globalOptions = config.options ?? {};
+/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
+function commandsTransformConfig(config) {
+    const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').CommandsConfigExtension} */ (config);
+    const commandMap = extConfig.commands;
+    if (!commandMap) {
+        return config;
+    }
 
-                const { commandName, commandConfig, cmdIndex } = resolveCommand(args, commandMap, globalOptions, extConfig.defaultCommand);
+    const args = config.args ?? process.argv.slice(2);
+    const globalOptions = config.options ?? {};
 
-                /** @type {string[]} */
-                let globalArgs;
-                /** @type {string[]} */
-                let commandArgs;
+    const { commandName, commandConfig, cmdIndex } = resolveCommand(args, commandMap, globalOptions, extConfig.defaultCommand);
 
-                if (!commandName || !commandConfig) {
-                    // No command resolved
-                    globalArgs = args;
-                    commandArgs = [];
-                } else if (cmdIndex === -1) {
-                    // Default command, no explicit command positional
-                    // No positionals at all — everything is global
-                    globalArgs = args;
-                    commandArgs = [];
-                } else {
-                    // Check if the command positional is the actual command name
-                    // or the start of default command's positionals
-                    const isExplicitCommand = args[cmdIndex] === commandName;
+    /** @type {string[]} */
+    let globalArgs;
+    /** @type {string[]} */
+    let commandArgs;
 
-                    const rawGlobalArgs = args.slice(0, cmdIndex);
-                    const rawCommandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
+    if (!commandName || !commandConfig) {
+        // No command resolved
+        globalArgs = args;
+        commandArgs = [];
+    } else if (cmdIndex === -1) {
+        // Default command, no explicit command positional
+        // No positionals at all — everything is global
+        globalArgs = args;
+        commandArgs = [];
+    } else {
+        // Check if the command positional is the actual command name
+        // or the start of default command's positionals
+        const isExplicitCommand = args[cmdIndex] === commandName;
 
-                    // Split command args: move purely-global flags back to globalArgs
-                    const split = splitArgs(rawCommandArgs, globalOptions, commandConfig.options ?? {});
-                    commandArgs = split.commandArgs;
-                    globalArgs = rawGlobalArgs.concat(split.globalArgs);
-                }
+        const rawGlobalArgs = args.slice(0, cmdIndex);
+        const rawCommandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
 
-                // Stash command state for cross-middleware communication
-                /** @type {any} */ (config)[kCommandState] = {
-                    commandName,
-                    commandArgs,
-                    commandConfig,
-                };
+        // Split command args: move purely-global flags back to globalArgs
+        const split = splitArgs(rawCommandArgs, globalOptions, commandConfig.options ?? {});
+        commandArgs = split.commandArgs;
+        globalArgs = rawGlobalArgs.concat(split.globalArgs);
+    }
 
-                // Rewrite config for pass 1: global args only
-                return {
-                    ...config,
-                    args: globalArgs,
-                    allowPositionals: false,
-                };
-            },
+    // Stash command state for cross-middleware communication
+    /** @type {any} */ (config)[kCommandState] = {
+        commandName,
+        commandArgs,
+        commandConfig,
+    };
 
-            // [1] transformResult
-            (
-                /** @type {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} */ result,
-                /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ config
-            ) => {
-                const state = /** @type {any} */ (config)[kCommandState];
-                if (!state) {
-                    return result;
-                }
+    // Rewrite config for pass 1: global args only
+    return {
+        ...config,
+        args: globalArgs,
+        allowPositionals: false,
+    };
+}
+commandsTransformConfig.order = 10;
 
-                const { commandName, commandArgs, commandConfig } = state;
+/**
+ * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
+ * @param {import('./types.d.ts').ParseArgsPlusConfig} config
+ */
+function commandsTransformResult(result, config) {
+    const state = /** @type {any} */ (config)[kCommandState];
+    if (!state) {
+        return result;
+    }
 
-                // If no command was resolved, pass through
-                if (!commandName || !commandConfig) {
-                    return { ...result, command: undefined };
-                }
+    const { commandName, commandArgs, commandConfig } = state;
 
-                const globalOptions = config.options ?? {};
-                const commandOptions = commandConfig.options ?? {};
+    // If no command was resolved, pass through
+    if (!commandName || !commandConfig) {
+        return { ...result, command: undefined };
+    }
 
-                // Merge global + command options for pass 2
-                // Command options take precedence (same name, same type — validated in transformConfig)
-                const mergedOptions = { ...globalOptions, ...commandOptions };
+    const globalOptions = config.options ?? {};
+    const commandOptions = commandConfig.options ?? {};
 
-                // Pass 2: parse command-specific args
-                const pass2 = parseArgs({
-                    args: commandArgs,
-                    strict: config.strict ?? true,
-                    allowPositionals: commandConfig.allowPositionals ?? false,
-                    options: /** @type {any} */ (mergedOptions),
-                });
+    // Merge global + command options for pass 2
+    // Command options take precedence (same name, same type — validated in transformConfig)
+    const mergedOptions = { ...globalOptions, ...commandOptions };
 
-                // Merge values: pass 1 (global) + pass 2 (command)
-                // Pass 2 values win on overlap (the flag appeared in command scope)
-                const mergedValues = { ...result.values, ...pass2.values };
+    // Pass 2: parse command-specific args
+    const pass2 = parseArgs({
+        args: commandArgs,
+        strict: config.strict ?? true,
+        allowPositionals: commandConfig.allowPositionals ?? false,
+        options: /** @type {any} */ (mergedOptions),
+    });
 
-                return {
-                    values: mergedValues,
-                    positionals: pass2.positionals,
-                    command: commandName,
-                };
-            },
-        ],
-        { configOrder: 10, resultOrder: 10 }
-    )
-);
+    // Merge values: pass 1 (global) + pass 2 (command)
+    // Pass 2 values win on overlap (the flag appeared in command scope)
+    const mergedValues = { ...result.values, ...pass2.values };
+
+    return {
+        values: mergedValues,
+        positionals: pass2.positionals,
+        command: commandName,
+    };
+}
+commandsTransformResult.order = 10;
+
+export const commands = /** @type {any} */ ([commandsTransformConfig, commandsTransformResult]);

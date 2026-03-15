@@ -22,55 +22,50 @@ const kCommandState = Symbol.for('parseArgsPlus.commandState');
  *
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
-export const help = /** @type {any} */ (
-    Object.assign(
-        [
-            // [0] transformConfig
-            (/** @type {import('./types.d.ts').ParseArgsPlusConfig} */ config) => {
-                return {
-                    ...config,
-                    options: {
-                        ...config.options,
-                        help: { type: 'boolean', short: 'h' },
-                        version: { type: 'boolean', short: 'v' },
-                    },
-                };
-            },
+/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
+function helpTransformConfig(config) {
+    return {
+        ...config,
+        options: {
+            ...config.options,
+            help: { type: 'boolean', short: 'h' },
+            version: { type: 'boolean', short: 'v' },
+        },
+    };
+}
+helpTransformConfig.order = -10;
 
-            // [1] transformResult
-            (
-                /** @type {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} */ result,
-                /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ config
-            ) => {
-                const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (
-                    config
-                );
-                if (result.values.version) {
-                    console.log(extConfig.version);
-                    process.exit(0);
-                }
-                if (result.values.help) {
-                    const commandState = /** @type {any} */ (config)[kCommandState];
-                    const commands = /** @type {any} */ (config).commands;
+/**
+ * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
+ * @param {import('./types.d.ts').ParseArgsPlusConfig} config
+ */
+function helpTransformResult(result, config) {
+    const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (config);
+    if (result.values.version) {
+        console.log(extConfig.version);
+        process.exit(0);
+    }
+    if (result.values.help) {
+        const commandState = /** @type {any} */ (config)[kCommandState];
+        const commands = /** @type {any} */ (config).commands;
 
-                    if (commands && commandState?.commandName && commandState.commandConfig) {
-                        // Command-specific help
-                        printCommandHelp(extConfig, commandState.commandName, commandState.commandConfig, commands);
-                    } else if (commands) {
-                        // Global help with command list
-                        printGlobalHelpWithCommands(extConfig, commands);
-                    } else {
-                        // No commands — original help behavior
-                        printHelp(extConfig);
-                    }
-                    process.exit(0);
-                }
-                return result;
-            },
-        ],
-        { configOrder: -10, resultOrder: -10 }
-    )
-);
+        if (commands && commandState?.commandName && commandState.commandConfig) {
+            // Command-specific help
+            printCommandHelp(extConfig, commandState.commandName, commandState.commandConfig, commands);
+        } else if (commands) {
+            // Global help with command list
+            printGlobalHelpWithCommands(extConfig, commands);
+        } else {
+            // No commands — original help behavior
+            printHelp(extConfig);
+        }
+        process.exit(0);
+    }
+    return result;
+}
+helpTransformResult.order = -10;
+
+export const help = /** @type {any} */ ([helpTransformConfig, helpTransformResult]);
 
 /**
  * Builds the options text block for the help output.
