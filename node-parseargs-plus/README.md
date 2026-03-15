@@ -92,9 +92,9 @@ Each option in `options` follows the `OptionConfig` shape:
 
 Returns an object with:
 
-- **`values`** — parsed option values, fully typed based on your config.
-- **`positionals`** — array of positional arguments (when `allowPositionals` is `true`).
-- **`tokens`** — raw token array (when `tokens` is `true`).
+- **`values`** - parsed option values, fully typed based on your config.
+- **`positionals`** - array of positional arguments (when `allowPositionals` is `true`).
+- **`tokens`** - raw token array (when `tokens` is `true`).
 
 ### `help` middleware
 
@@ -176,9 +176,9 @@ Parameter names may contain letters, digits, spaces, and hyphens. They are conve
 
 These rules are enforced at **both** compile time (TypeScript) and runtime:
 
-1. **Required before optional** — all `<required>` parameters must come before `[optional]` ones.
-2. **At most one spread** — only one `...` parameter is allowed.
-3. **Spread is last** — the spread parameter must be the last in the array.
+1. **Required before optional** - all `<required>` parameters must come before `[optional]` ones.
+2. **At most one spread** - only one `...` parameter is allowed.
+3. **Spread is last** - the spread parameter must be the last in the array.
 
 Invalid configurations produce a compile-time error and throw at runtime:
 
@@ -329,17 +329,17 @@ helpSections: {
 A middleware is a two-element tuple where each function can carry an `order` property to control execution priority:
 
 ```js
-// [0] transformConfig — runs before parsing
+// [0] transformConfig - runs before parsing
 function transformConfig(config) {
     return { ...config /* modify config */ };
 }
-transformConfig.order = 0; // optional, default 0 — lower runs earlier
+transformConfig.order = 0; // optional, default 0 - lower runs earlier
 
-// [1] transformResult — runs after parsing
+// [1] transformResult - runs after parsing
 function transformResult(result, config) {
     return { ...result /* modify result */ };
 }
-transformResult.order = 0; // optional, default 0 — lower runs earlier
+transformResult.order = 0; // optional, default 0 - lower runs earlier
 
 const myMiddleware = [transformConfig, transformResult];
 
@@ -367,7 +367,7 @@ Each transform function can declare its own execution priority via the `order` p
 | `parameters` | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
 | `commands`   | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
 
-Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter — `[help, commands]` and `[commands, help]` behave identically.
+Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter - `[help, commands]` and `[commands, help]` behave identically.
 
 ### TypeScript support
 
