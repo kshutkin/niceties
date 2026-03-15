@@ -69,6 +69,24 @@ function wrapText(text, indent, width, currentCol) {
 }
 
 /**
+ * Wraps text and appends it to `lines` using a first-line prefix and
+ * a continuation-line indent.
+ * @param {string[]} lines
+ * @param {string} text
+ * @param {string} firstPrefix
+ * @param {number} continuationIndent
+ * @param {number | undefined} width
+ * @param {number} currentCol
+ */
+function pushWrappedWithPrefix(lines, text, firstPrefix, continuationIndent, width, currentCol) {
+    const wrapped = wrapText(text, continuationIndent, width, currentCol);
+    lines.push(`${firstPrefix}${wrapped[0]}`);
+    for (let i = 1; i < wrapped.length; i++) {
+        lines.push(' '.repeat(continuationIndent) + wrapped[i]);
+    }
+}
+
+/**
  * Help middleware that adds --help/-h and --version/-v flag support.
  * When --help is passed, it prints usage information (based on option descriptions)
  * and exits with code 0. When --version is passed, it prints the version and exits
@@ -164,11 +182,7 @@ function formatColumns(rows, maxLeftLen, termWidth) {
     for (const row of rows) {
         const padding = ' '.repeat(maxLeftLen - row.left.length + 2);
         if (row.right) {
-            const wrapped = wrapText(row.right, rightCol, termWidth, rightCol);
-            lines.push(`${row.left}${padding}${wrapped[0]}`);
-            for (let i = 1; i < wrapped.length; i++) {
-                lines.push(' '.repeat(rightCol) + wrapped[i]);
-            }
+            pushWrappedWithPrefix(lines, row.right, `${row.left}${padding}`, rightCol, termWidth, rightCol);
         } else {
             lines.push(row.left);
         }
@@ -231,20 +245,12 @@ function buildOptionsTextNarrow(entries, termWidth) {
         const flagsText = parts.join(', ');
 
         // Flags line, indented 2 spaces, wrapped at terminal width
-        const wrappedFlags = wrapText(flagsText, indent, wrapWidth, indent);
-        lines.push(`  ${wrappedFlags[0]}`);
-        for (let i = 1; i < wrappedFlags.length; i++) {
-            lines.push(' '.repeat(indent) + wrappedFlags[i]);
-        }
+        pushWrappedWithPrefix(lines, flagsText, '  ', indent, wrapWidth, indent);
 
         // Description line, indented 4 spaces, wrapped at terminal width
         const description = /** @type {string} */ (/** @type {any} */ (opt).description) || '';
         if (description) {
-            const wrappedDesc = wrapText(description, descIndent, wrapWidth, descIndent);
-            lines.push(' '.repeat(descIndent) + wrappedDesc[0]);
-            for (let i = 1; i < wrappedDesc.length; i++) {
-                lines.push(' '.repeat(descIndent) + wrappedDesc[i]);
-            }
+            pushWrappedWithPrefix(lines, description, ' '.repeat(descIndent), descIndent, wrapWidth, descIndent);
         }
 
         // Add an extra blank line after each option for readability
@@ -314,10 +320,11 @@ function printSection(section) {
                 console.log(line);
             } else {
                 // Plain section text — wrap with 2-space indent
-                const wrapped = wrapText(line, indent, termWidth, indent);
-                console.log(`  ${wrapped[0]}`);
-                for (let i = 1; i < wrapped.length; i++) {
-                    console.log(' '.repeat(indent) + wrapped[i]);
+                /** @type {string[]} */
+                const wrapped = [];
+                pushWrappedWithPrefix(wrapped, line, '  ', indent, termWidth, indent);
+                for (const wrappedLine of wrapped) {
+                    console.log(wrappedLine);
                 }
             }
         }
