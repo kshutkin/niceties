@@ -57,15 +57,9 @@ function toCamelCase(name) {
  */
 function validateDefs(defs) {
     let seenOptional = false;
-    let spreadCount = 0;
-
     for (let i = 0; i < defs.length; i++) {
         const def = defs[i];
         if (def.spread) {
-            spreadCount++;
-            if (spreadCount > 1) {
-                throw new Error('At most one spread parameter is allowed.');
-            }
             if (i !== defs.length - 1) {
                 throw new Error('Spread parameter must be the last parameter.');
             }

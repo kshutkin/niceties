@@ -3223,4 +3223,139 @@ describe('node-parseargs-plus', () => {
             expect(result.parameters).toEqual({ package: 'lodash' });
         });
     });
+
+    describe('parameters middleware - mismatched brackets', () => {
+        it('throws on mismatched brackets <name]', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        parameters: ['<name]'],
+                        args: ['hello'],
+                    },
+                    [parameters]
+                )
+            ).toThrow('Mismatched brackets');
+        });
+
+        it('throws on mismatched brackets [name>', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        parameters: ['[name>'],
+                        args: ['hello'],
+                    },
+                    [parameters]
+                )
+            ).toThrow('Mismatched brackets');
+        });
+    });
+
+    describe('parameters middleware - version flag bypass', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('skips parameter extraction when --version is passed', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        parameters: ['<name>'],
+                        args: ['--version'],
+                    },
+                    [help, parameters]
+                )
+            ).toThrow('process.exit called');
+            expect(consoleLogSpy).toHaveBeenCalledWith('1.0.0');
+        });
+    });
+
+    describe('help + parameters middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows parameters in usage line when --help is passed with parameters', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        parameters: ['<name>', '[version]'],
+                        options: {},
+                        args: ['--help'],
+                    },
+                    [help, parameters]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('<name> [version]');
+        });
+
+        it('shows help without parameter suffix when parameters is empty array', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        parameters: [],
+                        options: {},
+                        args: ['--help'],
+                    },
+                    [help, parameters]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli [options]');
+            expect(output).not.toContain('<');
+        });
+
+        it('shows command parameters in usage line when --help is passed after command', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            install: {
+                                description: 'Install a package',
+                                parameters: ['<package>', '[version]'],
+                            },
+                        },
+                        args: ['install', '--help'],
+                    },
+                    [help, commands, parameters]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('<package> [version]');
+        });
+    });
 });
