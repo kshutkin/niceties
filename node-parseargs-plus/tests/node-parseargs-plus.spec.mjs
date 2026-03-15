@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { whiteBright } from '@niceties/ansi';
 
+import { commands } from '../src/commands.js';
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';
 
@@ -857,6 +858,849 @@ describe('node-parseargs-plus', () => {
             const optionsIndex = output.indexOf('Options:');
             expect(optionsIndex).toBeLessThan(envIndex);
             expect(envIndex).toBeLessThan(examplesIndex);
+        });
+    });
+
+    describe('middleware ordering', () => {
+        it('sorts middlewares by order before executing transformConfig', () => {
+            const order = [];
+            const mw1 = Object.assign(
+                [
+                    config => {
+                        order.push('mw1-config');
+                        return config;
+                    },
+                    result => {
+                        order.push('mw1-result');
+                        return result;
+                    },
+                ],
+                { order: 10 }
+            );
+            const mw2 = Object.assign(
+                [
+                    config => {
+                        order.push('mw2-config');
+                        return config;
+                    },
+                    result => {
+                        order.push('mw2-result');
+                        return result;
+                    },
+                ],
+                { order: -10 }
+            );
+
+            parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
+
+            // mw2 (order -10) config runs first, mw1 (order 10) config runs second
+            // mw1 (order 10) result runs first (reverse), mw2 (order -10) result runs second
+            expect(order).toEqual(['mw2-config', 'mw1-config', 'mw1-result', 'mw2-result']);
+        });
+
+        it('preserves insertion order for equal order values', () => {
+            const order = [];
+            const mw1 = [
+                config => {
+                    order.push('mw1-config');
+                    return config;
+                },
+                result => {
+                    order.push('mw1-result');
+                    return result;
+                },
+            ];
+            const mw2 = [
+                config => {
+                    order.push('mw2-config');
+                    return config;
+                },
+                result => {
+                    order.push('mw2-result');
+                    return result;
+                },
+            ];
+
+            parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
+
+            expect(order).toEqual(['mw1-config', 'mw2-config', 'mw2-result', 'mw1-result']);
+        });
+
+        it('treats undefined order as 0', () => {
+            const order = [];
+            const mwNeg = Object.assign(
+                [
+                    config => {
+                        order.push('neg');
+                        return config;
+                    },
+                    result => result,
+                ],
+                { order: -1 }
+            );
+            const mwDefault = [
+                config => {
+                    order.push('default');
+                    return config;
+                },
+                result => result,
+            ];
+            const mwPos = Object.assign(
+                [
+                    config => {
+                        order.push('pos');
+                        return config;
+                    },
+                    result => result,
+                ],
+                { order: 1 }
+            );
+
+            parseArgsPlus({ args: [], strict: false }, [mwPos, mwDefault, mwNeg]);
+
+            expect(order).toEqual(['neg', 'default', 'pos']);
+        });
+    });
+
+    describe('commands middleware', () => {
+        it('parses a basic command with its own options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        install: {
+                            options: {
+                                'save-dev': { type: 'boolean' },
+                            },
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['install', '--save-dev', 'lodash'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('install');
+            expect(result.values['save-dev']).toBe(true);
+            expect(result.positionals).toEqual(['lodash']);
+        });
+
+        it('parses global flags before the command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean', short: 'V' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['--verbose', 'build', '--watch'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.verbose).toBe(true);
+            expect(result.values.watch).toBe(true);
+        });
+
+        it('parses global flags after the command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        install: {
+                            options: {
+                                'save-dev': { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['install', '--verbose', '--save-dev'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('install');
+            expect(result.values.verbose).toBe(true);
+            expect(result.values['save-dev']).toBe(true);
+        });
+
+        it('parses global string options before the command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        config: { type: 'string' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                outdir: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['--config', 'my.json', 'build', '--outdir', 'dist'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.config).toBe('my.json');
+            expect(result.values.outdir).toBe('dist');
+        });
+
+        it('parses global string options after the command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        config: { type: 'string' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                outdir: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['build', '--config', 'my.json', '--outdir', 'dist'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.config).toBe('my.json');
+            expect(result.values.outdir).toBe('dist');
+        });
+
+        it('uses defaultCommand when no command is given', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        run: {
+                            options: {},
+                            allowPositionals: true,
+                        },
+                    },
+                    defaultCommand: 'run',
+                    args: ['--verbose'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('run');
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('uses defaultCommand when first positional is not a known command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        run: {
+                            options: {},
+                            allowPositionals: true,
+                        },
+                    },
+                    defaultCommand: 'run',
+                    args: ['somefile.txt'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('run');
+            expect(result.positionals).toEqual(['somefile.txt']);
+        });
+
+        it('throws on unknown command when no defaultCommand is set', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        options: {},
+                        commands: {
+                            install: { options: {} },
+                            build: { options: {} },
+                        },
+                        args: ['deploy'],
+                    },
+                    [commands]
+                )
+            ).toThrow("Unknown command 'deploy'. Available commands: install, build");
+        });
+
+        it('returns no command field when no positionals and no defaultCommand', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        install: { options: {} },
+                    },
+                    args: ['--verbose'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBeUndefined();
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('validates option type collisions between global and command', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        options: {
+                            output: { type: 'boolean' },
+                        },
+                        commands: {
+                            build: {
+                                options: {
+                                    output: { type: 'string' },
+                                },
+                            },
+                        },
+                        args: ['build'],
+                    },
+                    [commands]
+                )
+            ).toThrow(
+                "Option '--output' has type 'boolean' globally but type 'string' in command 'build'. Use different option names to avoid conflicts."
+            );
+        });
+
+        it('allows same option name with same type in global and command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        output: { type: 'string' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                output: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['build', '--output', 'dist'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.output).toBe('dist');
+        });
+
+        it('supports commands with no options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        clean: {
+                            description: 'Clean build output',
+                        },
+                    },
+                    args: ['--verbose', 'clean'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('clean');
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('supports commands with allowPositionals', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        install: {
+                            options: {
+                                'save-dev': { type: 'boolean', short: 'D' },
+                            },
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['install', 'lodash', 'express', '-D'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('install');
+            expect(result.positionals).toEqual(['lodash', 'express']);
+            expect(result.values['save-dev']).toBe(true);
+        });
+
+        it('rejects positionals for commands with allowPositionals: false', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        options: {},
+                        commands: {
+                            build: {
+                                options: {},
+                                allowPositionals: false,
+                            },
+                        },
+                        args: ['build', 'unexpected'],
+                    },
+                    [commands]
+                )
+            ).toThrow();
+        });
+
+        it('rejects unknown flags in command scope with strict mode', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        options: {},
+                        commands: {
+                            build: {
+                                options: {
+                                    watch: { type: 'boolean' },
+                                },
+                            },
+                        },
+                        args: ['build', '--unknown'],
+                    },
+                    [commands]
+                )
+            ).toThrow();
+        });
+
+        it('supports different option types across different commands', () => {
+            const r1 = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        check: {
+                            options: {
+                                output: { type: 'boolean' },
+                            },
+                        },
+                        build: {
+                            options: {
+                                output: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['check', '--output'],
+                },
+                [commands]
+            );
+            expect(r1.command).toBe('check');
+            expect(r1.values.output).toBe(true);
+
+            const r2 = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        check: {
+                            options: {
+                                output: { type: 'boolean' },
+                            },
+                        },
+                        build: {
+                            options: {
+                                output: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['build', '--output', 'dist/'],
+                },
+                [commands]
+            );
+            expect(r2.command).toBe('build');
+            expect(r2.values.output).toBe('dist/');
+        });
+
+        it('passes through without commands config', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    args: ['--verbose'],
+                },
+                [commands]
+            );
+
+            expect(result.values.verbose).toBe(true);
+            expect(result.command).toBeUndefined();
+        });
+
+        it('has order -10', () => {
+            expect(commands.order).toBe(-10);
+        });
+
+        it('is a valid middleware tuple', () => {
+            expect(Array.isArray(commands)).toBe(true);
+            expect(commands).toHaveLength(2);
+            expect(typeof commands[0]).toBe('function');
+            expect(typeof commands[1]).toBe('function');
+        });
+
+        it('handles multiple commands selecting the correct one', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        install: {
+                            options: { 'save-dev': { type: 'boolean' } },
+                        },
+                        build: {
+                            options: { watch: { type: 'boolean' } },
+                        },
+                        test: {
+                            options: { coverage: { type: 'boolean' } },
+                        },
+                    },
+                    args: ['test', '--coverage'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('test');
+            expect(result.values.coverage).toBe(true);
+        });
+
+        it('handles short flags for command options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        install: {
+                            options: {
+                                'save-dev': { type: 'boolean', short: 'D' },
+                                registry: { type: 'string', short: 'r' },
+                            },
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['install', '-D', '-r', 'http://my-registry', 'lodash'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('install');
+            expect(result.values['save-dev']).toBe(true);
+            expect(result.values.registry).toBe('http://my-registry');
+            expect(result.positionals).toEqual(['lodash']);
+        });
+
+        it('handles option-terminator in command args', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        run: {
+                            options: {},
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['run', '--', '--not-a-flag'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('run');
+            expect(result.positionals).toEqual(['--not-a-flag']);
+        });
+
+        it('uses default values for command options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        build: {
+                            options: {
+                                outdir: { type: 'string', default: 'dist' },
+                                watch: { type: 'boolean', default: false },
+                            },
+                        },
+                    },
+                    args: ['build'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.outdir).toBe('dist');
+            expect(result.values.watch).toBe(false);
+        });
+    });
+
+    describe('commands + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows global help with command list when --help is passed without a command', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        description: 'A test CLI',
+                        options: {
+                            verbose: { type: 'boolean', description: 'Enable verbose output' },
+                        },
+                        commands: {
+                            install: { description: 'Install packages' },
+                            build: { description: 'Build the project' },
+                        },
+                        args: ['--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli v1.0.0');
+            expect(output).toContain('A test CLI');
+            expect(output).toContain(whiteBright('Commands:'));
+            expect(output).toContain('install');
+            expect(output).toContain('Install packages');
+            expect(output).toContain('build');
+            expect(output).toContain('Build the project');
+            expect(output).toContain(whiteBright('Global Options:'));
+        });
+
+        it('shows command-specific help when --help is passed after a command', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {
+                            verbose: { type: 'boolean', description: 'Verbose output' },
+                        },
+                        commands: {
+                            install: {
+                                description: 'Install packages',
+                                options: {
+                                    'save-dev': { type: 'boolean', description: 'Save as dev dependency' },
+                                    registry: { type: 'string', description: 'Registry URL' },
+                                },
+                                allowPositionals: true,
+                            },
+                        },
+                        args: ['install', '--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli install');
+            expect(output).toContain('Install packages');
+            expect(output).toContain('--save-dev');
+            expect(output).toContain('Save as dev dependency');
+            expect(output).toContain('--registry');
+            expect(output).toContain('Registry URL');
+            expect(output).toContain(whiteBright('Global Options:'));
+            expect(output).toContain('--verbose');
+        });
+
+        it('works with [help, commands] order (order-independent)', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            build: {
+                                description: 'Build things',
+                                options: {
+                                    watch: { type: 'boolean', description: 'Watch mode' },
+                                },
+                            },
+                        },
+                        args: ['build', '--help'],
+                    },
+                    [help, commands]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli build');
+            expect(output).toContain('Build things');
+            expect(output).toContain('--watch');
+        });
+
+        it('works with [commands, help] order', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            build: {
+                                description: 'Build things',
+                                options: {
+                                    watch: { type: 'boolean', description: 'Watch mode' },
+                                },
+                            },
+                        },
+                        args: ['build', '--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli build');
+            expect(output).toContain('Build things');
+            expect(output).toContain('--watch');
+        });
+
+        it('shows usage line with [arguments] when command allows positionals', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            install: {
+                                description: 'Install packages',
+                                options: {},
+                                allowPositionals: true,
+                            },
+                        },
+                        args: ['install', '--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli install [options] [arguments]');
+        });
+
+        it('shows usage line without [arguments] when command disallows positionals', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            build: {
+                                description: 'Build project',
+                                options: {},
+                            },
+                        },
+                        args: ['build', '--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli build [options]');
+            expect(output).not.toContain('[arguments]');
+        });
+
+        it('shows global help with command usage line when no command', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            install: { description: 'Install' },
+                            build: { description: 'Build' },
+                        },
+                        args: ['--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli [options] <command> [command-options]');
+        });
+
+        it('prints version when --version is passed with commands', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '2.5.0',
+                        options: {},
+                        commands: {
+                            build: { options: {} },
+                        },
+                        args: ['--version'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('2.5.0');
+        });
+
+        it('does not interfere when --help is not passed', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    commands: {
+                        install: {
+                            options: {
+                                'save-dev': { type: 'boolean' },
+                            },
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['install', '--save-dev', 'lodash'],
+                },
+                [commands, help]
+            );
+
+            expect(exitSpy).not.toHaveBeenCalled();
+            expect(result.command).toBe('install');
+            expect(result.values['save-dev']).toBe(true);
+            expect(result.positionals).toEqual(['lodash']);
+        });
+
+        it('help has order 10', () => {
+            expect(help.order).toBe(10);
         });
     });
 });

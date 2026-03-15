@@ -21,6 +21,19 @@ interface OptionTerminatorToken {
 
 export type Token = OptionToken | PositionalToken | OptionTerminatorToken;
 
+/** Symbol used for cross-middleware communication of resolved command state. */
+export declare const kCommandState: unique symbol;
+
+/** Shape of the command state stashed on the config by the commands middleware. */
+export interface CommandState {
+    /** Resolved command name, or undefined if no command was matched. */
+    commandName: string | undefined;
+    /** Args slice after the command positional. */
+    commandArgs: string[];
+    /** The matched command's config, or undefined if no command matched. */
+    commandConfig: CommandConfig | undefined;
+}
+
 // Shape of a single option in the config
 export interface OptionConfig {
     type: 'string' | 'boolean';
@@ -88,6 +101,8 @@ export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt ext
     readonly __optionExt?: OptionExt;
     /** @internal marker to carry the config extension at the type level */
     readonly __configExt?: ConfigExt;
+    /** Execution priority. Lower values run transformConfig earlier and transformResult later. Default: 0. */
+    readonly order?: number;
 };
 
 // Extract the option extension type from a single middleware
@@ -189,6 +204,32 @@ export type ParseArgsPlusResultFromExtended<T extends ParseArgsPlusConfigWithMid
     : T extends { tokens: true }
       ? ParseArgsPlusResultBaseWithTokens
       : ParseArgsPlusResultBase;
+
+// ---------------------------------------------------------------------------
+// Commands middleware
+// ---------------------------------------------------------------------------
+
+/** Configuration for a single command. */
+export interface CommandConfig {
+    /** Human-readable description of the command. */
+    description?: string;
+    /** Options specific to this command. */
+    options?: Record<string, OptionConfig>;
+    /** Whether this command accepts positional arguments. Default: false. */
+    allowPositionals?: boolean;
+}
+
+/** Extension that the commands middleware adds to the top-level config. */
+export interface CommandsConfigExtension {
+    /** Map of command names to their configurations. */
+    commands: Record<string, CommandConfig>;
+    /** Command to use when no command is specified or the first positional doesn't match any command. */
+    defaultCommand?: string;
+}
+
+/** The commands middleware does not extend individual option configs. */
+// biome-ignore lint/complexity/noBannedTypes: empty extension is intentional
+export type CommandsOptionExtension = {};
 
 // ---------------------------------------------------------------------------
 // Help middleware
