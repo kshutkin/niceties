@@ -1872,6 +1872,267 @@ describe('node-parseargs-plus', () => {
         });
     });
 
+    describe('help text wrapping', () => {
+        let exitSpy;
+        let consoleLogSpy;
+        let originalColumns;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            originalColumns = process.stdout.columns;
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+            Object.defineProperty(process.stdout, 'columns', {
+                value: originalColumns,
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        function setTerminalWidth(width) {
+            Object.defineProperty(process.stdout, 'columns', {
+                value: width,
+                writable: true,
+                configurable: true,
+            });
+        }
+
+        function getHelpOutput() {
+            return consoleLogSpy.mock.calls.map(c => c.join(' ')).join('\n');
+        }
+
+        function triggerHelp(config) {
+            expect(() => parseArgsPlus({ ...config, args: ['--help'] }, [help])).toThrow('process.exit called');
+        }
+
+        it('wraps long option descriptions to terminal width', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description: 'Path to an output file where the greeting will be written instead of stdout',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Every line should fit within 60 columns
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(60);
+            }
+            // Content should still be present (check individual words since wrapping may split phrases)
+            expect(output).toContain('Path');
+            expect(output).toContain('output file');
+            expect(output).toContain('greeting');
+            expect(output).toContain('written');
+            expect(output).toContain('stdout');
+        });
+
+        it('wraps continuation lines aligned to description column for options', () => {
+            setTerminalWidth(50);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    name: {
+                        type: 'string',
+                        description: 'A very long description that should definitely wrap to the next line at this width',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Find lines containing the description
+            const descLines = outputLines.filter(
+                l => l.includes('A very long') || (l.match(/^\s+/) && l.trim().length > 0 && !l.includes('--'))
+            );
+            // Continuation lines should be indented to align with the description column
+            for (let i = 1; i < descLines.length; i++) {
+                const leadingSpaces = descLines[i].match(/^(\s*)/)[1].length;
+                // Should be indented at least past the flags column
+                expect(leadingSpaces).toBeGreaterThan(4);
+            }
+        });
+
+        it('wraps long description text in the header area', () => {
+            setTerminalWidth(40);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                description: 'A feature-rich command-line tool for greeting people in various ways and formats',
+                options: {},
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(40);
+            }
+            expect(output).toContain('feature-rich');
+            expect(output).toContain('formats');
+        });
+
+        it('wraps section text with 2-space indent', () => {
+            setTerminalWidth(30);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {},
+                helpSections: {
+                    notes: {
+                        title: 'Notes',
+                        text: 'This is a rather long note that should wrap nicely at the terminal boundary',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(30);
+            }
+            expect(output).toContain('This is a rather');
+            expect(output).toContain('terminal boundary');
+        });
+
+        it('does not wrap when terminal width is not available', () => {
+            // Set columns to undefined to simulate piped output
+            Object.defineProperty(process.stdout, 'columns', {
+                value: undefined,
+                writable: true,
+                configurable: true,
+            });
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description:
+                            'A very long description that would normally be wrapped but should remain on a single line when there is no terminal width available',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // The full description should appear on one line (no wrapping)
+            expect(output).toContain(
+                'A very long description that would normally be wrapped but should remain on a single line when there is no terminal width available'
+            );
+        });
+
+        it('wraps command descriptions in global help', () => {
+            setTerminalWidth(50);
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            install: {
+                                description:
+                                    'Install all required packages and dependencies from the registry into the local node_modules folder',
+                            },
+                        },
+                        args: ['--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(50);
+            }
+            expect(output).toContain('Install all required');
+            expect(output).toContain('node_modules folder');
+        });
+
+        it('handles single word longer than available width without breaking', () => {
+            setTerminalWidth(30);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    x: {
+                        type: 'boolean',
+                        description: 'Supercalifragilisticexpialidocious effect',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // The long word should still appear intact (not broken mid-word)
+            expect(output).toContain('Supercalifragilisticexpialidocious');
+            expect(output).toContain('effect');
+        });
+
+        it('wraps array text in helpSections line by line', () => {
+            setTerminalWidth(35);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {},
+                helpSections: {
+                    examples: {
+                        title: 'Examples',
+                        text: [
+                            'Run the tool with default settings and see what happens next',
+                            'Run with verbose output enabled for detailed diagnostics',
+                        ],
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(35);
+            }
+            // Check individual words since wrapping may split phrases across lines
+            expect(output).toContain('default');
+            expect(output).toContain('settings');
+            expect(output).toContain('verbose');
+            expect(output).toContain('diagnostics');
+        });
+
+        it('preserves all content when wrapping at narrow width', () => {
+            setTerminalWidth(40);
+            triggerHelp({
+                name: 'my-cli',
+                version: '1.2.3',
+                description: 'A feature-rich command-line tool for greeting people in various ways',
+                options: {
+                    name: {
+                        type: 'string',
+                        description: 'The name of the person or entity to greet with a friendly message',
+                    },
+                    loud: {
+                        type: 'boolean',
+                        description: 'Convert the entire output to uppercase for maximum visibility',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // All meaningful words should still be present
+            expect(output).toContain('feature-rich');
+            expect(output).toContain('greeting');
+            expect(output).toContain('person');
+            expect(output).toContain('entity');
+            expect(output).toContain('uppercase');
+            expect(output).toContain('visibility');
+            expect(output).toContain('--name');
+            expect(output).toContain('--loud');
+            expect(output).toContain('--help');
+            expect(output).toContain('--version');
+        });
+    });
+
     describe('commands middleware edge cases', () => {
         it('parses command when global options is not provided', () => {
             const result = parseArgsPlus(

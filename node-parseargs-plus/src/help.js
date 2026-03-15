@@ -1,3 +1,5 @@
+import process from 'node:process';
+
 import { whiteBright } from '@niceties/ansi';
 
 /**
@@ -5,6 +7,71 @@ import { whiteBright } from '@niceties/ansi';
  * set by the commands middleware during transformConfig.
  */
 const kCommandState = Symbol.for('parseArgsPlus.commandState');
+
+/**
+ * Returns the current terminal width, or undefined if not available (e.g. piped output).
+ * @returns {number | undefined}
+ */
+function getTerminalWidth() {
+    return process.stdout?.columns;
+}
+
+/**
+ * Wraps a single line of text to fit within `width` columns, word-breaking at spaces.
+ * The first line is assumed to already occupy `currentCol` columns (i.e. the text
+ * starts at that column position). Continuation lines are indented to `indent` columns.
+ * If a single word exceeds the available width it is placed on its own line unbroken.
+ *
+ * When `width` is undefined (no TTY) the text is returned as-is in a single-element array.
+ *
+ * @param {string} text        The text to wrap.
+ * @param {number} indent      Number of columns to indent continuation lines.
+ * @param {number | undefined} width  Terminal width (columns), or undefined to skip wrapping.
+ * @param {number} [currentCol] Column position where text starts on the first line.
+ * @returns {string[]}  Array of lines (without trailing newlines).
+ */
+function wrapText(text, indent, width, currentCol) {
+    if (width == null) {
+        return [text];
+    }
+    if (currentCol == null) {
+        currentCol = indent;
+    }
+
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) {
+        return [''];
+    }
+
+    /** @type {string[]} */
+    const lines = [];
+    let line = '';
+    let col = currentCol;
+
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        if (line.length === 0) {
+            // First word on this line — always accept it
+            line = word;
+            col = col + word.length;
+        } else if (col + 1 + word.length <= width) {
+            // Fits on current line
+            // biome-ignore lint/style/useTemplate: optimization
+            line += ' ' + word;
+            col += 1 + word.length;
+        } else {
+            // Wrap to next line
+            lines.push(line);
+            line = word;
+            col = indent + word.length;
+        }
+    }
+    if (line.length > 0) {
+        lines.push(line);
+    }
+
+    return lines;
+}
 
 /**
  * Help middleware that adds --help/-h and --version/-v flag support.
@@ -101,12 +168,19 @@ function buildOptionsText(options, includeHelpVersion = true) {
         rows.push({ flags, description });
     }
 
+    const descriptionCol = maxFlagsLen + 2;
+    const termWidth = getTerminalWidth();
+
     /** @type {string[]} */
     const lines = [];
     for (const row of rows) {
         const padding = ' '.repeat(maxFlagsLen - row.flags.length + 2);
         if (row.description) {
-            lines.push(`${row.flags}${padding}${row.description}`);
+            const wrapped = wrapText(row.description, descriptionCol, termWidth, descriptionCol);
+            lines.push(`${row.flags}${padding}${wrapped[0]}`);
+            for (let i = 1; i < wrapped.length; i++) {
+                lines.push(' '.repeat(descriptionCol) + wrapped[i]);
+            }
         } else {
             lines.push(row.flags);
         }
@@ -133,12 +207,20 @@ function buildCommandsText(commands) {
         rows.push({ name, description });
     }
 
+    // "  " + name column + gap of 2
+    const descriptionCol = 2 + maxNameLen + 2;
+    const termWidth = getTerminalWidth();
+
     /** @type {string[]} */
     const lines = [];
     for (const row of rows) {
         const padding = ' '.repeat(maxNameLen - row.name.length + 2);
         if (row.description) {
-            lines.push(`  ${row.name}${padding}${row.description}`);
+            const wrapped = wrapText(row.description, descriptionCol, termWidth, descriptionCol);
+            lines.push(`  ${row.name}${padding}${wrapped[0]}`);
+            for (let i = 1; i < wrapped.length; i++) {
+                lines.push(' '.repeat(descriptionCol) + wrapped[i]);
+            }
         } else {
             lines.push(`  ${row.name}`);
         }
@@ -154,9 +236,22 @@ function buildCommandsText(commands) {
 function printSection(section) {
     console.log(whiteBright(`${section.title}:`));
     if (section.text != null) {
-        const lines = Array.isArray(section.text) ? section.text : [section.text];
-        for (const line of lines) {
-            console.log(`  ${line}`);
+        const textLines = Array.isArray(section.text) ? section.text : [section.text];
+        const termWidth = getTerminalWidth();
+        const indent = 2;
+        for (const line of textLines) {
+            // Lines from buildOptionsText / buildCommandsText already have leading
+            // spaces and were already wrapped by those builders. Print them as-is.
+            if (line.startsWith('  ')) {
+                console.log(line);
+            } else {
+                // Plain section text — wrap with 2-space indent
+                const wrapped = wrapText(line, indent, termWidth, indent);
+                console.log(`  ${wrapped[0]}`);
+                for (let i = 1; i < wrapped.length; i++) {
+                    console.log(' '.repeat(indent) + wrapped[i]);
+                }
+            }
         }
     }
     console.log('');
@@ -192,7 +287,9 @@ function renderHelp(header, description, sections, userSections) {
     console.log(header + '\n');
 
     if (description) {
-        console.log(description, '\n');
+        const termWidth = getTerminalWidth();
+        const wrapped = wrapText(description, 0, termWidth, 0);
+        console.log(wrapped.join('\n'), '\n');
     }
 
     // Merge in any user-defined custom sections (non-standard ids)
