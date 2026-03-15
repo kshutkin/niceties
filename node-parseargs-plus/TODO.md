@@ -1,3 +1,2 @@
-- examples
 - commands
 - parameters
