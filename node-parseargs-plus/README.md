@@ -1,6 +1,6 @@
 # @niceties/node-parseargs-plus
 
-Enhanced wrapper around Node.js built-in [`util.parseArgs`](https://nodejs.org/api/util.html#utilparseargsconfig) with typed results, a middleware system, and built-in help/version support.
+Enhanced wrapper around Node.js built-in [`util.parseArgs`](https://nodejs.org/api/util.html#utilparseargsconfig) with typed results, a middleware system, and built-in help/version/commands/parameters support.
 
 ## Installation
 
@@ -114,6 +114,110 @@ The middleware extends the config with these top-level fields:
 | `helpSections` | `Record<string, HelpSection>` | no       | Custom or overridden help sections (see below).                 |
 
 It also extends each option with an optional `description` field that is displayed in the options table.
+
+### `parameters` middleware
+
+```js
+import { parameters } from "@niceties/node-parseargs-plus/parameters";
+```
+
+Adds typed positional parameter support. Instead of working with a raw `positionals` array, you declare named parameters and get a strongly-typed `parameters` object in the result.
+
+```js
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { help } from "@niceties/node-parseargs-plus/help";
+import { parameters } from "@niceties/node-parseargs-plus/parameters";
+
+const result = parseArgsPlus(
+    {
+        name: "deploy",
+        version: "0.5.0",
+        description: "Deploy packages to a target environment.",
+        options: {
+            verbose: {
+                type: "boolean",
+                short: "V",
+                description: "Enable verbose logging.",
+            },
+            registry: {
+                type: "string",
+                short: "r",
+                description: "Package registry URL.",
+            },
+        },
+        parameters: ["<environment>", "[packages...]"],
+    },
+    [help, parameters],
+);
+
+// result.parameters.environment → string          (required)
+// result.parameters.packages   → string[] | undefined (optional spread)
+// result.values.verbose        → boolean | undefined
+```
+
+#### Parameter syntax
+
+Each string in the `parameters` array must use one of these patterns:
+
+| Syntax      | Meaning                                 | Result type             |
+| ----------- | --------------------------------------- | ----------------------- |
+| `<name>`    | Required single value                   | `string`                |
+| `[name]`    | Optional single value                   | `string \| undefined`   |
+| `<name...>` | Required variadic (one or more values)  | `string[]`              |
+| `[name...]` | Optional variadic (zero or more values) | `string[] \| undefined` |
+
+Parameter names may contain letters, digits, spaces, and hyphens. They are converted to **camelCase** in the result object:
+
+- `<package name>` → `parameters.packageName`
+- `<save-dev>` → `parameters.saveDev`
+- `[input files...]` → `parameters.inputFiles`
+
+#### Validation rules
+
+These rules are enforced at **both** compile time (TypeScript) and runtime:
+
+1. **Required before optional** — all `<required>` parameters must come before `[optional]` ones.
+2. **At most one spread** — only one `...` parameter is allowed.
+3. **Spread is last** — the spread parameter must be the last in the array.
+
+Invalid configurations produce a compile-time error and throw at runtime:
+
+```js
+// ❌ TypeScript error: required after optional
+parameters: ["[opt]", "<req>"];
+
+// ❌ TypeScript error: spread not last
+parameters: ["<files...>", "<name>"];
+
+// ❌ TypeScript error: multiple spreads
+parameters: ["<a...>", "<b...>"];
+```
+
+#### Config extension
+
+The middleware extends the config with:
+
+| Property     | Type                | Required | Description                                          |
+| ------------ | ------------------- | -------- | ---------------------------------------------------- |
+| `parameters` | `readonly string[]` | yes      | Positional parameter definitions (see syntax above). |
+
+#### Result extension
+
+The middleware adds a `parameters` object to the result, with keys derived from the parameter names and types inferred from the syntax (required vs optional, single vs spread).
+
+#### Middleware ordering
+
+| `transformConfig.order` | `transformResult.order` | Rationale                                                                   |
+| ----------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| `0` (default)           | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help. |
+
+### `commands` middleware
+
+```js
+import { commands } from "@niceties/node-parseargs-plus/commands";
+```
+
+Adds subcommand support with a two-pass parsing strategy. See the [commands + help cooperation](#commands--help-cooperation) section below for details on how they work together.
 
 ## Custom Help Sections
 
@@ -256,11 +360,12 @@ const result = parseArgsPlus(
 
 Each transform function can declare its own execution priority via the `order` property. Defaults to `0`.
 
-| Middleware  | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
-| ----------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
-| `help`      | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
-| _(default)_ | `0`                     | `0`                     | Normal priority.                                                                                 |
-| `commands`  | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
+| Middleware   | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
+| ------------ | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `help`       | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
+| _(default)_  | `0`                     | `0`                     | Normal priority.                                                                                 |
+| `parameters` | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
+| `commands`   | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
 
 Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter — `[help, commands]` and `[commands, help]` behave identically.
 

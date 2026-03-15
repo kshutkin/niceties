@@ -1,6 +1,7 @@
 import { parseArgsPlus } from '@niceties/node-parseargs-plus';
 import { commands } from '@niceties/node-parseargs-plus/commands';
 import { help } from '@niceties/node-parseargs-plus/help';
+import { parameters } from '@niceties/node-parseargs-plus/parameters';
 
 // Helper: assert that two types are exactly equal
 type IsExact<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
@@ -674,3 +675,217 @@ type _47c = Assert<IsExact<R47Build['values']['verbose'], boolean | undefined>>;
 // In the no-command arm, `output` is optional (no default globally)
 type R47None = Extract<R47, { command: undefined }>;
 type _47d = Assert<IsExact<R47None['values']['output'], string | undefined>>;
+
+// ---------------------------------------------------------------------------
+// Parameters middleware type tests
+// ---------------------------------------------------------------------------
+
+// 48. Single required parameter → { version: string }
+const r48 = parseArgsPlus(
+    {
+        parameters: ['<version>'],
+        args: ['1.0.0'],
+    },
+    [parameters]
+);
+type _48a = Assert<IsExact<typeof r48.parameters, { version: string }>>;
+
+// 49. Single optional parameter → { name?: string }
+const r49 = parseArgsPlus(
+    {
+        parameters: ['[name]'],
+        args: [],
+    },
+    [parameters]
+);
+type _49a = Assert<IsExact<typeof r49.parameters, { name?: string }>>;
+
+// 50. Required + optional parameter → { name: string; version?: string }
+const r50 = parseArgsPlus(
+    {
+        parameters: ['<name>', '[version]'],
+        args: ['my-pkg'],
+    },
+    [parameters]
+);
+type _50a = Assert<IsExact<typeof r50.parameters, { name: string; version?: string }>>;
+
+// 51. Required spread → { files: string[] }
+const r51 = parseArgsPlus(
+    {
+        parameters: ['<files...>'],
+        args: ['a.txt'],
+    },
+    [parameters]
+);
+type _51a = Assert<IsExact<typeof r51.parameters, { files: string[] }>>;
+
+// 52. Optional spread → { files?: string[] }
+const r52 = parseArgsPlus(
+    {
+        parameters: ['[files...]'],
+        args: [],
+    },
+    [parameters]
+);
+type _52a = Assert<IsExact<typeof r52.parameters, { files?: string[] }>>;
+
+// 53. Required + required spread → { name: string; files: string[] }
+const r53 = parseArgsPlus(
+    {
+        parameters: ['<name>', '<files...>'],
+        args: ['pkg', 'a.txt'],
+    },
+    [parameters]
+);
+type _53a = Assert<IsExact<typeof r53.parameters, { name: string; files: string[] }>>;
+
+// 54. Required + optional spread → { name: string; files?: string[] }
+const r54 = parseArgsPlus(
+    {
+        parameters: ['<name>', '[files...]'],
+        args: ['pkg'],
+    },
+    [parameters]
+);
+type _54a = Assert<IsExact<typeof r54.parameters, { name: string; files?: string[] }>>;
+
+// 55. Space-separated names are camelCased → { packageName: string }
+const r55 = parseArgsPlus(
+    {
+        parameters: ['<package name>'],
+        args: ['my-pkg'],
+    },
+    [parameters]
+);
+type _55a = Assert<IsExact<typeof r55.parameters, { packageName: string }>>;
+
+// 56. Hyphenated names are camelCased → { saveDev: string }
+const r56 = parseArgsPlus(
+    {
+        parameters: ['<save-dev>'],
+        args: ['true'],
+    },
+    [parameters]
+);
+type _56a = Assert<IsExact<typeof r56.parameters, { saveDev: string }>>;
+
+// 57. Mixed required, optional, and spread with camelCase
+const r57 = parseArgsPlus(
+    {
+        parameters: ['<package name>', '[output dir...]'],
+        args: ['my-pkg', 'dist'],
+    },
+    [parameters]
+);
+type _57a = Assert<IsExact<typeof r57.parameters, { packageName: string; outputDir?: string[] }>>;
+
+// 58. Parameters with options → both values and parameters are typed
+const r58 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        parameters: ['<name>', '[version]'],
+        args: ['-v' as string, 'pkg' as string],
+    },
+    [parameters]
+);
+type _58a = Assert<IsExact<typeof r58.values.verbose, boolean | undefined>>;
+type _58b = Assert<IsExact<typeof r58.parameters, { name: string; version?: string }>>;
+
+// 59. Parameters with help middleware → values, parameters all typed
+const r59 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Enable verbose' },
+        },
+        parameters: ['<name>', '[version]'],
+        args: ['pkg'],
+    },
+    [help, parameters]
+);
+type _59a = Assert<IsExact<typeof r59.values.verbose, boolean | undefined>>;
+type _59b = Assert<IsExact<typeof r59.parameters, { name: string; version?: string }>>;
+
+// 60. Empty parameters array → parameters is Record<string, never>
+const r60 = parseArgsPlus(
+    {
+        parameters: [],
+        args: [],
+    },
+    [parameters]
+);
+type _60a = Assert<IsExact<typeof r60.parameters, Record<string, never>>>;
+
+// 61. Parameters with tokens: true still works
+const r61 = parseArgsPlus(
+    {
+        parameters: ['<name>'],
+        tokens: true,
+        args: ['hello'],
+    },
+    [parameters]
+);
+type _61a = Assert<IsExact<typeof r61.parameters, { name: string }>>;
+type _61b = Assert<'tokens' extends keyof typeof r61 ? true : false>;
+
+// 62. Multiple required parameters → all required in output
+const r62 = parseArgsPlus(
+    {
+        parameters: ['<source>', '<destination>'],
+        args: ['a', 'b'],
+    },
+    [parameters]
+);
+type _62a = Assert<IsExact<typeof r62.parameters, { source: string; destination: string }>>;
+
+// 63. Multiple optional parameters → all optional in output
+const r63 = parseArgsPlus(
+    {
+        parameters: ['[source]', '[destination]'],
+        args: [],
+    },
+    [parameters]
+);
+type _63a = Assert<IsExact<typeof r63.parameters, { source?: string; destination?: string }>>;
+
+// 64. Complex: required + optional + optional spread
+const r64 = parseArgsPlus(
+    {
+        parameters: ['<command>', '[targets...]'],
+        args: ['build', 'src'],
+    },
+    [parameters]
+);
+type _64a = Assert<IsExact<typeof r64.parameters, { command: string; targets?: string[] }>>;
+
+// ---------------------------------------------------------------------------
+// Parameters validation type tests (compile-time errors)
+// ---------------------------------------------------------------------------
+
+// 65. Invalid parameter strings should fail (uncomment to verify error):
+// const rInvalid1 = parseArgsPlus(
+//     { parameters: ['name'], args: [] },              // ← no brackets
+//     [parameters]
+// );
+
+// 66. Required after optional should fail (uncomment to verify error):
+// const rInvalid2 = parseArgsPlus(
+//     { parameters: ['[opt]', '<req>'], args: [] },    // ← required after optional
+//     [parameters]
+// );
+
+// 67. Spread not at end should fail (uncomment to verify error):
+// const rInvalid3 = parseArgsPlus(
+//     { parameters: ['<a...>', '<b>'], args: [] },     // ← spread not last
+//     [parameters]
+// );
+
+// 68. Multiple spreads should fail (uncomment to verify error):
+// const rInvalid4 = parseArgsPlus(
+//     { parameters: ['<a...>', '<b...>'], args: [] },  // ← two spreads
+//     [parameters]
+// );

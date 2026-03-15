@@ -5,6 +5,7 @@ import { whiteBright } from '@niceties/ansi';
 import { commands } from '../src/commands.js';
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';
+import { parameters } from '../src/parameters.js';
 
 describe('node-parseargs-plus', () => {
     describe('parseArgsPlus without middlewares', () => {
@@ -2476,6 +2477,351 @@ describe('node-parseargs-plus', () => {
             } finally {
                 process.argv = originalArgv;
             }
+        });
+    });
+
+    describe('parameters middleware', () => {
+        it('parses a single required parameter', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<version>'],
+                    args: ['1.0.0'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ version: '1.0.0' });
+        });
+
+        it('parses multiple required parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '<version>'],
+                    args: ['my-pkg', '2.0.0'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', version: '2.0.0' });
+        });
+
+        it('parses a single optional parameter when provided', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['[name]'],
+                    args: ['hello'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'hello' });
+        });
+
+        it('parses a single optional parameter when not provided', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['[name]'],
+                    args: [],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: undefined });
+        });
+
+        it('parses required followed by optional parameter', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '[version]'],
+                    args: ['my-pkg', '1.0.0'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', version: '1.0.0' });
+        });
+
+        it('parses required followed by optional parameter when optional is missing', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '[version]'],
+                    args: ['my-pkg'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', version: undefined });
+        });
+
+        it('parses a required spread parameter', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<files...>'],
+                    args: ['a.txt', 'b.txt', 'c.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ files: ['a.txt', 'b.txt', 'c.txt'] });
+        });
+
+        it('parses an optional spread parameter when provided', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['[files...]'],
+                    args: ['a.txt', 'b.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ files: ['a.txt', 'b.txt'] });
+        });
+
+        it('parses an optional spread parameter when not provided', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['[files...]'],
+                    args: [],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ files: undefined });
+        });
+
+        it('parses required parameter followed by required spread', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '<files...>'],
+                    args: ['my-pkg', 'a.txt', 'b.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', files: ['a.txt', 'b.txt'] });
+        });
+
+        it('parses required parameter followed by optional spread', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '[files...]'],
+                    args: ['my-pkg', 'a.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', files: ['a.txt'] });
+        });
+
+        it('parses required parameter followed by optional spread when spread is empty', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<name>', '[files...]'],
+                    args: ['my-pkg'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', files: undefined });
+        });
+
+        it('converts space-separated parameter names to camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<package name>'],
+                    args: ['my-pkg'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ packageName: 'my-pkg' });
+        });
+
+        it('converts hyphenated parameter names to camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<save-dev>'],
+                    args: ['true'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ saveDev: 'true' });
+        });
+
+        it('converts multi-word spread parameter names to camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['[input files...]'],
+                    args: ['a.txt', 'b.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ inputFiles: ['a.txt', 'b.txt'] });
+        });
+
+        it('throws on missing required parameter', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['<name>'],
+                        args: [],
+                    },
+                    [parameters]
+                );
+            }).toThrow("Missing required parameter '<name>'.");
+        });
+
+        it('throws on missing required spread parameter', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['<files...>'],
+                        args: [],
+                    },
+                    [parameters]
+                );
+            }).toThrow("Missing required parameter '<files...>'.");
+        });
+
+        it('throws on required after optional at runtime', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['[opt]', '<req>'],
+                        args: ['a', 'b'],
+                    },
+                    [parameters]
+                );
+            }).toThrow("Required parameter '<req>' cannot appear after an optional parameter.");
+        });
+
+        it('throws on more than one spread parameter at runtime', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['<a...>', '<b...>'],
+                        args: ['x'],
+                    },
+                    [parameters]
+                );
+            }).toThrow('Spread parameter must be the last parameter.');
+        });
+
+        it('throws on spread parameter not at the end at runtime', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['<files...>', '<name>'],
+                        args: ['a', 'b'],
+                    },
+                    [parameters]
+                );
+            }).toThrow('Spread parameter must be the last parameter.');
+        });
+
+        it('throws on invalid parameter format', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        parameters: ['name'],
+                        args: ['hello'],
+                    },
+                    [parameters]
+                );
+            }).toThrow("Invalid parameter definition: 'name'.");
+        });
+
+        it('enables allowPositionals in config transform', () => {
+            const transformConfig = parameters[0];
+            const result = transformConfig({
+                parameters: ['<name>'],
+                args: ['hello'],
+            });
+            expect(result.allowPositionals).toBe(true);
+        });
+
+        it('passes through when no parameters config', () => {
+            const result = parseArgsPlus(
+                {
+                    args: [],
+                    strict: false,
+                },
+                [parameters]
+            );
+            expect(result.parameters).toBeUndefined();
+        });
+
+        it('passes through when parameters is empty array', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: [],
+                    args: [],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toBeUndefined();
+        });
+
+        it('is a valid middleware tuple', () => {
+            expect(Array.isArray(parameters)).toBe(true);
+            expect(parameters).toHaveLength(2);
+            expect(typeof parameters[0]).toBe('function');
+            expect(typeof parameters[1]).toBe('function');
+        });
+
+        it('has resultOrder 5 on transformResult', () => {
+            expect(parameters[1].order).toBe(5);
+        });
+
+        it('works with options alongside parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean', short: 'v' },
+                    },
+                    parameters: ['<name>'],
+                    args: ['-v', 'hello'],
+                },
+                [parameters]
+            );
+            expect(result.values.verbose).toBe(true);
+            expect(result.parameters).toEqual({ name: 'hello' });
+        });
+
+        it('works with help middleware', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    parameters: ['<name>', '[version]'],
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    args: ['my-pkg', '2.0.0'],
+                },
+                [help, parameters]
+            );
+            expect(result.parameters).toEqual({ name: 'my-pkg', version: '2.0.0' });
+        });
+
+        it('handles required spread with single value', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<files...>'],
+                    args: ['only-one.txt'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ files: ['only-one.txt'] });
+        });
+
+        it('handles complex scenario with required, optional, and spread', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<command>', '[targets...]'],
+                    args: ['build', 'src', 'lib'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ command: 'build', targets: ['src', 'lib'] });
+        });
+
+        it('handles complex scenario with optional spread not provided', () => {
+            const result = parseArgsPlus(
+                {
+                    parameters: ['<command>', '[targets...]'],
+                    args: ['build'],
+                },
+                [parameters]
+            );
+            expect(result.parameters).toEqual({ command: 'build', targets: undefined });
         });
     });
 });

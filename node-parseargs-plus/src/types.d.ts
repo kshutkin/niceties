@@ -361,6 +361,15 @@ type CommandUnion<
 // Extended result type (with middleware result extensions)
 // ---------------------------------------------------------------------------
 
+/** Helper: conditionally intersect with parameters result when the marker is present */
+type MaybeWithParameters<
+    Base,
+    // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
+    T extends Record<string, any>,
+    // biome-ignore lint/suspicious/noExplicitAny: result extension is open-ended
+    RE extends Record<string, any>,
+> = RE extends ResultParametersMarker ? Base & BuildParametersResult<T> : Base;
+
 export type ParseArgsPlusResultFromExtended<
     // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
     T extends ParseArgsPlusConfigWithMiddleware<any, any>,
@@ -376,39 +385,47 @@ export type ParseArgsPlusResultFromExtended<
               options: infer O extends Record<string, any>;
               commands: infer C extends Record<string, CommandConfig>;
           }
-            ? CommandUnion<MergeExtraValues<StripExtFromOptions<O>, RE>, C, T extends { tokens: true } ? true : false>
+            ? MaybeWithParameters<
+                  CommandUnion<MergeExtraValues<StripExtFromOptions<O>, RE>, C, T extends { tokens: true } ? true : false>,
+                  T,
+                  RE
+              >
             : T extends { commands: infer C extends Record<string, CommandConfig> }
-              ? // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no options
-                CommandUnion<RE extends ResultExtraValues ? RE['extraValues'] : {}, C, T extends { tokens: true } ? true : false>
+              ? MaybeWithParameters<
+                    // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no options
+                    CommandUnion<RE extends ResultExtraValues ? RE['extraValues'] : {}, C, T extends { tokens: true } ? true : false>,
+                    T,
+                    RE
+                >
               : T extends {
                       // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
                       options: infer O extends Record<string, any>;
                   }
                 ? T extends { tokens: true }
-                    ? ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>
-                    : ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>
+                    ? MaybeWithParameters<ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>, T, RE>
+                    : MaybeWithParameters<ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>, T, RE>
                 : RE extends ResultExtraValues
                   ? T extends { tokens: true }
-                      ? ParseArgsPlusResultTypedWithTokens<RE['extraValues']>
-                      : ParseArgsPlusResultTyped<RE['extraValues']>
+                      ? MaybeWithParameters<ParseArgsPlusResultTypedWithTokens<RE['extraValues']>, T, RE>
+                      : MaybeWithParameters<ParseArgsPlusResultTyped<RE['extraValues']>, T, RE>
                   : T extends { tokens: true }
-                    ? ParseArgsPlusResultBaseWithTokens
-                    : ParseArgsPlusResultBase
+                    ? MaybeWithParameters<ParseArgsPlusResultBaseWithTokens, T, RE>
+                    : MaybeWithParameters<ParseArgsPlusResultBase, T, RE>
         : // No command discriminant — just merge extra values if any
           T extends {
                 // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
                 options: infer O extends Record<string, any>;
             }
           ? T extends { tokens: true }
-              ? ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>
-              : ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>
+              ? MaybeWithParameters<ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>, T, RE>
+              : MaybeWithParameters<ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>, T, RE>
           : RE extends ResultExtraValues
             ? T extends { tokens: true }
-                ? ParseArgsPlusResultTypedWithTokens<RE['extraValues']>
-                : ParseArgsPlusResultTyped<RE['extraValues']>
+                ? MaybeWithParameters<ParseArgsPlusResultTypedWithTokens<RE['extraValues']>, T, RE>
+                : MaybeWithParameters<ParseArgsPlusResultTyped<RE['extraValues']>, T, RE>
             : T extends { tokens: true }
-              ? ParseArgsPlusResultBaseWithTokens
-              : ParseArgsPlusResultBase;
+              ? MaybeWithParameters<ParseArgsPlusResultBaseWithTokens, T, RE>
+              : MaybeWithParameters<ParseArgsPlusResultBase, T, RE>;
 
 // ---------------------------------------------------------------------------
 // Commands middleware
@@ -486,3 +503,194 @@ export interface HelpResultExtension extends ResultExtraValues {
         version: { type: 'boolean' };
     };
 }
+
+// ---------------------------------------------------------------------------
+// Parameters middleware
+// ---------------------------------------------------------------------------
+
+/**
+ * A valid parameter string is one of:
+ *   `<name>`       – required single value
+ *   `[name]`       – optional single value
+ *   `<name...>`    – required variadic (spread)
+ *   `[name...]`    – optional variadic (spread)
+ *
+ * Names may contain letters, digits, hyphens, and spaces.
+ */
+
+/** Check if a string is a valid required parameter `<name>` or `<name...>` */
+type IsRequiredParam<S extends string> = S extends `<${string}>` ? true : false;
+
+/** Check if a string is a valid optional parameter `[name]` or `[name...]` */
+type IsOptionalParam<S extends string> = S extends `[${string}]` ? true : false;
+
+/** Check if a parameter is variadic (spread) */
+type IsSpread<S extends string> = S extends `<${string}...>` ? true : S extends `[${string}...]` ? true : false;
+
+/** Extract the raw name from a parameter string */
+type ExtractParamRawName<S extends string> = S extends `<${infer Name}...>`
+    ? Name
+    : S extends `[${infer Name}...]`
+      ? Name
+      : S extends `<${infer Name}>`
+        ? Name
+        : S extends `[${infer Name}]`
+          ? Name
+          : never;
+
+/**
+ * Convert a kebab-case / space-separated parameter name to camelCase.
+ * e.g. "package name" → "packageName", "save-dev" → "saveDev"
+ */
+type CamelCase<S extends string> = S extends `${infer Head} ${infer Tail}`
+    ? `${Lowercase<Head>}${CamelCasePascal<Tail>}`
+    : S extends `${infer Head}-${infer Tail}`
+      ? `${Lowercase<Head>}${CamelCasePascal<Tail>}`
+      : Lowercase<S>;
+
+/** Capitalize the first letter then continue camelCasing */
+type CamelCasePascal<S extends string> = S extends `${infer Head} ${infer Tail}`
+    ? `${Capitalize<Lowercase<Head>>}${CamelCasePascal<Tail>}`
+    : S extends `${infer Head}-${infer Tail}`
+      ? `${Capitalize<Lowercase<Head>>}${CamelCasePascal<Tail>}`
+      : Capitalize<Lowercase<S>>;
+
+/** Get the camelCase key name for a parameter string */
+type ParamKey<S extends string> = CamelCase<ExtractParamRawName<S>>;
+
+/** Get the value type for a parameter string */
+type ParamValueType<S extends string> = IsSpread<S> extends true ? string[] : string;
+
+// ---------------------------------------------------------------------------
+// Parameter list validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that a single parameter string matches one of the allowed patterns:
+ *   `<name>`, `[name]`, `<name...>`, `[name...]`
+ *
+ * Returns the string itself when valid, or `never` when invalid.
+ */
+type ValidateParamString<S extends string> = IsRequiredParam<S> extends true ? S : IsOptionalParam<S> extends true ? S : never;
+
+/**
+ * Count the number of spread parameters in a tuple.
+ */
+type CountSpreads<T extends readonly string[], Acc extends readonly 0[] = []> = T extends readonly [
+    infer Head extends string,
+    ...infer Tail extends string[],
+]
+    ? IsSpread<Head> extends true
+        ? CountSpreads<Tail, [...Acc, 0]>
+        : CountSpreads<Tail, Acc>
+    : Acc['length'];
+
+/**
+ * Check that no required parameters appear after an optional one.
+ * Returns `true` when order is valid, `false` otherwise.
+ */
+type ValidateParamOrder<T extends readonly string[], SeenOptional extends boolean = false> = T extends readonly [
+    infer Head extends string,
+    ...infer Tail extends string[],
+]
+    ? IsOptionalParam<Head> extends true
+        ? ValidateParamOrder<Tail, true>
+        : SeenOptional extends true
+          ? false // required after optional
+          : ValidateParamOrder<Tail, false>
+    : true;
+
+/**
+ * Check that spread parameters only appear at the end.
+ * Returns `true` when valid, `false` otherwise.
+ */
+type ValidateSpreadIsLast<T extends readonly string[]> = T extends readonly [infer Head extends string, ...infer Tail extends string[]]
+    ? IsSpread<Head> extends true
+        ? Tail extends readonly []
+            ? true
+            : false
+        : ValidateSpreadIsLast<Tail>
+    : true;
+
+/**
+ * Validate a full parameters tuple:
+ * 1. Each string matches a valid pattern
+ * 2. At most one spread parameter (guaranteed by spread-is-last + single pass)
+ * 3. Spread parameter is last
+ * 4. No required parameters after optional ones
+ *
+ * Returns the tuple type itself when valid, otherwise a branded error tuple.
+ */
+type ValidateParametersTuple<T extends readonly string[]> =
+    CountSpreads<T> extends 0 | 1
+        ? ValidateSpreadIsLast<T> extends true
+            ? ValidateParamOrder<T> extends true
+                ? { [K in keyof T]: ValidateParamString<T[K] & string> }
+                : readonly ['@@error: required parameters must come before optional ones']
+            : readonly ['@@error: spread parameter must be last']
+        : readonly ['@@error: at most one spread parameter is allowed'];
+
+// ---------------------------------------------------------------------------
+// Build the parameters result object type from the tuple
+// ---------------------------------------------------------------------------
+
+/** Build the required keys portion of the parameters object */
+type RequiredParamKeys<T extends readonly string[]> = {
+    [K in keyof T & `${number}` as T[K] extends string
+        ? IsRequiredParam<T[K]> extends true
+            ? ParamKey<T[K]>
+            : never
+        : never]: T[K] extends string ? ParamValueType<T[K]> : never;
+};
+
+/** Build the optional keys portion of the parameters object */
+type OptionalParamKeys<T extends readonly string[]> = {
+    [K in keyof T & `${number}` as T[K] extends string
+        ? IsOptionalParam<T[K]> extends true
+            ? ParamKey<T[K]>
+            : never
+        : never]?: T[K] extends string ? ParamValueType<T[K]> : never;
+};
+
+/** The full parameters result object for a given tuple */
+export type ParametersResult<T extends readonly string[]> = Prettify<RequiredParamKeys<T> & OptionalParamKeys<T>>;
+
+// ---------------------------------------------------------------------------
+// Parameters middleware extension types
+// ---------------------------------------------------------------------------
+
+/** The parameters middleware does not extend individual option configs. */
+// biome-ignore lint/complexity/noBannedTypes: empty extension is intentional
+export type ParametersOptionExtension = {};
+
+/** Extension that the parameters middleware adds to the top-level config. */
+export interface ParametersConfigExtension {
+    /** Positional parameter definitions. Each string must be `<name>`, `[name]`, `<name...>`, or `[name...]`. */
+    parameters: readonly string[];
+}
+
+/**
+ * Marker interface for result extensions that produce a typed `parameters` object.
+ * The parameters middleware uses this so `parseArgsPlus` can build a
+ * per-config typed `parameters` field on the result.
+ */
+export interface ResultParametersMarker {
+    /** Marker that triggers parameters object generation from the config's `parameters`. */
+    parametersMarker: true;
+}
+
+/** Result extension for the parameters middleware. */
+export type ParametersResultExtension = ResultParametersMarker;
+
+/**
+ * Build the `{ parameters: ... }` intersection to add to the result type
+ * when the parameters middleware is active.
+ */
+type BuildParametersResult<T> = T extends { parameters: infer P extends readonly string[] }
+    ? { parameters: ParametersResult<P> }
+    : { parameters: Record<string, never> };
+
+/** Validate the `parameters` field in a config object */
+export type ValidateParameters<T> = T extends { parameters: infer P extends readonly string[] }
+    ? Omit<T, 'parameters'> & { parameters: ValidateParametersTuple<P> }
+    : T;
