@@ -24,8 +24,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(typescript@5.9.3)
       pkgprn-internal:
-        specifier: ^0.5.3
-        version: 0.5.3
+        specifier: ^0.5.5
+        version: 0.5.5
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.11.0)
@@ -929,8 +929,8 @@ packages:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
 
-  pkgprn-internal@0.5.3:
-    resolution: {integrity: sha512-90y8lVDt8FiO6ZIY2pnnJr+3U6gjIjyf9v+w2K7qWzu/VtE9ja15yhnCwqdAyBZ7ubLR2Zj6vo/vsjACQWFwzQ==}
+  pkgprn-internal@0.5.5:
+    resolution: {integrity: sha512-NIMN9VsM1JXYDBGmlmspyHrWtwctXtZzr4RbkBsyy77AgM6wFcJpK/heR6xqMHQSizkfH2TERdd2nEQEG2oPZA==}
     hasBin: true
 
   postcss@8.5.6:
@@ -1942,7 +1942,7 @@ snapshots:
 
   pify@4.0.1: {}
 
-  pkgprn-internal@0.5.3:
+  pkgprn-internal@0.5.5:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
       cleye: 2.2.1
