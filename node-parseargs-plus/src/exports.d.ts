@@ -11,14 +11,6 @@ import type {
 } from './types.d.ts';
 
 /**
- * Symbol used for cross-middleware communication of resolved command state.
- * The commands middleware stashes a {@link CommandState} on the config object
- * under this key during `transformConfig`, making it available to other
- * middlewares (e.g. help) regardless of middleware ordering.
- */
-export declare const kCommandState: import('./types.d.ts').KCommandState;
-
-/**
  * Enhanced wrapper around Node.js `util.parseArgs` with strong config-driven
  * typings and middleware support.
  *

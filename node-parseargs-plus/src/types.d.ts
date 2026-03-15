@@ -21,10 +21,6 @@ interface OptionTerminatorToken {
 
 export type Token = OptionToken | PositionalToken | OptionTerminatorToken;
 
-/** Symbol used for cross-middleware communication of resolved command state. */
-export declare const kCommandState: unique symbol;
-export type KCommandState = typeof kCommandState;
-
 /** Shape of the command state stashed on the config by the commands middleware. */
 export interface CommandState {
     /** Resolved command name, or undefined if no command was matched. */

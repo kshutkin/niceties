@@ -1,13 +1,6 @@
 import { parseArgs } from 'node:util';
 
 /**
- * Symbol used for cross-middleware communication of resolved command state.
- * The commands middleware stashes state on the config object under this key
- * during `transformConfig`, making it available to other middlewares.
- */
-export const kCommandState = Symbol.for('parseArgsPlus.commandState');
-
-/**
  * Enhanced parseArgs wrapper with additional features.
  * @param {import('./types.d.ts').ParseArgsPlusConfig} config
  * @param {import('./types.d.ts').Middleware<any, any>[]} [middlewares]

@@ -1,7 +1,5 @@
 import type { Middleware, ParseArgsPlusConfig, ParseArgsPlusResultBase, Token } from './types.d.ts';
 
-export declare const kCommandState: unique symbol;
-
 export declare function parseArgsPlus(
     config: ParseArgsPlusConfig,
     // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
