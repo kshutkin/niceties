@@ -27,15 +27,12 @@ function getTerminalWidth() {
  * @param {string} text        The text to wrap.
  * @param {number} indent      Number of columns to indent continuation lines.
  * @param {number | undefined} width  Terminal width (columns), or undefined to skip wrapping.
- * @param {number} [currentCol] Column position where text starts on the first line.
+ * @param {number} currentCol Column position where text starts on the first line.
  * @returns {string[]}  Array of lines (without trailing newlines).
  */
 function wrapText(text, indent, width, currentCol) {
     if (width == null) {
         return [text];
-    }
-    if (currentCol == null) {
-        currentCol = indent;
     }
 
     const words = text.split(/\s+/).filter(w => w.length > 0);
@@ -66,9 +63,7 @@ function wrapText(text, indent, width, currentCol) {
             col = indent + word.length;
         }
     }
-    if (line.length > 0) {
-        lines.push(line);
-    }
+    lines.push(line);
 
     return lines;
 }

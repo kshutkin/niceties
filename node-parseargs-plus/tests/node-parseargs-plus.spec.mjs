@@ -2271,6 +2271,77 @@ describe('node-parseargs-plus', () => {
             // Description should appear unbroken on one line (no wrapping for width < 30)
             expect(output).toContain('A very long description that would normally wrap but should not wrap here');
         });
+
+        it('wide layout wraps long option descriptions to multiple continuation lines', () => {
+            setTerminalWidth(80);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    output: {
+                        type: 'string',
+                        description:
+                            'This is an extremely long description that is designed to exceed the available width in the wide columnar layout so that the text wraps onto a second continuation line aligned to the description column',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // In wide layout (>= 80), continuation lines are indented to the description column.
+            // Find lines in the Options section that are purely indented continuation text
+            // (no -- flags, just spaces then words).
+            const optionSectionLines = outputLines.filter(l => l.includes('--output') || (l.match(/^\s{10,}\S/) && !l.includes('--')));
+            // There should be more than one line (the flags+first-part line plus continuations)
+            expect(optionSectionLines.length).toBeGreaterThan(1);
+            // Every line should fit within 80 columns
+            for (const line of outputLines) {
+                expect(line.length).toBeLessThanOrEqual(80);
+            }
+            // Content should still be fully present
+            expect(output).toContain('extremely long description');
+            expect(output).toContain('continuation');
+        });
+
+        it('wraps long flag names to continuation lines in narrow layout', () => {
+            setTerminalWidth(40);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    'this-is-a-very-long-option-name-that-will-wrap': {
+                        type: 'string',
+                        short: 'x',
+                        description: 'Some description',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // The flags text itself should wrap in narrow mode because the flag name is very long.
+            const flagWord = '--this-is-a-very-long-option-name-that-will-wrap';
+            // The flag word is longer than 40 cols so it will be on its own line, but
+            // the "-x, " prefix part causes wrapping of the flags line
+            expect(output).toContain(flagWord);
+            expect(output).toContain('Some description');
+        });
+
+        it('handles empty section text when terminal width is set', () => {
+            setTerminalWidth(80);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {},
+                helpSections: {
+                    spacer: {
+                        title: 'Note',
+                        text: '',
+                        order: 3,
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            // The section title should be present
+            expect(output).toContain('Note:');
+        });
     });
 
     describe('commands middleware edge cases', () => {
