@@ -433,3 +433,244 @@ type _37b = Assert<typeof help extends [unknown, infer R] ? (R extends { order?:
 // 38. commands middleware transform functions carry order
 type _38a = Assert<typeof commands extends [infer C, unknown] ? (C extends { order?: number } ? true : false) : false>;
 type _38b = Assert<typeof commands extends [unknown, infer R] ? (R extends { order?: number } ? true : false) : false>;
+
+// ---------------------------------------------------------------------------
+// Help result extension type tests (help/version flags in values)
+// ---------------------------------------------------------------------------
+
+// 39. help middleware adds help and version boolean flags to values
+const r39 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            name: { type: 'string', default: 'world', description: 'Your name' },
+        },
+    },
+    [help]
+);
+type _39a = Assert<IsExact<typeof r39.values.name, string>>;
+type _39b = Assert<IsExact<typeof r39.values.help, boolean | undefined>>;
+type _39c = Assert<IsExact<typeof r39.values.version, boolean | undefined>>;
+
+// 40. help middleware with no user options still exposes help/version
+const r40 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+    },
+    [help]
+);
+type _40a = Assert<IsExact<typeof r40.values.help, boolean | undefined>>;
+type _40b = Assert<IsExact<typeof r40.values.version, boolean | undefined>>;
+
+// ---------------------------------------------------------------------------
+// Commands discriminated union type tests
+// ---------------------------------------------------------------------------
+
+// 41. commands middleware produces a discriminated union on `command`
+const r41 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    output: { type: 'string' },
+                },
+            },
+            test: {
+                description: 'Run tests',
+                options: {
+                    coverage: { type: 'boolean' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+
+// The result should have a `command` property
+type _41a = Assert<'command' extends keyof typeof r41 ? true : false>;
+
+// When command is 'build', values includes global + build options
+type R41 = typeof r41;
+type R41Build = Extract<R41, { command: 'build' }>;
+type _41b = Assert<IsExact<R41Build['command'], 'build'>>;
+type _41c = Assert<IsExact<R41Build['values']['verbose'], boolean | undefined>>;
+type _41d = Assert<IsExact<R41Build['values']['output'], string | undefined>>;
+
+// When command is 'test', values includes global + test options
+type R41Test = Extract<R41, { command: 'test' }>;
+type _41e = Assert<IsExact<R41Test['command'], 'test'>>;
+type _41f = Assert<IsExact<R41Test['values']['verbose'], boolean | undefined>>;
+type _41g = Assert<IsExact<R41Test['values']['coverage'], boolean | undefined>>;
+
+// When command is undefined, only global options
+type R41None = Extract<R41, { command: undefined }>;
+type _41h = Assert<IsExact<R41None['command'], undefined>>;
+type _41i = Assert<IsExact<R41None['values']['verbose'], boolean | undefined>>;
+
+// 42. commands + help together: discriminated union with help/version flags
+const r42 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Enable verbose' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    output: { type: 'string', description: 'Output dir' },
+                },
+            },
+            serve: {
+                description: 'Start dev server',
+                options: {
+                    port: { type: 'string', description: 'Port number' },
+                },
+            },
+        },
+    },
+    [help, commands]
+);
+
+type R42 = typeof r42;
+
+// Has `command` discriminant
+type _42a = Assert<'command' extends keyof R42 ? true : false>;
+
+// Build arm: global + help/version + build options
+type R42Build = Extract<R42, { command: 'build' }>;
+type _42b = Assert<IsExact<R42Build['command'], 'build'>>;
+type _42c = Assert<IsExact<R42Build['values']['verbose'], boolean | undefined>>;
+type _42d = Assert<IsExact<R42Build['values']['output'], string | undefined>>;
+type _42e = Assert<IsExact<R42Build['values']['help'], boolean | undefined>>;
+type _42f = Assert<IsExact<R42Build['values']['version'], boolean | undefined>>;
+
+// Serve arm: global + help/version + serve options
+type R42Serve = Extract<R42, { command: 'serve' }>;
+type _42g = Assert<IsExact<R42Serve['command'], 'serve'>>;
+type _42h = Assert<IsExact<R42Serve['values']['port'], string | undefined>>;
+type _42i = Assert<IsExact<R42Serve['values']['help'], boolean | undefined>>;
+
+// No command arm: global + help/version only
+type R42None = Extract<R42, { command: undefined }>;
+type _42j = Assert<IsExact<R42None['values']['verbose'], boolean | undefined>>;
+type _42k = Assert<IsExact<R42None['values']['help'], boolean | undefined>>;
+
+// 43. commands with default values: required options carry through the union
+const r43 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean', default: false },
+        },
+        commands: {
+            build: {
+                options: {
+                    output: { type: 'string', default: './dist' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+
+type R43 = typeof r43;
+type R43Build = Extract<R43, { command: 'build' }>;
+type _43a = Assert<IsExact<R43Build['values']['verbose'], boolean>>;
+type _43b = Assert<IsExact<R43Build['values']['output'], string>>;
+
+type R43None = Extract<R43, { command: undefined }>;
+type _43c = Assert<IsExact<R43None['values']['verbose'], boolean>>;
+
+// 44. commands with tokens: true: tokens present in all arms
+const r44 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                options: {
+                    output: { type: 'string' },
+                },
+            },
+        },
+        tokens: true,
+    },
+    [commands]
+);
+
+type R44 = typeof r44;
+type R44Build = Extract<R44, { command: 'build' }>;
+type _44a = Assert<'tokens' extends keyof R44Build ? true : false>;
+type R44None = Extract<R44, { command: undefined }>;
+type _44b = Assert<'tokens' extends keyof R44None ? true : false>;
+
+// 45. commands without options on a command: only global options in that arm
+const r45 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            init: {
+                description: 'Initialize project',
+            },
+        },
+    },
+    [commands]
+);
+
+type R45 = typeof r45;
+type R45Init = Extract<R45, { command: 'init' }>;
+type _45a = Assert<IsExact<R45Init['values']['verbose'], boolean | undefined>>;
+
+// 46. commands middleware without commands in config falls back to plain result
+const r46 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {},
+    },
+    [commands]
+);
+type _46a = Assert<IsExact<typeof r46.positionals, string[]>>;
+
+// 47. commands with overlapping options that have matching types:
+//     the command-specific option config takes precedence in the union arm
+const r47 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+            output: { type: 'string' },
+        },
+        commands: {
+            build: {
+                options: {
+                    verbose: { type: 'boolean' },
+                    output: { type: 'string', default: './dist' },
+                    minify: { type: 'boolean' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+
+type R47 = typeof r47;
+type R47Build = Extract<R47, { command: 'build' }>;
+// `output` has a default in the build command, so it should be required
+type _47a = Assert<IsExact<R47Build['values']['output'], string>>;
+type _47b = Assert<IsExact<R47Build['values']['minify'], boolean | undefined>>;
+type _47c = Assert<IsExact<R47Build['values']['verbose'], boolean | undefined>>;
+
+// In the no-command arm, `output` is optional (no default globally)
+type R47None = Extract<R47, { command: undefined }>;
+type _47d = Assert<IsExact<R47None['values']['output'], string | undefined>>;

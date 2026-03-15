@@ -1,6 +1,7 @@
 import type {
     MergeMiddlewareConfigExts,
     MergeMiddlewareOptionExts,
+    MergeMiddlewareResultExts,
     Middleware,
     ParseArgsPlusConfig,
     ParseArgsPlusConfigWithMiddleware,
@@ -42,6 +43,6 @@ export declare const kCommandState: import('./types.d.ts').KCommandState;
 export function parseArgsPlus<const T extends ParseArgsPlusConfig>(config: T): ParseArgsPlusResult<T>;
 export function parseArgsPlus<
     // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-    const M extends Middleware<any, any>[],
+    const M extends Middleware<any, any, any>[],
     const T extends ParseArgsPlusConfigWithMiddleware<MergeMiddlewareOptionExts<M>, MergeMiddlewareConfigExts<M>>,
->(config: T & ValidateCommandOptionTypes<T>, middlewares: M): ParseArgsPlusResultFromExtended<T>;
+>(config: T & ValidateCommandOptionTypes<T>, middlewares: M): ParseArgsPlusResultFromExtended<T, MergeMiddlewareResultExts<M>>;

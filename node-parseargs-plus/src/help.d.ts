@@ -1,3 +1,3 @@
-import type { HelpConfigExtension, HelpOptionExtension, Middleware } from './types.d.ts';
+import type { HelpConfigExtension, HelpOptionExtension, HelpResultExtension, Middleware } from './types.d.ts';
 
-export declare const help: Middleware<HelpOptionExtension, HelpConfigExtension>;
+export declare const help: Middleware<HelpOptionExtension, HelpConfigExtension, HelpResultExtension>;

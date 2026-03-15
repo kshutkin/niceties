@@ -1,4 +1,4 @@
-import type { CommandsConfigExtension, CommandsOptionExtension, Middleware } from './types.d.ts';
+import type { CommandsConfigExtension, CommandsOptionExtension, CommandsResultExtension, Middleware } from './types.d.ts';
 
 /**
  * Commands middleware that adds subcommand support.
@@ -16,4 +16,4 @@ import type { CommandsConfigExtension, CommandsOptionExtension, Middleware } fro
  * (e.g. help adds `--help`/`--version` to global options first).
  * Has `resultOrder: 10`, so `transformResult` runs late (does pass-2 parsing last).
  */
-export declare const commands: Middleware<CommandsOptionExtension, CommandsConfigExtension>;
+export declare const commands: Middleware<CommandsOptionExtension, CommandsConfigExtension, CommandsResultExtension>;

@@ -1,4 +1,4 @@
-import type { HelpConfigExtension, HelpOptionExtension, Middleware } from './types.d.ts';
+import type { HelpConfigExtension, HelpOptionExtension, HelpResultExtension, Middleware } from './types.d.ts';
 
 /**
  * Help middleware that adds `--help` (`-h`) and `--version` (`-v`) flag support.
@@ -15,4 +15,4 @@ import type { HelpConfigExtension, HelpOptionExtension, Middleware } from './typ
  * merges pass-2 values, ensuring `--help`/`--version` are visible regardless of
  * where they appear on the command line.
  */
-export declare const help: Middleware<HelpOptionExtension, HelpConfigExtension>;
+export declare const help: Middleware<HelpOptionExtension, HelpConfigExtension, HelpResultExtension>;

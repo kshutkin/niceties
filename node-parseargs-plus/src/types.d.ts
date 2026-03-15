@@ -60,6 +60,12 @@ type HasDefault<T> = T extends { default: infer D } ? (undefined extends D ? fal
 // Flatten intersection types into a single object for better IDE hover display
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
+// Merge two option config records, producing a ParsedValues that combines both.
+// Keys in B override keys in A when they overlap.
+type MergedParsedValues<A extends Record<string, OptionConfig>, B extends Record<string, OptionConfig>> = ParsedValues<
+    Omit<A, keyof B> & B
+>;
+
 // Extract keys of options that have a default (required in output)
 type RequiredOptionKeys<O extends Record<string, OptionConfig>> = {
     [K in keyof O & string]: HasDefault<O[K]> extends true ? K : never;
@@ -115,19 +121,29 @@ export interface TransformResultFn {
  *
  * When both are present, the function-level `order` takes precedence.
  *
- * The `OptionExt` and `ConfigExt` type parameters are carried at the type level
+ * The `OptionExt`, `ConfigExt`, and `ResultExt` type parameters are carried at the type level
  * so that `parseArgsPlus` can merge extensions from all middlewares.
+ *
+ * `ResultExt` allows a middleware to declare additional fields or transformations
+ * on the result type (e.g. adding a `command` discriminant).
  */
-// biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
-// biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
-export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt extends Record<string, any> = {}> = [
-    transformConfig: TransformConfigFn,
-    transformResult: TransformResultFn,
-] & {
+export type Middleware<
+    // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
+    // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
+    OptionExt extends Record<string, any> = {},
+    // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
+    // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
+    ConfigExt extends Record<string, any> = {},
+    // biome-ignore lint/suspicious/noExplicitAny: type definitions require `any` for generic flexibility
+    // biome-ignore lint/complexity/noBannedTypes: `{}` is intentional as a default for no extensions
+    ResultExt extends Record<string, any> = {},
+> = [transformConfig: TransformConfigFn, transformResult: TransformResultFn] & {
     /** @internal marker to carry the option extension at the type level */
     readonly __optionExt?: OptionExt;
     /** @internal marker to carry the config extension at the type level */
     readonly __configExt?: ConfigExt;
+    /** @internal marker to carry the result extension at the type level */
+    readonly __resultExt?: ResultExt;
     /** Execution priority for transformConfig. Lower values run earlier. Default: 0. Overridden by transformConfig.order if set. */
     readonly configOrder?: number;
     /** Execution priority for transformResult. Lower values run earlier. Default: 0. Overridden by transformResult.order if set. */
@@ -137,30 +153,63 @@ export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt ext
 // Extract the option extension type from a single middleware
 // biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
 // biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
-type ExtractOptionExt<M> = M extends Middleware<infer E, any> ? E : {};
+type ExtractOptionExt<M> = M extends Middleware<infer E, any, any> ? E : {};
 
 // Extract the config extension type from a single middleware
 // biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
 // biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
-type ExtractConfigExt<M> = M extends Middleware<any, infer C> ? C : {};
+type ExtractConfigExt<M> = M extends Middleware<any, infer C, any> ? C : {};
+
+// Extract the result extension type from a single middleware
+// biome-ignore lint/complexity/noBannedTypes: `{}` is the correct fallback for no extensions
+// biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
+type ExtractResultExt<M> = M extends Middleware<any, any, infer R> ? R : {};
 
 // Merge all option extensions from a tuple of middlewares into a single intersection
 // biome-ignore lint/suspicious/noExplicitAny: required for conditional type distribution
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-export type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any>[]> =
+export type MergeMiddlewareOptionExts<M extends readonly Middleware<any, any, any>[]> =
     // biome-ignore lint/suspicious/noExplicitAny: fallback constraint must be open-ended
     // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
     UnionToIntersection<ExtractOptionExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
 // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
-export type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any>[]> =
+export type MergeMiddlewareConfigExts<M extends readonly Middleware<any, any, any>[]> =
     // biome-ignore lint/suspicious/noExplicitAny: fallback constraint must be open-ended
     // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
     UnionToIntersection<ExtractConfigExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
+// biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
+export type MergeMiddlewareResultExts<M extends readonly Middleware<any, any, any>[]> =
+    // biome-ignore lint/suspicious/noExplicitAny: fallback constraint must be open-ended
+    // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
+    UnionToIntersection<ExtractResultExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
 
 // An OptionConfig extended with the extra fields contributed by middlewares
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
 type ExtendedOptionConfig<Ext extends Record<string, any>> = OptionConfig & Ext;
+
+// ---------------------------------------------------------------------------
+// Result extension application
+// ---------------------------------------------------------------------------
+
+/**
+ * Marker interface for result extensions that add extra options to values.
+ * Middlewares use this to declare additional option configs injected into the result.
+ */
+export interface ResultExtraValues {
+    /** Extra option configs to merge into the result values. */
+    extraValues: Record<string, OptionConfig>;
+}
+
+/**
+ * Marker interface for result extensions that produce a discriminated command union.
+ * The commands middleware uses this so `parseArgsPlus` can build a per-command
+ * discriminated union result type.
+ */
+export interface ResultCommandDiscriminant {
+    /** Marker that triggers discriminated union generation from the config's `commands`. */
+    commandDiscriminant: true;
+}
 
 // ---------------------------------------------------------------------------
 // Config
@@ -175,6 +224,12 @@ export interface ParseArgsPlusConfig {
     args?: string[];
     tokens?: boolean;
 }
+
+// Helper: merge extra values from ResultExt into an options record
+// biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
+type MergeExtraValues<O extends Record<string, OptionConfig>, RE extends Record<string, any>> = RE extends ResultExtraValues
+    ? O & RE['extraValues']
+    : O;
 
 // ---------------------------------------------------------------------------
 // Command option type validation
@@ -271,17 +326,93 @@ type StripExtFromOptions<O extends Record<string, any>> = {
     [K in keyof O]: Pick<O[K], keyof OptionConfig> extends infer P extends OptionConfig ? P : OptionConfig;
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
-export type ParseArgsPlusResultFromExtended<T extends ParseArgsPlusConfigWithMiddleware<any, any>> = T extends {
-    // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
-    options: infer O extends Record<string, any>;
-}
-    ? T extends { tokens: true }
-        ? ParseArgsPlusResultTypedWithTokens<StripExtFromOptions<O>>
-        : ParseArgsPlusResultTyped<StripExtFromOptions<O>>
-    : T extends { tokens: true }
-      ? ParseArgsPlusResultBaseWithTokens
-      : ParseArgsPlusResultBase;
+// ---------------------------------------------------------------------------
+// Command discriminated union builder
+// ---------------------------------------------------------------------------
+
+// Build a single arm of the command discriminated union:
+// { command: CommandName; values: Prettify<MergedParsedValues<GlobalOpts, CmdOpts>>; positionals: string[] }
+type CommandArm<
+    GlobalOpts extends Record<string, OptionConfig>,
+    CmdName extends string,
+    Cmd extends CommandConfig,
+    WithTokens extends boolean,
+> = Cmd extends { options: infer CO extends Record<string, OptionConfig> }
+    ? WithTokens extends true
+        ? { command: CmdName; values: MergedParsedValues<GlobalOpts, StripExtFromOptions<CO>>; positionals: string[]; tokens: Token[] }
+        : { command: CmdName; values: MergedParsedValues<GlobalOpts, StripExtFromOptions<CO>>; positionals: string[] }
+    : WithTokens extends true
+      ? { command: CmdName; values: ParsedValues<GlobalOpts>; positionals: string[]; tokens: Token[] }
+      : { command: CmdName; values: ParsedValues<GlobalOpts>; positionals: string[] };
+
+// Build the "no command matched" arm
+type NoCommandArm<GlobalOpts extends Record<string, OptionConfig>, WithTokens extends boolean> = WithTokens extends true
+    ? { command: undefined; values: ParsedValues<GlobalOpts>; positionals: string[]; tokens: Token[] }
+    : { command: undefined; values: ParsedValues<GlobalOpts>; positionals: string[] };
+
+// Distribute across all command names to build the full union
+type CommandUnion<
+    GlobalOpts extends Record<string, OptionConfig>,
+    Commands extends Record<string, CommandConfig>,
+    WithTokens extends boolean,
+> =
+    | {
+          [K in keyof Commands & string]: CommandArm<GlobalOpts, K, Commands[K], WithTokens>;
+      }[keyof Commands & string]
+    | NoCommandArm<GlobalOpts, WithTokens>;
+
+// ---------------------------------------------------------------------------
+// Extended result type (with middleware result extensions)
+// ---------------------------------------------------------------------------
+
+export type ParseArgsPlusResultFromExtended<
+    // biome-ignore lint/suspicious/noExplicitAny: accepts any middleware config shape
+    T extends ParseArgsPlusConfigWithMiddleware<any, any>,
+    // biome-ignore lint/suspicious/noExplicitAny: result extension is open-ended
+    // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback
+    RE extends Record<string, any> = {},
+> =
+    // Check if the commands middleware is active (ResultCommandDiscriminant) AND
+    // the config has both options and commands
+    RE extends ResultCommandDiscriminant
+        ? T extends {
+              // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
+              options: infer O extends Record<string, any>;
+              commands: infer C extends Record<string, CommandConfig>;
+          }
+            ? CommandUnion<MergeExtraValues<StripExtFromOptions<O>, RE>, C, T extends { tokens: true } ? true : false>
+            : T extends { commands: infer C extends Record<string, CommandConfig> }
+              ? // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no options
+                CommandUnion<RE extends ResultExtraValues ? RE['extraValues'] : {}, C, T extends { tokens: true } ? true : false>
+              : T extends {
+                      // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
+                      options: infer O extends Record<string, any>;
+                  }
+                ? T extends { tokens: true }
+                    ? ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>
+                    : ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>
+                : RE extends ResultExtraValues
+                  ? T extends { tokens: true }
+                      ? ParseArgsPlusResultTypedWithTokens<RE['extraValues']>
+                      : ParseArgsPlusResultTyped<RE['extraValues']>
+                  : T extends { tokens: true }
+                    ? ParseArgsPlusResultBaseWithTokens
+                    : ParseArgsPlusResultBase
+        : // No command discriminant — just merge extra values if any
+          T extends {
+                // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
+                options: infer O extends Record<string, any>;
+            }
+          ? T extends { tokens: true }
+              ? ParseArgsPlusResultTypedWithTokens<MergeExtraValues<StripExtFromOptions<O>, RE>>
+              : ParseArgsPlusResultTyped<MergeExtraValues<StripExtFromOptions<O>, RE>>
+          : RE extends ResultExtraValues
+            ? T extends { tokens: true }
+                ? ParseArgsPlusResultTypedWithTokens<RE['extraValues']>
+                : ParseArgsPlusResultTyped<RE['extraValues']>
+            : T extends { tokens: true }
+              ? ParseArgsPlusResultBaseWithTokens
+              : ParseArgsPlusResultBase;
 
 // ---------------------------------------------------------------------------
 // Commands middleware
@@ -308,6 +439,9 @@ export interface CommandsConfigExtension {
 /** The commands middleware does not extend individual option configs. */
 // biome-ignore lint/complexity/noBannedTypes: empty extension is intentional
 export type CommandsOptionExtension = {};
+
+/** Result extension that the commands middleware contributes: discriminated union on `command`. */
+export type CommandsResultExtension = ResultCommandDiscriminant;
 
 // ---------------------------------------------------------------------------
 // Help middleware
@@ -343,4 +477,16 @@ export interface HelpConfigExtension {
      * Any other key adds a new section to the help output.
      */
     helpSections?: Record<string, HelpSection>;
+}
+
+/**
+ * Result extension for the help middleware.
+ * Adds `help` and `version` boolean flags to the result values,
+ * reflecting the options injected by the help middleware.
+ */
+export interface HelpResultExtension extends ResultExtraValues {
+    extraValues: {
+        help: { type: 'boolean' };
+        version: { type: 'boolean' };
+    };
 }
