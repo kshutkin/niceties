@@ -237,7 +237,13 @@ function buildOptionsTextNarrow(entries, termWidth) {
                 lines.push(' '.repeat(descIndent) + wrappedDesc[i]);
             }
         }
+
+        // Add an extra blank line after each option for readability
+        lines.push('');
     }
+
+    // Remove trailing blank line after the last option
+    lines.pop();
 
     return lines;
 }

@@ -2236,6 +2236,95 @@ describe('node-parseargs-plus', () => {
             expect(output).toContain('  -v, --version');
         });
 
+        it('narrow layout adds extra blank line between options', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    name: {
+                        type: 'string',
+                        description: 'Your name',
+                    },
+                    verbose: {
+                        type: 'boolean',
+                        short: 'V',
+                        description: 'Enable verbose output',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Find the description line of --name option
+            const nameDescIndex = outputLines.findIndex(l => l.includes('Your name'));
+            expect(nameDescIndex).toBeGreaterThan(-1);
+            // The next line should be blank (extra spacing between options)
+            // printSection adds 2-space indent to plain lines, so blank separator is '  '
+            expect(outputLines[nameDescIndex + 1].trim()).toBe('');
+            // The line after the blank should be the next option's flags
+            expect(outputLines[nameDescIndex + 2]).toMatch(/^\s{2}-V, --verbose$/);
+
+            // Find the description line of --verbose option
+            const verboseDescIndex = outputLines.findIndex(l => l.includes('Enable verbose output'));
+            expect(verboseDescIndex).toBeGreaterThan(-1);
+            // After --verbose description there should be a blank line before --help
+            expect(outputLines[verboseDescIndex + 1].trim()).toBe('');
+            expect(outputLines[verboseDescIndex + 2]).toMatch(/^\s{2}-h, --help$/);
+        });
+
+        it('narrow layout does not add trailing blank line after last option', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    name: {
+                        type: 'string',
+                        description: 'Your name',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Find the last --version description line
+            const versionDescIndex = outputLines.findIndex(l => l.includes('Show version number'));
+            expect(versionDescIndex).toBeGreaterThan(-1);
+            // The line after the last option's description should NOT be a blank line
+            // from the options section (it should either be the next section title or end of output)
+            if (versionDescIndex + 1 < outputLines.length) {
+                // If there's content after, it should not be a dangling blank line from options
+                // The options section should end cleanly without a trailing blank separator
+                const nextLine = outputLines[versionDescIndex + 1];
+                expect(nextLine === '' || !nextLine.match(/^\s*$/)).toBeTruthy();
+            }
+        });
+
+        it('narrow layout adds blank line after option without description', () => {
+            setTerminalWidth(60);
+            triggerHelp({
+                name: 'test-cli',
+                version: '1.0.0',
+                options: {
+                    silent: {
+                        type: 'boolean',
+                    },
+                    output: {
+                        type: 'string',
+                        description: 'Output file path',
+                    },
+                },
+            });
+            const output = getHelpOutput();
+            const outputLines = output.split('\n');
+            // Find the --silent flags line (no description follows)
+            const silentIndex = outputLines.findIndex(l => l.includes('--silent'));
+            expect(silentIndex).toBeGreaterThan(-1);
+            // There should be a blank line after --silent before the next option
+            expect(outputLines[silentIndex + 1].trim()).toBe('');
+            // The next option's flags should follow
+            expect(outputLines[silentIndex + 2]).toMatch(/^\s{2}--output/);
+        });
+
         it('uses wide columnar layout when width is exactly 80', () => {
             setTerminalWidth(80);
             triggerHelp({
