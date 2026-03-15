@@ -16,8 +16,9 @@ const kCommandState = Symbol.for('parseArgsPlus.commandState');
  * when a command is active, or a global help with a command list when no command
  * is specified.
  *
- * Has order: 10, so transformConfig runs after other middlewares (e.g. commands)
- * and transformResult runs before them (first in reverse order).
+ * Has configOrder: -10, so transformConfig runs before other middlewares (e.g. commands),
+ * ensuring --help/--version are known global options when commands splits args.
+ * Has resultOrder: -10, so transformResult runs before them (intercepts --help/--version early).
  *
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
@@ -39,18 +40,18 @@ export const help = /** @type {any} */ (
             // [1] transformResult
             (
                 /** @type {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} */ result,
-                /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ originalConfig
+                /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ config
             ) => {
                 const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} */ (
-                    originalConfig
+                    config
                 );
                 if (result.values.version) {
                     console.log(extConfig.version);
                     process.exit(0);
                 }
                 if (result.values.help) {
-                    const commandState = /** @type {any} */ (originalConfig)[kCommandState];
-                    const commands = /** @type {any} */ (originalConfig).commands;
+                    const commandState = /** @type {any} */ (config)[kCommandState];
+                    const commands = /** @type {any} */ (config).commands;
 
                     if (commands && commandState?.commandName && commandState.commandConfig) {
                         // Command-specific help
@@ -67,7 +68,7 @@ export const help = /** @type {any} */ (
                 return result;
             },
         ],
-        { order: 10 }
+        { configOrder: -10, resultOrder: -10 }
     )
 );
 

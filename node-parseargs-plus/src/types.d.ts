@@ -101,8 +101,10 @@ export type Middleware<OptionExt extends Record<string, any> = {}, ConfigExt ext
     readonly __optionExt?: OptionExt;
     /** @internal marker to carry the config extension at the type level */
     readonly __configExt?: ConfigExt;
-    /** Execution priority. Lower values run transformConfig earlier and transformResult later. Default: 0. */
-    readonly order?: number;
+    /** Execution priority for transformConfig. Lower values run earlier. Default: 0. */
+    readonly configOrder?: number;
+    /** Execution priority for transformResult. Lower values run earlier. Default: 0. */
+    readonly resultOrder?: number;
 };
 
 // Extract the option extension type from a single middleware

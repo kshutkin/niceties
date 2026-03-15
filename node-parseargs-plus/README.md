@@ -222,19 +222,25 @@ helpSections: {
 
 ## Writing Custom Middleware
 
-A middleware is a two-element tuple:
+A middleware is a two-element tuple with optional ordering properties:
 
 ```js
-const myMiddleware = [
-    // [0] transformConfig — runs before parsing
-    (config) => {
-        return { ...config /* modify config */ };
+const myMiddleware = Object.assign(
+    [
+        // [0] transformConfig — runs before parsing
+        (config) => {
+            return { ...config /* modify config */ };
+        },
+        // [1] transformResult — runs after parsing
+        (result, config) => {
+            return { ...result /* modify result */ };
+        },
+    ],
+    {
+        configOrder: 0, // optional, default 0 — lower runs earlier
+        resultOrder: 0, // optional, default 0 — lower runs earlier
     },
-    // [1] transformResult — runs after parsing (in reverse middleware order)
-    (result, originalConfig) => {
-        return { ...result /* modify result */ };
-    },
-];
+);
 
 const result = parseArgsPlus(
     {
@@ -244,9 +250,22 @@ const result = parseArgsPlus(
 );
 ```
 
-- `transformConfig` functions run in order (first middleware first).
-- `transformResult` functions run in reverse order (last middleware first).
-- `originalConfig` is the config as provided by the user, before any middleware transforms.
+- `transformConfig` functions are sorted by `configOrder` (lower values run first).
+- `transformResult` functions are sorted by `resultOrder` (lower values run first).
+- Middlewares with equal order values preserve their array position (stable sort).
+- `transformResult` receives the fully transformed config (after all `transformConfig` calls), so middlewares can read state set by other middlewares.
+
+### Middleware ordering
+
+Each middleware can declare separate priorities for its config and result phases via `configOrder` and `resultOrder`. Both default to `0`.
+
+| Middleware  | `configOrder` | `resultOrder` | Rationale                                                                      |
+| ----------- | ------------- | ------------- | ------------------------------------------------------------------------------ |
+| `help`      | `-10`         | `-10`         | Adds `--help`/`--version` to global options early; intercepts them in results. |
+| _(default)_ | `0`           | `0`           | Normal priority.                                                               |
+| `commands`  | `10`          | `10`          | Splits args after all options are known; does pass-2 parsing last.             |
+
+Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter — `[help, commands]` and `[commands, help]` behave identically.
 
 ### TypeScript support
 

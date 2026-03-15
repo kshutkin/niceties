@@ -10,7 +10,8 @@ import type { CommandsConfigExtension, CommandsOptionExtension, Middleware } fro
  * The `commands` config extension requires a `commands` map and optionally
  * a `defaultCommand` to use when no command is specified.
  *
- * The middleware has `order: -10`, so it runs before other middlewares
- * in `transformConfig` and after them in `transformResult`.
+ * Has `configOrder: 10`, so `transformConfig` runs after other middlewares
+ * (e.g. help adds `--help`/`--version` to global options first).
+ * Has `resultOrder: 10`, so `transformResult` runs late (does pass-2 parsing last).
  */
 export declare const commands: Middleware<CommandsOptionExtension, CommandsConfigExtension>;

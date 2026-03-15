@@ -113,7 +113,7 @@ describe('node-parseargs-plus', () => {
             expect(transformConfig).toHaveBeenCalledOnce();
         });
 
-        it('calls transformResult on each middleware in reverse order', () => {
+        it('calls transformResult on each middleware in resultOrder (insertion order when equal)', () => {
             const order = [];
             const middleware1 = [
                 config => config,
@@ -138,10 +138,11 @@ describe('node-parseargs-plus', () => {
                 [middleware1, middleware2]
             );
 
-            expect(order).toEqual(['mw2', 'mw1']);
+            // Both have default resultOrder 0, so insertion order is preserved
+            expect(order).toEqual(['mw1', 'mw2']);
         });
 
-        it('passes original config to transformResult', () => {
+        it('passes transformed config to transformResult', () => {
             const originalConfig = {
                 options: {
                     name: { type: 'string' },
@@ -149,15 +150,20 @@ describe('node-parseargs-plus', () => {
                 args: ['--name', 'test'],
             };
 
+            let receivedConfig;
             const transformResult = vi.fn((result, config) => {
-                expect(config).toBe(originalConfig);
+                receivedConfig = config;
                 return result;
             });
-            const middleware = [config => config, transformResult];
+            const addExtra = config => ({ ...config, extra: true });
+            const middleware = [addExtra, transformResult];
 
             parseArgsPlus(originalConfig, [middleware]);
 
             expect(transformResult).toHaveBeenCalledOnce();
+            expect(receivedConfig).not.toBe(originalConfig);
+            expect(receivedConfig.extra).toBe(true);
+            expect(receivedConfig.options).toEqual(originalConfig.options);
         });
 
         it('allows middleware to modify the result', () => {
@@ -862,7 +868,7 @@ describe('node-parseargs-plus', () => {
     });
 
     describe('middleware ordering', () => {
-        it('sorts middlewares by order before executing transformConfig', () => {
+        it('sorts middlewares by configOrder for transformConfig', () => {
             const order = [];
             const mw1 = Object.assign(
                 [
@@ -875,7 +881,7 @@ describe('node-parseargs-plus', () => {
                         return result;
                     },
                 ],
-                { order: 10 }
+                { configOrder: 10, resultOrder: -10 }
             );
             const mw2 = Object.assign(
                 [
@@ -888,13 +894,13 @@ describe('node-parseargs-plus', () => {
                         return result;
                     },
                 ],
-                { order: -10 }
+                { configOrder: -10, resultOrder: 10 }
             );
 
             parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
 
-            // mw2 (order -10) config runs first, mw1 (order 10) config runs second
-            // mw1 (order 10) result runs first (reverse), mw2 (order -10) result runs second
+            // mw2 (configOrder -10) config runs first, mw1 (configOrder 10) config runs second
+            // mw1 (resultOrder -10) result runs first, mw2 (resultOrder 10) result runs second
             expect(order).toEqual(['mw2-config', 'mw1-config', 'mw1-result', 'mw2-result']);
         });
 
@@ -923,10 +929,11 @@ describe('node-parseargs-plus', () => {
 
             parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
 
-            expect(order).toEqual(['mw1-config', 'mw2-config', 'mw2-result', 'mw1-result']);
+            // Both configOrder and resultOrder default to 0, so insertion order is preserved
+            expect(order).toEqual(['mw1-config', 'mw2-config', 'mw1-result', 'mw2-result']);
         });
 
-        it('treats undefined order as 0', () => {
+        it('treats undefined configOrder and resultOrder as 0', () => {
             const order = [];
             const mwNeg = Object.assign(
                 [
@@ -936,7 +943,7 @@ describe('node-parseargs-plus', () => {
                     },
                     result => result,
                 ],
-                { order: -1 }
+                { configOrder: -1 }
             );
             const mwDefault = [
                 config => {
@@ -953,12 +960,48 @@ describe('node-parseargs-plus', () => {
                     },
                     result => result,
                 ],
-                { order: 1 }
+                { configOrder: 1 }
             );
 
             parseArgsPlus({ args: [], strict: false }, [mwPos, mwDefault, mwNeg]);
 
             expect(order).toEqual(['neg', 'default', 'pos']);
+        });
+
+        it('sorts transformResult by resultOrder independently from configOrder', () => {
+            const order = [];
+            const mw1 = Object.assign(
+                [
+                    config => {
+                        order.push('mw1-config');
+                        return config;
+                    },
+                    result => {
+                        order.push('mw1-result');
+                        return result;
+                    },
+                ],
+                { configOrder: -5, resultOrder: 5 }
+            );
+            const mw2 = Object.assign(
+                [
+                    config => {
+                        order.push('mw2-config');
+                        return config;
+                    },
+                    result => {
+                        order.push('mw2-result');
+                        return result;
+                    },
+                ],
+                { configOrder: 5, resultOrder: -5 }
+            );
+
+            parseArgsPlus({ args: [], strict: false }, [mw1, mw2]);
+
+            // mw1 config first (configOrder -5), mw2 config second (configOrder 5)
+            // mw2 result first (resultOrder -5), mw1 result second (resultOrder 5)
+            expect(order).toEqual(['mw1-config', 'mw2-config', 'mw2-result', 'mw1-result']);
         });
     });
 
@@ -1340,8 +1383,9 @@ describe('node-parseargs-plus', () => {
             expect(result.command).toBeUndefined();
         });
 
-        it('has order -10', () => {
-            expect(commands.order).toBe(-10);
+        it('has configOrder 10 and resultOrder 10', () => {
+            expect(commands.configOrder).toBe(10);
+            expect(commands.resultOrder).toBe(10);
         });
 
         it('is a valid middleware tuple', () => {
@@ -1699,8 +1743,9 @@ describe('node-parseargs-plus', () => {
             expect(result.positionals).toEqual(['lodash']);
         });
 
-        it('help has order 10', () => {
-            expect(help.order).toBe(10);
+        it('help has configOrder -10 and resultOrder -10', () => {
+            expect(help.configOrder).toBe(-10);
+            expect(help.resultOrder).toBe(-10);
         });
     });
 });
