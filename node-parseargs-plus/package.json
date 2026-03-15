@@ -29,7 +29,10 @@
     "main": "./src/index.js",
     "module": "./src/index.js",
     "files": [
-        "src/*.js",
+        "src/index.js",
+        "src/help.js",
+        "src/commands.js",
+        "src/parameters.js",
         "types"
     ],
     "engines": {
