@@ -10,8 +10,9 @@ import type { HelpConfigExtension, HelpOptionExtension, Middleware } from './typ
  * The `help` and `version` flags are removed from the returned `values`.
  *
  * Has `configOrder: -10`, so `transformConfig` runs before other middlewares,
- * ensuring `--help`/`--version` are known global options when commands splits args.
- * Has `resultOrder: -10`, so `transformResult` runs early to intercept
- * `--help`/`--version` before other middlewares process the result.
+ * ensuring `--help`/`--version` are known global options when commands resolves the command.
+ * Has `resultOrder: 20`, so `transformResult` runs after the commands middleware
+ * merges pass-2 values, ensuring `--help`/`--version` are visible regardless of
+ * where they appear on the command line.
  */
 export declare const help: Middleware<HelpOptionExtension, HelpConfigExtension>;

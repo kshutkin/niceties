@@ -1813,9 +1813,9 @@ describe('node-parseargs-plus', () => {
             expect(result.positionals).toEqual(['lodash']);
         });
 
-        it('help has order -10 on both transform functions', () => {
+        it('help has order -10 on transformConfig and 20 on transformResult', () => {
             expect(help[0].order).toBe(-10);
-            expect(help[1].order).toBe(-10);
+            expect(help[1].order).toBe(20);
         });
     });
 });

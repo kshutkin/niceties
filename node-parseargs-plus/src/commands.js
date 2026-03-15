@@ -57,150 +57,15 @@ function resolveCommand(args, commandMap, globalOptions, defaultCommand) {
 }
 
 /**
- * Builds a lookup of option names → their definitions, and a map from
- * short flags → option definitions.
- *
- * @param {Record<string, import('./types.d.ts').OptionConfig>} options
- * @returns {{ names: Set<string>; shorts: Map<string, import('./types.d.ts').OptionConfig> }}
- */
-function buildOptionLookup(options) {
-    const names = new Set(Object.keys(options));
-    /** @type {Map<string, import('./types.d.ts').OptionConfig>} */
-    const shorts = new Map();
-    for (const [, opt] of Object.entries(options)) {
-        if (opt.short) {
-            shorts.set(opt.short, opt);
-        }
-    }
-    return { names, shorts };
-}
-
-/**
- * Splits args after the command boundary into two buckets:
- *   - `commandArgs`: flags/positionals that belong to the command
- *   - `globalArgs`: global flags that appeared after the command
- *
- * A flag is considered "global" if it matches a global option name/short
- * and does NOT match a command option name/short.
- * A flag that matches both stays in commandArgs (command takes precedence).
- * A flag that matches neither stays in commandArgs (pass 2 strict mode
- * will reject it if appropriate).
- *
- * @param {string[]} args  The raw args slice after the command positional.
- * @param {Record<string, import('./types.d.ts').OptionConfig>} globalOptions
- * @param {Record<string, import('./types.d.ts').OptionConfig>} commandOptions
- * @returns {{ commandArgs: string[]; globalArgs: string[] }}
- */
-function splitArgs(args, globalOptions, commandOptions) {
-    const global = buildOptionLookup(globalOptions);
-    const cmd = buildOptionLookup(commandOptions);
-
-    /** @type {string[]} */
-    const commandArgs = [];
-    /** @type {string[]} */
-    const globalArgs = [];
-
-    let i = 0;
-    while (i < args.length) {
-        const arg = args[i];
-
-        // option-terminator: everything from here stays in commandArgs
-        if (arg === '--') {
-            while (i < args.length) {
-                commandArgs.push(args[i]);
-                i++;
-            }
-            break;
-        }
-
-        if (arg.startsWith('--')) {
-            // Long flag: --name or --name=value
-            const eqIndex = arg.indexOf('=');
-            const flagName = eqIndex >= 0 ? arg.slice(2, eqIndex) : arg.slice(2);
-            const isCmd = cmd.names.has(flagName);
-            const isGlobal = global.names.has(flagName);
-
-            if (isGlobal && !isCmd) {
-                // Purely global — move to globalArgs
-                globalArgs.push(arg);
-                if (eqIndex < 0 && globalOptions[flagName]?.type === 'string') {
-                    i++;
-                    if (i < args.length) {
-                        globalArgs.push(args[i]);
-                    }
-                }
-            } else {
-                // Command-specific, overlapping, or unknown — keep in commandArgs
-                commandArgs.push(arg);
-                if (eqIndex < 0) {
-                    const optDef = commandOptions[flagName] || globalOptions[flagName];
-                    if (optDef?.type === 'string') {
-                        i++;
-                        if (i < args.length) {
-                            commandArgs.push(args[i]);
-                        }
-                    }
-                }
-            }
-        } else if (arg.startsWith('-') && arg.length > 1) {
-            // Short flag(s): -D or -Dv etc.
-            const chars = arg.slice(1);
-
-            // Check if ALL chars resolve to purely-global shorts
-            let allPurelyGlobal = true;
-            for (const ch of chars) {
-                const isCmd = cmd.shorts.has(ch);
-                const isGlobal = global.shorts.has(ch);
-                if (!isGlobal || isCmd) {
-                    allPurelyGlobal = false;
-                    break;
-                }
-            }
-
-            if (allPurelyGlobal) {
-                globalArgs.push(arg);
-                // If single char and it's a string type, consume next arg as value
-                if (chars.length === 1) {
-                    const optDef = global.shorts.get(chars);
-                    if (optDef?.type === 'string') {
-                        i++;
-                        if (i < args.length) {
-                            globalArgs.push(args[i]);
-                        }
-                    }
-                }
-            } else {
-                commandArgs.push(arg);
-                // If single char and it's a known string type, consume next arg as value
-                if (chars.length === 1) {
-                    const optDef = cmd.shorts.get(chars) || global.shorts.get(chars);
-                    if (optDef?.type === 'string') {
-                        i++;
-                        if (i < args.length) {
-                            commandArgs.push(args[i]);
-                        }
-                    }
-                }
-            }
-        } else {
-            // Positional — keep in commandArgs
-            commandArgs.push(arg);
-        }
-        i++;
-    }
-
-    return { commandArgs, globalArgs };
-}
-
-/**
  * Commands middleware that adds subcommand support.
  *
  * Uses a two-pass parsing strategy:
  * - Pass 1 (in transformConfig): discovery parse with `strict: false` to find
- *   the command name, then splits args into globalArgs and commandArgs.
- *   Global flags that appear after the command are moved back to globalArgs.
+ *   the command name, then splits args at the command boundary.
+ *   Args before the command go to pass 1 (global parse).
+ *   Args after the command go to pass 2 (command parse with merged options).
  * - Pass 2 (in transformResult): parses the command-specific args with the
- *   command's own options.
+ *   merged global + command options.
  *
  * Each transform function carries `order: 10`, so transformConfig runs after
  * other middlewares (e.g. help adds --help/--version to global options first)
@@ -241,13 +106,10 @@ function commandsTransformConfig(config) {
         // or the start of default command's positionals
         const isExplicitCommand = args[cmdIndex] === commandName;
 
-        const rawGlobalArgs = args.slice(0, cmdIndex);
-        const rawCommandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
-
-        // Split command args: move purely-global flags back to globalArgs
-        const split = splitArgs(rawCommandArgs, globalOptions, commandConfig.options ?? {});
-        commandArgs = split.commandArgs;
-        globalArgs = rawGlobalArgs.concat(split.globalArgs);
+        // Split at the command boundary: everything before goes to pass 1,
+        // everything after goes to pass 2 (with merged options)
+        globalArgs = args.slice(0, cmdIndex);
+        commandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
     }
 
     // Stash command state for cross-middleware communication
@@ -287,10 +149,10 @@ function commandsTransformResult(result, config) {
     const commandOptions = commandConfig.options ?? {};
 
     // Merge global + command options for pass 2
-    // Command options take precedence (same name, same type — validated in transformConfig)
+    // Command options take precedence (same name, same type — validated at the type level)
     const mergedOptions = { ...globalOptions, ...commandOptions };
 
-    // Pass 2: parse command-specific args
+    // Pass 2: parse command-specific args with merged options
     const pass2 = parseArgs({
         args: commandArgs,
         strict: config.strict ?? true,

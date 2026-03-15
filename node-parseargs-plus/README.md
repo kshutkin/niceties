@@ -256,11 +256,11 @@ const result = parseArgsPlus(
 
 Each transform function can declare its own execution priority via the `order` property. Defaults to `0`.
 
-| Middleware  | `transformConfig.order` | `transformResult.order` | Rationale                                                                      |
-| ----------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------ |
-| `help`      | `-10`                   | `-10`                   | Adds `--help`/`--version` to global options early; intercepts them in results. |
-| _(default)_ | `0`                     | `0`                     | Normal priority.                                                               |
-| `commands`  | `10`                    | `10`                    | Splits args after all options are known; does pass-2 parsing last.             |
+| Middleware  | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
+| ----------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `help`      | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
+| _(default)_ | `0`                     | `0`                     | Normal priority.                                                                                 |
+| `commands`  | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
 
 Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter — `[help, commands]` and `[commands, help]` behave identically.
 

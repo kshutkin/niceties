@@ -17,8 +17,10 @@ const kCommandState = Symbol.for('parseArgsPlus.commandState');
  * is specified.
  *
  * Has configOrder: -10, so transformConfig runs before other middlewares (e.g. commands),
- * ensuring --help/--version are known global options when commands splits args.
- * Has resultOrder: -10, so transformResult runs before them (intercepts --help/--version early).
+ * ensuring --help/--version are known global options when commands resolves the command.
+ * Has resultOrder: 20, so transformResult runs after the commands middleware merges
+ * pass-2 values, ensuring --help/--version are visible regardless of where they
+ * appear on the command line.
  *
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').HelpOptionExtension, import('./types.d.ts').HelpConfigExtension>}
  */
@@ -63,7 +65,7 @@ function helpTransformResult(result, config) {
     }
     return result;
 }
-helpTransformResult.order = -10;
+helpTransformResult.order = 20;
 
 export const help = /** @type {any} */ ([helpTransformConfig, helpTransformResult]);
 
