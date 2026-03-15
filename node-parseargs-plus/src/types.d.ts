@@ -200,6 +200,16 @@ export interface HelpOptionExtension {
     description?: string;
 }
 
+/** A custom help section that can be added to the help output. */
+export interface HelpSection {
+    /** Section title displayed as a bright-white header. */
+    title: string;
+    /** Body text displayed below the title, indented. Can be a single string or an array of strings (one per line). */
+    text?: string | string[];
+    /** Controls the position of this section relative to others. Lower numbers appear first. */
+    order?: number;
+}
+
 /** Extension that help middleware adds to the top-level config. */
 export interface HelpConfigExtension {
     /** Program name used in the auto-generated usage line (e.g. "my-cli"). */
@@ -208,4 +218,10 @@ export interface HelpConfigExtension {
     version: string;
     /** Optional program description displayed in the help text between the usage line and the options list. */
     description?: string;
+    /**
+     * Optional custom help sections keyed by section id.
+     * Use `"usage"` or `"options"` to override the title/text of the built-in sections.
+     * Any other key adds a new section to the help output.
+     */
+    helpSections?: Record<string, HelpSection>;
 }

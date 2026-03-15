@@ -6,7 +6,7 @@
     "main": "index.js",
     "scripts": {
         "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs",
-        "demo": "node ./parseargs-plus-demo.mjs"
+        "demo": "node ./parseargs-plus-demo.mjs --help"
     },
     "author": "Konstantin Shutkin",
     "license": "MIT",

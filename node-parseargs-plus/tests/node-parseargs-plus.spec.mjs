@@ -633,5 +633,230 @@ describe('node-parseargs-plus', () => {
             expect(result.values._logged).toBe(true);
             expect(result.values).not.toHaveProperty('help');
         });
+
+        it('displays custom helpSections in help output', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            name: { type: 'string', description: 'Your name' },
+                        },
+                        helpSections: {
+                            examples: { title: 'Examples', text: 'test-cli --name foo' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain(whiteBright('Examples:'));
+            expect(output).toContain('test-cli --name foo');
+        });
+
+        it('displays custom helpSections with array text', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            examples: { title: 'Examples', text: ['test-cli --name foo', 'test-cli --name bar'] },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('test-cli --name foo');
+            expect(output).toContain('test-cli --name bar');
+        });
+
+        it('allows overriding the usage section title', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            usage: { title: 'How to use' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain(whiteBright('How to use:'));
+            expect(output).not.toContain(whiteBright('Usage:'));
+            // Default usage text should still be generated
+            expect(output).toContain('test-cli [options]');
+        });
+
+        it('allows overriding the options section title', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            name: { type: 'string', description: 'Your name' },
+                        },
+                        helpSections: {
+                            options: { title: 'Flags' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain(whiteBright('Flags:'));
+            expect(output).not.toContain(whiteBright('Options:'));
+            // Default options text should still be generated
+            expect(output).toContain('--name');
+        });
+
+        it('allows overriding the usage section text', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            usage: { title: 'Usage', text: 'test-cli <command> [flags]' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('test-cli <command> [flags]');
+            expect(output).not.toContain('test-cli [options]');
+        });
+
+        it('respects order for custom helpSections', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            examples: { title: 'Examples', text: 'example text', order: -1 },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            const examplesIndex = output.indexOf('Examples:');
+            const usageIndex = output.indexOf('Usage:');
+            expect(examplesIndex).toBeLessThan(usageIndex);
+        });
+
+        it('places custom helpSections after options by default', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            notes: { title: 'Notes', text: 'Some notes' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            const notesIndex = output.indexOf('Notes:');
+            const optionsIndex = output.indexOf('Options:');
+            expect(notesIndex).toBeGreaterThan(optionsIndex);
+        });
+
+        it('displays custom helpSection with title only and no text', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            sep: { title: 'Additional Info' },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain(whiteBright('Additional Info:'));
+        });
+
+        it('allows reordering built-in sections via helpSections order', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            options: { title: 'Options', order: -1 },
+                            usage: { title: 'Usage', order: 1 },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            const optionsIndex = output.indexOf('Options:');
+            const usageIndex = output.indexOf('Usage:');
+            expect(optionsIndex).toBeLessThan(usageIndex);
+        });
+
+        it('supports multiple custom helpSections with ordering', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        helpSections: {
+                            examples: { title: 'Examples', text: 'example 1', order: 3 },
+                            environment: { title: 'Environment', text: 'ENV_VAR=value', order: 2 },
+                        },
+                        args: ['--help'],
+                    },
+                    [help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            const envIndex = output.indexOf('Environment:');
+            const examplesIndex = output.indexOf('Examples:');
+            const optionsIndex = output.indexOf('Options:');
+            expect(optionsIndex).toBeLessThan(envIndex);
+            expect(envIndex).toBeLessThan(examplesIndex);
+        });
     });
 });

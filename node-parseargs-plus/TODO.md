@@ -1,1 +1,3 @@
-proper return type
+- examples
+- commands
+- parameters
