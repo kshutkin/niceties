@@ -57,28 +57,6 @@ function resolveCommand(args, commandMap, globalOptions, defaultCommand) {
 }
 
 /**
- * Validates that overlapping option names between global and command scopes
- * have the same type.
- *
- * @param {Record<string, import('./types.d.ts').OptionConfig>} globalOptions
- * @param {Record<string, import('./types.d.ts').OptionConfig>} commandOptions
- * @param {string} commandName
- */
-function validateOptionTypes(globalOptions, commandOptions, commandName) {
-    for (const [name, cmdOpt] of Object.entries(commandOptions)) {
-        if (name in globalOptions) {
-            const globalOpt = globalOptions[name];
-            if (globalOpt.type !== cmdOpt.type) {
-                throw new Error(
-                    `Option '--${name}' has type '${globalOpt.type}' globally but type '${cmdOpt.type}' in command '${commandName}'. ` +
-                        `Use different option names to avoid conflicts.`
-                );
-            }
-        }
-    }
-}
-
-/**
  * Builds a lookup of option names → their definitions, and a map from
  * short flags → option definitions.
  *
@@ -268,11 +246,6 @@ export const commands = /** @type {any} */ (
 
                     const rawGlobalArgs = args.slice(0, cmdIndex);
                     const rawCommandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
-
-                    // Validate option type collisions
-                    if (commandConfig.options) {
-                        validateOptionTypes(globalOptions, commandConfig.options, commandName);
-                    }
 
                     // Split command args: move purely-global flags back to globalArgs
                     const split = splitArgs(rawCommandArgs, globalOptions, commandConfig.options ?? {});

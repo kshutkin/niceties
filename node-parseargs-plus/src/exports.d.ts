@@ -6,6 +6,7 @@ import type {
     ParseArgsPlusConfigWithMiddleware,
     ParseArgsPlusResult,
     ParseArgsPlusResultFromExtended,
+    ValidateCommandOptionTypes,
 } from './types.d.ts';
 
 /**
@@ -43,4 +44,4 @@ export function parseArgsPlus<
     // biome-ignore lint/suspicious/noExplicitAny: middleware array accepts any extension type
     const M extends Middleware<any, any>[],
     const T extends ParseArgsPlusConfigWithMiddleware<MergeMiddlewareOptionExts<M>, MergeMiddlewareConfigExts<M>>,
->(config: T, middlewares: M): ParseArgsPlusResultFromExtended<T>;
+>(config: T & ValidateCommandOptionTypes<T>, middlewares: M): ParseArgsPlusResultFromExtended<T>;

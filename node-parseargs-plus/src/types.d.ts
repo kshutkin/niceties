@@ -143,6 +143,49 @@ export interface ParseArgsPlusConfig {
     tokens?: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Command option type validation
+// ---------------------------------------------------------------------------
+
+// For a single command, check that every option key overlapping with global
+// options has a matching `type` field. Produces the original CommandConfig
+// when valid, or a branded error type for conflicting keys.
+type ValidateCommandOptions<GlobalOpts extends Record<string, OptionConfig>, CmdOpts extends Record<string, OptionConfig>> = {
+    [K in keyof CmdOpts]: K extends keyof GlobalOpts
+        ? CmdOpts[K]['type'] extends GlobalOpts[K & string]['type']
+            ? GlobalOpts[K & string]['type'] extends CmdOpts[K]['type']
+                ? CmdOpts[K]
+                : OptionConfig & {
+                      type: GlobalOpts[K & string]['type'];
+                      '@@error': `Option type must match global option type '${GlobalOpts[K & string]['type']}'`;
+                  }
+            : OptionConfig & {
+                  type: GlobalOpts[K & string]['type'];
+                  '@@error': `Option type must match global option type '${GlobalOpts[K & string]['type']}'`;
+              }
+        : CmdOpts[K];
+};
+
+// Validate all commands in a commands map against global options.
+// Each command's options are checked for type compatibility with overlapping global options.
+type ValidateCommands<GlobalOpts extends Record<string, OptionConfig>, Commands extends Record<string, CommandConfig>> = {
+    [CmdName in keyof Commands]: Commands[CmdName] extends { options: infer CO extends Record<string, OptionConfig> }
+        ? Omit<Commands[CmdName], 'options'> & { options: ValidateCommandOptions<GlobalOpts, CO> }
+        : Commands[CmdName];
+};
+
+// Validates command option types against global options for a given config.
+// When both `options` and `commands` are present, overlapping option names
+// must have matching `type` fields. Use via intersection in function signatures:
+//   config: T & ValidateCommandOptionTypes<T>
+// biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
+export type ValidateCommandOptionTypes<T extends Record<string, any>> = T extends {
+    options: infer GO extends Record<string, OptionConfig>;
+    commands: infer C extends Record<string, CommandConfig>;
+}
+    ? Omit<T, 'commands'> & { commands: ValidateCommands<GO, C> }
+    : T;
+
 // The config accepted by parseArgsPlus when middlewares extend the option and/or config shape.
 // The `ConfigExt` fields are merged into the top-level config via intersection.
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended

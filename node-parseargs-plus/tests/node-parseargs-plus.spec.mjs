@@ -1198,29 +1198,6 @@ describe('node-parseargs-plus', () => {
             expect(result.values.verbose).toBe(true);
         });
 
-        it('validates option type collisions between global and command', () => {
-            expect(() =>
-                parseArgsPlus(
-                    {
-                        options: {
-                            output: { type: 'boolean' },
-                        },
-                        commands: {
-                            build: {
-                                options: {
-                                    output: { type: 'string' },
-                                },
-                            },
-                        },
-                        args: ['build'],
-                    },
-                    [commands]
-                )
-            ).toThrow(
-                "Option '--output' has type 'boolean' globally but type 'string' in command 'build'. Use different option names to avoid conflicts."
-            );
-        });
-
         it('allows same option name with same type in global and command', () => {
             const result = parseArgsPlus(
                 {

@@ -1,4 +1,5 @@
 import { parseArgsPlus } from '@niceties/node-parseargs-plus';
+import { commands } from '@niceties/node-parseargs-plus/commands';
 import { help } from '@niceties/node-parseargs-plus/help';
 
 // Helper: assert that two types are exactly equal
@@ -297,3 +298,126 @@ type _29 = Assert<IsExact<(typeof jr7.values)['x'], string | boolean | string[] 
 // 30. JS impl: positionals is exactly string[], not any
 const jr8 = parseArgsPlusJs({ allowPositionals: true });
 type _30 = Assert<IsExact<typeof jr8.positionals, string[]>>;
+
+// ---------------------------------------------------------------------------
+// Commands middleware type tests
+// ---------------------------------------------------------------------------
+
+// 31. Commands with matching overlapping option types compiles fine
+const r31 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    verbose: { type: 'boolean' },
+                    output: { type: 'string' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+type _31a = Assert<IsExact<typeof r31.values.verbose, boolean | undefined>>;
+type _31b = Assert<IsExact<typeof r31.positionals, string[]>>;
+
+// 32. Commands with no overlapping options compiles fine
+const r32 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                options: {
+                    output: { type: 'string' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+type _32 = Assert<IsExact<typeof r32.values.verbose, boolean | undefined>>;
+
+// 33. Commands with no options at all compiles fine
+const r33 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+            },
+        },
+    },
+    [commands]
+);
+type _33 = Assert<IsExact<typeof r33.values.verbose, boolean | undefined>>;
+
+// 34. Mismatched overlapping option types should error at compile time
+parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                options: {
+                    // @ts-expect-error: 'verbose' is boolean globally but string in command
+                    verbose: { type: 'string' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+
+// 35. Mismatched types across multiple commands should error
+parseArgsPlus(
+    {
+        options: {
+            output: { type: 'string' },
+        },
+        commands: {
+            build: {
+                options: {
+                    output: { type: 'string' }, // OK — matches global
+                },
+            },
+            test: {
+                options: {
+                    // @ts-expect-error: 'output' is string globally but boolean in command
+                    output: { type: 'boolean' },
+                },
+            },
+        },
+    },
+    [commands]
+);
+
+// 36. Commands with help middleware and matching types compiles fine
+const r36 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Enable verbose output' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    verbose: { type: 'boolean', description: 'Verbose build' },
+                    output: { type: 'string', description: 'Output directory' },
+                },
+            },
+        },
+    },
+    [help, commands]
+);
+type _36a = Assert<IsExact<typeof r36.values.verbose, boolean | undefined>>;
+type _36b = Assert<IsExact<typeof r36.positionals, string[]>>;
