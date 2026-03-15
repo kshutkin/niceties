@@ -151,6 +151,32 @@ function collectOptions(options, includeHelpVersion) {
 }
 
 /**
+ * Formats two columns with text wrapping on the right.
+ * @param {{ left: string; right: string }[]} rows
+ * @param {number} maxLeftLen
+ * @param {number | undefined} termWidth
+ * @returns {string[]}
+ */
+function formatColumns(rows, maxLeftLen, termWidth) {
+    const rightCol = maxLeftLen + 2;
+    /** @type {string[]} */
+    const lines = [];
+    for (const row of rows) {
+        const padding = ' '.repeat(maxLeftLen - row.left.length + 2);
+        if (row.right) {
+            const wrapped = wrapText(row.right, rightCol, termWidth, rightCol);
+            lines.push(`${row.left}${padding}${wrapped[0]}`);
+            for (let i = 1; i < wrapped.length; i++) {
+                lines.push(' '.repeat(rightCol) + wrapped[i]);
+            }
+        } else {
+            lines.push(row.left);
+        }
+    }
+    return lines;
+}
+
+/**
  * Builds the options text block for wide terminals (≥ 80 columns).
  * Columnar layout: flags left-aligned, descriptions at a computed column.
  * @param {{ name: string; opt: any }[]} entries
@@ -158,7 +184,7 @@ function collectOptions(options, includeHelpVersion) {
  * @returns {string[]}
  */
 function buildOptionsTextWide(entries, termWidth) {
-    /** @type {{ flags: string; description: string }[]} */
+    /** @type {{ left: string; right: string }[]} */
     const rows = [];
     let maxFlagsLen = 0;
 
@@ -170,27 +196,10 @@ function buildOptionsTextWide(entries, termWidth) {
         if (flags.length > maxFlagsLen) {
             maxFlagsLen = flags.length;
         }
-        rows.push({ flags, description });
+        rows.push({ left: flags, right: description });
     }
 
-    const descriptionCol = maxFlagsLen + 2;
-
-    /** @type {string[]} */
-    const lines = [];
-    for (const row of rows) {
-        const padding = ' '.repeat(maxFlagsLen - row.flags.length + 2);
-        if (row.description) {
-            const wrapped = wrapText(row.description, descriptionCol, termWidth, descriptionCol);
-            lines.push(`${row.flags}${padding}${wrapped[0]}`);
-            for (let i = 1; i < wrapped.length; i++) {
-                lines.push(' '.repeat(descriptionCol) + wrapped[i]);
-            }
-        } else {
-            lines.push(row.flags);
-        }
-    }
-
-    return lines;
+    return formatColumns(rows, maxFlagsLen, termWidth);
 }
 
 /**
@@ -272,7 +281,7 @@ function buildOptionsText(options, includeHelpVersion = true) {
  * @returns {string[]}
  */
 function buildCommandsText(commands) {
-    /** @type {{ name: string; description: string }[]} */
+    /** @type {{ left: string; right: string }[]} */
     const rows = [];
     let maxNameLen = 0;
 
@@ -281,29 +290,11 @@ function buildCommandsText(commands) {
         if (name.length > maxNameLen) {
             maxNameLen = name.length;
         }
-        rows.push({ name, description });
+        rows.push({ left: `  ${name}`, right: description });
     }
 
-    // "  " + name column + gap of 2
-    const descriptionCol = 2 + maxNameLen + 2;
     const termWidth = getTerminalWidth();
-
-    /** @type {string[]} */
-    const lines = [];
-    for (const row of rows) {
-        const padding = ' '.repeat(maxNameLen - row.name.length + 2);
-        if (row.description) {
-            const wrapped = wrapText(row.description, descriptionCol, termWidth, descriptionCol);
-            lines.push(`  ${row.name}${padding}${wrapped[0]}`);
-            for (let i = 1; i < wrapped.length; i++) {
-                lines.push(' '.repeat(descriptionCol) + wrapped[i]);
-            }
-        } else {
-            lines.push(`  ${row.name}`);
-        }
-    }
-
-    return lines;
+    return formatColumns(rows, 2 + maxNameLen, termWidth);
 }
 
 /**
