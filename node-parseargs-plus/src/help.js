@@ -186,7 +186,7 @@ function buildSection(id, defaultTitle, defaultText, defaultOrder, userSections)
  * @param {string} header
  * @param {string | undefined} description
  * @param {Record<string, { title: string; text?: string | string[]; order: number }>} sections
- * @param {Record<string, import('./types.d.ts').HelpSection> | undefined} userSections
+ * @param {Record<string, import('./types.d.ts').HelpSection>} userSections
  */
 function renderHelp(header, description, sections, userSections) {
     console.log(header + '\n');
@@ -196,17 +196,15 @@ function renderHelp(header, description, sections, userSections) {
     }
 
     // Merge in any user-defined custom sections (non-standard ids)
-    if (userSections) {
-        for (const [id, section] of Object.entries(userSections)) {
-            if (id in sections) {
-                continue; // already merged
-            }
-            sections[id] = {
-                title: section.title,
-                text: section.text,
-                order: section.order ?? 2,
-            };
+    for (const [id, section] of Object.entries(userSections)) {
+        if (id in sections) {
+            continue; // already merged
         }
+        sections[id] = {
+            title: section.title,
+            text: section.text,
+            order: section.order ?? 2,
+        };
     }
 
     // Sort sections by order, then by insertion order for equal orders
@@ -224,7 +222,7 @@ function renderHelp(header, description, sections, userSections) {
  */
 function printHelp(config) {
     const userSections = config.helpSections || {};
-    const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
+    const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options);
 
     renderHelp(
         `${config.name} v${config.version}`,
@@ -250,7 +248,7 @@ function printHelp(config) {
  */
 function printGlobalHelpWithCommands(config, commands) {
     const userSections = config.helpSections || {};
-    const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
+    const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options);
 
     renderHelp(
         `${config.name} v${config.version}`,
@@ -273,8 +271,7 @@ function printGlobalHelpWithCommands(config, commands) {
  */
 function printCommandHelp(config, commandName, commandConfig, _commands) {
     const userSections = config.helpSections || {};
-    const globalOptions =
-        /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
+    const globalOptions = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options);
     const commandOptions =
         /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (commandConfig.options) || {};
 

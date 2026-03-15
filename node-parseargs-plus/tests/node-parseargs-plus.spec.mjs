@@ -1817,5 +1817,104 @@ describe('node-parseargs-plus', () => {
             expect(help[0].order).toBe(-10);
             expect(help[1].order).toBe(20);
         });
+
+        it('shows command-specific help for command with no options defined', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '2.0.0',
+                        options: {},
+                        commands: {
+                            clean: {
+                                description: 'Clean build output',
+                                allowPositionals: true,
+                            },
+                        },
+                        args: ['clean', '--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('my-cli clean');
+            expect(output).toContain('Clean build output');
+            expect(output).toContain(whiteBright('Global Options:'));
+            expect(output).toContain('--help');
+            // Should not have a command-specific Options section since command has no options
+            expect(output).not.toMatch(/^Options:/m);
+        });
+
+        it('shows command without description in global help command list', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            install: { description: 'Install packages' },
+                            clean: {},
+                        },
+                        args: ['--help'],
+                    },
+                    [commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            expect(exitSpy).toHaveBeenCalledWith(0);
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('install');
+            expect(output).toContain('Install packages');
+            expect(output).toContain('clean');
+        });
+    });
+
+    describe('commands middleware edge cases', () => {
+        it('parses command when global options is not provided', () => {
+            const result = parseArgsPlus(
+                {
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--watch'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.watch).toBe(true);
+        });
+
+        it('falls back to process.argv when args is not provided', () => {
+            const originalArgv = process.argv;
+            try {
+                process.argv = ['node', 'test.js', 'build', '--watch'];
+                const result = parseArgsPlus(
+                    {
+                        options: {},
+                        commands: {
+                            build: {
+                                options: {
+                                    watch: { type: 'boolean' },
+                                },
+                            },
+                        },
+                    },
+                    [commands]
+                );
+
+                expect(result.command).toBe('build');
+                expect(result.values.watch).toBe(true);
+            } finally {
+                process.argv = originalArgv;
+            }
+        });
     });
 });
