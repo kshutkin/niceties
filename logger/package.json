@@ -75,6 +75,6 @@
         "test:types": "tsc -p tsconfig.types.json"
     },
     "dependencies": {
-        "kleur": "^4.1.4"
+        "@niceties/ansi": "workspace:^"
     }
 }

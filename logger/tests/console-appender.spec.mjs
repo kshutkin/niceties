@@ -1,7 +1,6 @@
-import kleur from 'kleur';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { blue, cyan, green, grey, red, yellow } = kleur;
+import { blue, cyan, gray, green, red, yellow } from '@niceties/ansi';
 
 import { createConsoleAppender } from '../src/console-appender.js';
 import { colors, tagFactory, unicodeLogPrefixes, unicodePrefixes } from '../src/default-formatting.js';
@@ -143,7 +142,7 @@ describe('console appender', () => {
             ref: /** @type {WeakRef<never>} */ (ref),
         });
 
-        expect(consoleLogMock).toBeCalledWith(`${grey('ℹ')} [${blue('atag')}] test`);
+        expect(consoleLogMock).toBeCalledWith(`${gray('ℹ')} [${blue('atag')}] test`);
     });
 
     it('log with context', () => {
