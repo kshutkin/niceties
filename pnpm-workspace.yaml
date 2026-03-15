@@ -1,7 +1,9 @@
 packages:
+    - ansi
     - logger
     - draftlog
     - draftlog-appender
+    - node-parseargs-plus
     - examples
 
 hoistWorkspacePackages: false

@@ -1,10 +1,12 @@
 {
     "name": "examples",
     "version": "1.0.4",
+    "type": "module",
     "description": "Examples for @liceties/logger and basic integration tests",
     "main": "index.js",
     "scripts": {
-        "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs"
+        "test": "node ./test-filter.mjs > ./result.log && node ./check-result.mjs && node --expose-gc ./index.mjs",
+        "demo": "node ./parseargs-plus-demo.mjs --help"
     },
     "author": "Konstantin Shutkin",
     "license": "MIT",
@@ -12,6 +14,7 @@
     "dependencies": {
         "@niceties/logger": "workspace:*",
         "@niceties/draftlog-appender": "workspace:*",
+        "@niceties/node-parseargs-plus": "workspace:*",
         "kleur": "^4.1.4"
     }
 }

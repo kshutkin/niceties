@@ -3,9 +3,7 @@
  * @typedef {import('./types.js').Prefixes} Prefixes
  */
 
-import kleur from 'kleur';
-
-const { green, red, yellow, blue, cyan, grey } = kleur;
+import { blue, cyan, gray, green, red, yellow } from '@niceties/ansi';
 
 /** @type {Prefixes} */
 export const unicodePrefixes = [`${green('✓')}`, `${green('✓')}`, '⚠', '✕'];
@@ -14,10 +12,10 @@ export const unicodePrefixes = [`${green('✓')}`, `${green('✓')}`, '⚠', '�
 export const asciiPrefixes = [`${green('+')}`, `${green('+')}`, '!', 'x'];
 
 /** @type {Prefixes} */
-export const unicodeLogPrefixes = [grey('ℹ'), `${cyan('ℹ')}`, 'ℹ', 'ℹ'];
+export const unicodeLogPrefixes = [gray('ℹ'), `${cyan('ℹ')}`, 'ℹ', 'ℹ'];
 
 /** @type {Prefixes} */
-export const asciiLogPrefixes = [grey('i'), `${cyan('i')}`, 'i', 'i'];
+export const asciiLogPrefixes = [gray('i'), `${cyan('i')}`, 'i', 'i'];
 
 /** @type {ColorFormatters} */
 // biome-ignore lint/suspicious/noSparseArray: expected
