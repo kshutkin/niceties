@@ -166,11 +166,38 @@ function printSection(section) {
 }
 
 /**
- * Collects, merges, sorts, and prints sections.
+ * Creates a section descriptor, applying user overrides for title, text, and order if present.
+ * @param {string} id
+ * @param {string} defaultTitle
+ * @param {string | string[]} defaultText
+ * @param {number} defaultOrder
+ * @param {Record<string, import('./types.d.ts').HelpSection>} userSections
+ * @returns {{ title: string; text?: string | string[]; order: number }}
+ */
+function buildSection(id, defaultTitle, defaultText, defaultOrder, userSections) {
+    const override = userSections[id];
+    return {
+        title: override?.title ?? defaultTitle,
+        text: override?.text ?? defaultText,
+        order: override?.order ?? defaultOrder,
+    };
+}
+
+/**
+ * Unified help renderer. Prints a header line, optional description,
+ * then merges default sections with user-defined custom sections and prints them all.
+ * @param {string} header
+ * @param {string | undefined} description
  * @param {Record<string, { title: string; text?: string | string[]; order: number }>} sections
  * @param {Record<string, import('./types.d.ts').HelpSection> | undefined} userSections
  */
-function printSections(sections, userSections) {
+function renderHelp(header, description, sections, userSections) {
+    console.log(header + '\n');
+
+    if (description) {
+        console.log(description, '\n');
+    }
+
     // Merge in any user-defined custom sections (non-standard ids)
     if (userSections) {
         for (const [id, section] of Object.entries(userSections)) {
@@ -200,36 +227,23 @@ function printSections(sections, userSections) {
  */
 function printHelp(config) {
     const userSections = config.helpSections || {};
-
-    console.log(`${config.name} v${config.version}\n`);
-
-    if (config.description) {
-        console.log(config.description, '\n');
-    }
-
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
 
-    // Build the default sections keyed by id
-    /** @type {Record<string, { title: string; text?: string | string[]; order: number }>} */
-    const sections = {};
-
-    // Usage section (order 0)
-    const usageOverride = userSections['usage'];
-    sections['usage'] = {
-        title: usageOverride?.title ?? 'Usage',
-        text: usageOverride?.text ?? `${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}`,
-        order: usageOverride?.order ?? 0,
-    };
-
-    // Options section (order 1)
-    const optionsOverride = userSections['options'];
-    sections['options'] = {
-        title: optionsOverride?.title ?? 'Options',
-        text: optionsOverride?.text ?? buildOptionsText(options),
-        order: optionsOverride?.order ?? 1,
-    };
-
-    printSections(sections, userSections);
+    renderHelp(
+        `${config.name} v${config.version}`,
+        config.description,
+        {
+            usage: buildSection(
+                'usage',
+                'Usage',
+                `${config.name} [options]${config.allowPositionals ? ' [arguments]' : ''}`,
+                0,
+                userSections
+            ),
+            options: buildSection('options', 'Options', buildOptionsText(options), 1, userSections),
+        },
+        userSections
+    );
 }
 
 /**
@@ -239,43 +253,18 @@ function printHelp(config) {
  */
 function printGlobalHelpWithCommands(config, commands) {
     const userSections = config.helpSections || {};
-
-    console.log(`${config.name} v${config.version}\n`);
-
-    if (config.description) {
-        console.log(config.description, '\n');
-    }
-
     const options = /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
 
-    /** @type {Record<string, { title: string; text?: string | string[]; order: number }>} */
-    const sections = {};
-
-    // Usage section (order 0)
-    const usageOverride = userSections['usage'];
-    sections['usage'] = {
-        title: usageOverride?.title ?? 'Usage',
-        text: usageOverride?.text ?? `${config.name} [options] <command> [command-options]`,
-        order: usageOverride?.order ?? 0,
-    };
-
-    // Commands section (order 1)
-    const commandsOverride = userSections['commands'];
-    sections['commands'] = {
-        title: commandsOverride?.title ?? 'Commands',
-        text: commandsOverride?.text ?? buildCommandsText(commands),
-        order: commandsOverride?.order ?? 1,
-    };
-
-    // Global options section (order 2)
-    const optionsOverride = userSections['options'];
-    sections['options'] = {
-        title: optionsOverride?.title ?? 'Global Options',
-        text: optionsOverride?.text ?? buildOptionsText(options),
-        order: optionsOverride?.order ?? 2,
-    };
-
-    printSections(sections, userSections);
+    renderHelp(
+        `${config.name} v${config.version}`,
+        config.description,
+        {
+            usage: buildSection('usage', 'Usage', `${config.name} [options] <command> [command-options]`, 0, userSections),
+            commands: buildSection('commands', 'Commands', buildCommandsText(commands), 1, userSections),
+            options: buildSection('options', 'Global Options', buildOptionsText(options), 2, userSections),
+        },
+        userSections
+    );
 }
 
 /**
@@ -287,46 +276,28 @@ function printGlobalHelpWithCommands(config, commands) {
  */
 function printCommandHelp(config, commandName, commandConfig, _commands) {
     const userSections = config.helpSections || {};
-
-    console.log(`${config.name} ${commandName}\n`);
-
-    if (commandConfig.description) {
-        console.log(commandConfig.description, '\n');
-    }
-
     const globalOptions =
         /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (config.options) || {};
     const commandOptions =
         /** @type {Record<string, import('./types.d.ts').OptionConfig & { description?: string }>} */ (commandConfig.options) || {};
 
     /** @type {Record<string, { title: string; text?: string | string[]; order: number }>} */
-    const sections = {};
-
-    // Usage section (order 0)
-    const usageOverride = userSections['usage'];
-    sections['usage'] = {
-        title: usageOverride?.title ?? 'Usage',
-        text: usageOverride?.text ?? `${config.name} ${commandName} [options]${commandConfig.allowPositionals ? ' [arguments]' : ''}`,
-        order: usageOverride?.order ?? 0,
+    const sections = {
+        usage: buildSection(
+            'usage',
+            'Usage',
+            `${config.name} ${commandName} [options]${commandConfig.allowPositionals ? ' [arguments]' : ''}`,
+            0,
+            userSections
+        ),
     };
 
     // Command options section (order 1) — only if the command has options
     if (Object.keys(commandOptions).length > 0) {
-        const cmdOptionsOverride = userSections['command-options'];
-        sections['command-options'] = {
-            title: cmdOptionsOverride?.title ?? 'Options',
-            text: cmdOptionsOverride?.text ?? buildOptionsText(commandOptions, false),
-            order: cmdOptionsOverride?.order ?? 1,
-        };
+        sections['command-options'] = buildSection('command-options', 'Options', buildOptionsText(commandOptions, false), 1, userSections);
     }
 
-    // Global options section (order 2)
-    const optionsOverride = userSections['options'];
-    sections['options'] = {
-        title: optionsOverride?.title ?? 'Global Options',
-        text: optionsOverride?.text ?? buildOptionsText(globalOptions),
-        order: optionsOverride?.order ?? 2,
-    };
+    sections['options'] = buildSection('options', 'Global Options', buildOptionsText(globalOptions), 2, userSections);
 
-    printSections(sections, userSections);
+    renderHelp(`${config.name} ${commandName}`, commandConfig.description, sections, userSections);
 }
