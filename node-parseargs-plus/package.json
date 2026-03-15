@@ -29,7 +29,7 @@
     "main": "./src/index.js",
     "module": "./src/index.js",
     "files": [
-        "src",
+        "src/*.js",
         "types"
     ],
     "engines": {
