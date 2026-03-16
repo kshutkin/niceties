@@ -204,7 +204,7 @@ function buildOptionsTextWide(entries, termWidth) {
 
     for (const { name, opt } of entries) {
         const shortPart = opt.short ? `-${opt.short}, ` : '    ';
-        const typeSuffix = opt.type === 'string' ? ' <value>' : '';
+        const typeSuffix = opt.type === 'string' ? (opt.optionalValue ? ' [<value>]' : ' <value>') : '';
         const flags = `  ${shortPart}--${name}${typeSuffix}`;
         const description = /** @type {string} */ (/** @type {any} */ (opt).description) || '';
         if (flags.length > maxFlagsLen) {
@@ -236,7 +236,7 @@ function buildOptionsTextNarrow(entries, termWidth) {
 
     for (const { name, opt } of entries) {
         // Build comma-separated flags string
-        const typeSuffix = opt.type === 'string' ? ' <value>' : '';
+        const typeSuffix = opt.type === 'string' ? (opt.optionalValue ? ' [<value>]' : ' <value>') : '';
         const parts = [];
         if (opt.short) {
             parts.push(`-${opt.short}`);

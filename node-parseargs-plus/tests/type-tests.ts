@@ -2,6 +2,7 @@ import { parseArgsPlus } from '@niceties/node-parseargs-plus';
 import { camelCase } from '@niceties/node-parseargs-plus/camel-case';
 import { commands } from '@niceties/node-parseargs-plus/commands';
 import { help } from '@niceties/node-parseargs-plus/help';
+import { optionalValue } from '@niceties/node-parseargs-plus/optional-value';
 import { parameters } from '@niceties/node-parseargs-plus/parameters';
 
 // Helper: assert that two types are exactly equal
@@ -1197,3 +1198,177 @@ const r85 = parseArgsPlus(
 );
 type _85a = Assert<IsExact<typeof r85.values.verbose, boolean | undefined>>;
 type _85b = Assert<IsExact<typeof r85.values.output, string | undefined>>;
+
+// ---------------------------------------------------------------------------
+// Optional-value middleware type tests
+// ---------------------------------------------------------------------------
+
+// 86. optionalValue: string option with optionalValue: true → still string | undefined
+const r86 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const },
+        },
+        args: ['--filter'],
+    },
+    [optionalValue]
+);
+type _86a = Assert<IsExact<typeof r86.values.filter, string | undefined>>;
+
+// 87. optionalValue: string option with optionalValue and default → string (required)
+const r87 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const, default: 'all' as const },
+        },
+        args: [],
+    },
+    [optionalValue]
+);
+type _87a = Assert<IsExact<typeof r87.values.filter, string>>;
+
+// 88. optionalValue: multiple: true with optionalValue → string[] | undefined
+const r88 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, multiple: true as const, optionalValue: true as const },
+        },
+        args: ['--filter'],
+    },
+    [optionalValue]
+);
+type _88a = Assert<IsExact<typeof r88.values.filter, string[] | undefined>>;
+
+// 89. optionalValue: multiple: true with optionalValue and default → string[]
+const r89 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, multiple: true as const, optionalValue: true as const, default: [] as string[] },
+        },
+        args: [],
+    },
+    [optionalValue]
+);
+type _89a = Assert<IsExact<typeof r89.values.filter, string[]>>;
+
+// 90. optionalValue + help: option with optionalValue and description
+const r90 = parseArgsPlus(
+    {
+        name: 'test-cli',
+        version: '1.0.0',
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const, description: 'Filter results' },
+            name: { type: 'string' as const, description: 'Your name' },
+        },
+        args: ['--filter'],
+    },
+    [optionalValue, help]
+);
+type _90a = Assert<IsExact<typeof r90.values.filter, string | undefined>>;
+type _90b = Assert<IsExact<typeof r90.values.name, string | undefined>>;
+
+// 91. optionalValue + commands: optionalValue on global option with command discriminant
+const r91 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const },
+        },
+        commands: {
+            build: {
+                options: {
+                    watch: { type: 'boolean' as const },
+                },
+            },
+        },
+        args: ['build', '--filter'],
+    },
+    [optionalValue, commands]
+);
+type R91 = typeof r91;
+type R91Build = Extract<R91, { command: 'build' }>;
+type _91a = Assert<IsExact<R91Build['values']['filter'], string | undefined>>;
+type _91b = Assert<IsExact<R91Build['values']['watch'], boolean | undefined>>;
+
+// 92. optionalValue + commands: optionalValue on command-level option
+const r92 = parseArgsPlus(
+    {
+        options: {},
+        commands: {
+            build: {
+                options: {
+                    mode: { type: 'string' as const, optionalValue: true as const },
+                },
+            },
+        },
+        args: ['build', '--mode'],
+    },
+    [optionalValue, commands]
+);
+type R92 = typeof r92;
+type R92Build = Extract<R92, { command: 'build' }>;
+type _92a = Assert<IsExact<R92Build['values']['mode'], string | undefined>>;
+
+// 93. optionalValue + camelCase: camelCase keys with optionalValue
+const r93 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' as const, optionalValue: true as const },
+        },
+        args: ['--log-level'],
+    },
+    [camelCase, optionalValue]
+);
+type _93a = Assert<IsExact<typeof r93.values.logLevel, string | undefined>>;
+
+// 94. optionalValue + parameters: both middlewares together
+const r94 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const },
+        },
+        parameters: ['<name>'] as const,
+        args: ['hello', '--filter'],
+    },
+    [optionalValue, parameters]
+);
+type _94a = Assert<IsExact<typeof r94.values.filter, string | undefined>>;
+type _94b = Assert<IsExact<typeof r94.parameters, { name: string }>>;
+
+// 95. optionalValue: boolean option is unaffected by optionalValue marker
+const r95 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' as const },
+            filter: { type: 'string' as const, optionalValue: true as const },
+        },
+        args: ['--verbose', '--filter'],
+    },
+    [optionalValue]
+);
+type _95a = Assert<IsExact<typeof r95.values.verbose, boolean | undefined>>;
+type _95b = Assert<IsExact<typeof r95.values.filter, string | undefined>>;
+
+// 96. optionalValue + help + commands + camelCase: all middlewares together
+const r96 = parseArgsPlus(
+    {
+        name: 'test-cli',
+        version: '1.0.0',
+        options: {
+            logLevel: { type: 'string' as const, optionalValue: true as const, description: 'Log level' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    watchMode: { type: 'boolean' as const, description: 'Watch mode' },
+                },
+            },
+        },
+        args: ['build', '--log-level'],
+    },
+    [camelCase, optionalValue, commands, help]
+);
+type R96 = typeof r96;
+type R96Build = Extract<R96, { command: 'build' }>;
+type _96a = Assert<IsExact<R96Build['values']['logLevel'], string | undefined>>;
+type _96b = Assert<IsExact<R96Build['values']['watchMode'], boolean | undefined>>;

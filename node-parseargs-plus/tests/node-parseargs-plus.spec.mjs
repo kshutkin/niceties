@@ -6,6 +6,7 @@ import { camelCase } from '../src/camel-case.js';
 import { commands } from '../src/commands.js';
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';
+import { optionalValue } from '../src/optional-value.js';
 import { parameters } from '../src/parameters.js';
 
 describe('node-parseargs-plus', () => {
@@ -3872,6 +3873,601 @@ describe('node-parseargs-plus', () => {
             expect(result.values.saveDev).toBe(true);
             expect(result.values.logLevel).toBe('debug');
             expect(result.parameters.packageName).toBe('my-package');
+        });
+    });
+
+    describe('optional-value middleware', () => {
+        it('allows a string option to be used bare (no value)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+        });
+
+        it('allows a string option with a value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter', 'pattern'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('pattern');
+        });
+
+        it('allows a string option with inline value (=)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter=pattern'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('pattern');
+        });
+
+        it('allows a string option with inline empty value (--opt=)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter='],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+        });
+
+        it('allows multiple: true with bare usage', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', multiple: true, optionalValue: true },
+                    },
+                    args: ['--filter'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toEqual(['']);
+        });
+
+        it('allows multiple: true with mixed bare and valued usage', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', multiple: true, optionalValue: true },
+                    },
+                    args: ['--filter', 'a', '--filter'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toEqual(['a', '']);
+        });
+
+        it('allows multiple: true with multiple values', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', multiple: true, optionalValue: true },
+                    },
+                    args: ['--filter', 'a', '--filter', 'b'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toEqual(['a', 'b']);
+        });
+
+        it('allows multiple: true with bare followed by valued', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', multiple: true, optionalValue: true },
+                    },
+                    args: ['--filter', '--filter', 'b'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toEqual(['', 'b']);
+        });
+
+        it('handles bare option followed by another known option', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                        verbose: { type: 'boolean' },
+                    },
+                    args: ['--filter', '--verbose'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('handles bare short option', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', short: 'f', optionalValue: true },
+                    },
+                    args: ['-f'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+        });
+
+        it('handles short option with value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', short: 'f', optionalValue: true },
+                    },
+                    args: ['-f', 'pattern'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('pattern');
+        });
+
+        it('handles bare short option followed by another flag', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', short: 'f', optionalValue: true },
+                        verbose: { type: 'boolean', short: 'v' },
+                    },
+                    args: ['-f', '-v'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('does not rewrite after option terminator (--)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    allowPositionals: true,
+                    args: ['--filter', 'val', '--', '--filter'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('val');
+            expect(result.positionals).toEqual(['--filter']);
+        });
+
+        it('does not affect boolean options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--verbose', '--filter'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.verbose).toBe(true);
+            expect(result.values.filter).toBe('');
+        });
+
+        it('does not affect string options without optionalValue', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        options: {
+                            name: { type: 'string' },
+                        },
+                        args: ['--name'],
+                    },
+                    [optionalValue]
+                );
+            }).toThrow();
+        });
+
+        it('passes through when no options have optionalValue', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        name: { type: 'string' },
+                    },
+                    args: ['--name', 'hello'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.name).toBe('hello');
+        });
+
+        it('passes through when options is undefined', () => {
+            const result = parseArgsPlus(
+                {
+                    args: [],
+                    strict: false,
+                },
+                [optionalValue]
+            );
+            expect(result.values).toEqual({});
+        });
+
+        it('treats a single hyphen (-) as a value, not a flag', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter', '-'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('-');
+        });
+
+        it('is a valid middleware tuple', () => {
+            expect(Array.isArray(optionalValue)).toBe(true);
+            expect(optionalValue).toHaveLength(2);
+            expect(typeof optionalValue[0]).toBe('function');
+            expect(typeof optionalValue[1]).toBe('function');
+        });
+
+        it('has order 6 on transformConfig', () => {
+            expect(optionalValue[0].order).toBe(6);
+        });
+
+        it('works with default values', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true, default: 'all' },
+                    },
+                    args: ['--filter'],
+                },
+                [optionalValue]
+            );
+            // Bare --filter gives explicit empty string, overriding default
+            expect(result.values.filter).toBe('');
+        });
+
+        it('returns default when option not passed at all', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true, default: 'all' },
+                    },
+                    args: [],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('all');
+        });
+
+        it('handles multiple optionalValue options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                        format: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter', '--format', 'json'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.values.format).toBe('json');
+        });
+
+        it('handles multiple optionalValue options both bare', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                        format: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--filter', '--format'],
+                },
+                [optionalValue]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.values.format).toBe('');
+        });
+    });
+
+    describe('optional-value + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows [<value>] suffix for options with optionalValue: true', () => {
+            try {
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            filter: { type: 'string', optionalValue: true, description: 'Filter results' },
+                        },
+                        args: ['--help'],
+                    },
+                    [optionalValue, help]
+                );
+            } catch {}
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('[<value>]');
+            expect(output).toContain('--filter [<value>]');
+        });
+
+        it('shows <value> for regular string options alongside [<value>] for optionalValue', () => {
+            try {
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            name: { type: 'string', description: 'Your name' },
+                            filter: { type: 'string', optionalValue: true, description: 'Filter results' },
+                        },
+                        args: ['--help'],
+                    },
+                    [optionalValue, help]
+                );
+            } catch {}
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--name <value>');
+            expect(output).toContain('--filter [<value>]');
+        });
+
+        it('does not interfere with help when option has a value', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'test-cli',
+                    version: '1.0.0',
+                    options: {
+                        filter: { type: 'string', optionalValue: true, description: 'Filter' },
+                    },
+                    args: ['--filter', 'pattern'],
+                },
+                [optionalValue, help]
+            );
+            expect(result.values.filter).toBe('pattern');
+        });
+    });
+
+    describe('optional-value + commands middleware cooperation', () => {
+        it('handles optionalValue on global options bare before command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--filter', '--watch'],
+                },
+                [optionalValue, commands]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.command).toBe('build');
+            expect(result.values.watch).toBe(true);
+        });
+
+        it('handles optionalValue on global options with value before command', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    commands: {
+                        build: {
+                            options: {},
+                        },
+                    },
+                    args: ['--filter', 'pattern', 'build'],
+                },
+                [optionalValue, commands]
+            );
+            expect(result.values.filter).toBe('pattern');
+            expect(result.command).toBe('build');
+        });
+
+        it('handles optionalValue on command-level options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        build: {
+                            options: {
+                                mode: { type: 'string', optionalValue: true },
+                            },
+                        },
+                    },
+                    args: ['build', '--mode'],
+                },
+                [optionalValue, commands]
+            );
+            expect(result.command).toBe('build');
+            expect(result.values.mode).toBe('');
+        });
+
+        it('handles optionalValue on command-level options with value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        build: {
+                            options: {
+                                mode: { type: 'string', optionalValue: true },
+                            },
+                        },
+                    },
+                    args: ['build', '--mode', 'production'],
+                },
+                [optionalValue, commands]
+            );
+            expect(result.command).toBe('build');
+            expect(result.values.mode).toBe('production');
+        });
+    });
+
+    describe('optional-value + camelCase middleware cooperation', () => {
+        it('works with camelCase option keys bare', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--log-level'],
+                },
+                [camelCase, optionalValue]
+            );
+            expect(result.values.logLevel).toBe('');
+        });
+
+        it('works with camelCase option keys with value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string', optionalValue: true },
+                    },
+                    args: ['--log-level', 'debug'],
+                },
+                [camelCase, optionalValue]
+            );
+            expect(result.values.logLevel).toBe('debug');
+        });
+
+        it('works with camelCase short option bare', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string', short: 'l', optionalValue: true },
+                    },
+                    args: ['-l'],
+                },
+                [camelCase, optionalValue]
+            );
+            expect(result.values.logLevel).toBe('');
+        });
+    });
+
+    describe('optional-value + parameters middleware cooperation', () => {
+        it('works alongside parameters middleware with bare option', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    parameters: ['<name>'],
+                    args: ['--filter', '--', 'hello'],
+                },
+                [optionalValue, parameters]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.parameters.name).toBe('hello');
+        });
+
+        it('works alongside parameters with option before positional', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    parameters: ['<name>'],
+                    args: ['hello', '--filter'],
+                },
+                [optionalValue, parameters]
+            );
+            expect(result.values.filter).toBe('');
+            expect(result.parameters.name).toBe('hello');
+        });
+
+        it('works with optionalValue option taking a value alongside parameters', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    parameters: ['<name>'],
+                    args: ['--filter', 'pattern', 'hello'],
+                },
+                [optionalValue, parameters]
+            );
+            expect(result.values.filter).toBe('pattern');
+            expect(result.parameters.name).toBe('hello');
+        });
+    });
+
+    describe('optional-value + commands + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows [<value>] for command options with optionalValue in help', () => {
+            try {
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {},
+                        commands: {
+                            build: {
+                                description: 'Build the project',
+                                options: {
+                                    mode: { type: 'string', optionalValue: true, description: 'Build mode' },
+                                },
+                            },
+                        },
+                        args: ['build', '--help'],
+                    },
+                    [optionalValue, commands, help]
+                );
+            } catch {}
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--mode [<value>]');
         });
     });
 });

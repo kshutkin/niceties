@@ -739,3 +739,25 @@ export type ValidateParameters<T> = (
         ? Omit<V, 'commands'> & { commands: ValidateCommandsParameters<C> }
         : V
     : never;
+
+// ---------------------------------------------------------------------------
+// Optional-value middleware
+// ---------------------------------------------------------------------------
+
+/**
+ * Extension that the optional-value middleware adds to each option.
+ *
+ * When `optionalValue` is `true` on a `type: 'string'` option, that option
+ * can be used bare on the command line (e.g. `--option` with no following value).
+ * A bare use produces an empty string `""` in the parsed values.
+ *
+ * Works with both single and `multiple: true` string options.
+ */
+export interface OptionalValueOptionExtension {
+    /**
+     * When `true`, this string option can be used without a value.
+     * Bare `--option` produces `""` (empty string) in the result.
+     * Only meaningful for `type: 'string'` options.
+     */
+    optionalValue?: boolean;
+}
