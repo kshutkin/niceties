@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+### Patch Changes
+
+- 9e1b454: remove sourcemaps
+
 ## 0.1.1
 
 ### Patch Changes
