@@ -354,7 +354,9 @@ type StripExtFromOptions<O extends Record<string, any>> = {
             ? Picked
             : // biome-ignore lint/suspicious/noExplicitAny: function types may have any signature
               O[K] extends { type: (...args: any[]) => infer R }
-              ? { type: 'string'; __customReturn: R } & (O[K] extends { multiple: true } ? { multiple: true } : {}) &
+              ? // biome-ignore lint/complexity/noBannedTypes: required
+                { type: 'string'; __customReturn: R } & (O[K] extends { multiple: true } ? { multiple: true } : {}) &
+                    // biome-ignore lint/complexity/noBannedTypes: required
                     (O[K] extends { default: infer D } ? { default: D } : {})
               : OptionConfig
         : never;

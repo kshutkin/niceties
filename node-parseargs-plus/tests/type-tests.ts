@@ -907,7 +907,7 @@ const r69 = parseArgsPlus(
             },
             build: {
                 options: {
-                    watch: { type: 'boolean' as const },
+                    watch: { type: 'boolean' },
                 },
             },
         },
@@ -948,7 +948,7 @@ const r71 = parseArgsPlus(
         name: 'my-cli',
         version: '1.0.0',
         options: {
-            verbose: { type: 'boolean' as const, description: 'Verbose' },
+            verbose: { type: 'boolean', description: 'Verbose' },
         },
         commands: {
             install: {
@@ -1005,13 +1005,13 @@ type _73a = Assert<IsExact<R73Install['parameters'], { packageName: string }>>;
 const r74 = parseArgsPlus(
     {
         options: {
-            verbose: { type: 'boolean' as const },
+            verbose: { type: 'boolean' },
         },
         commands: {
             install: {
                 parameters: ['<package>'],
                 options: {
-                    'save-dev': { type: 'boolean' as const },
+                    'save-dev': { type: 'boolean' },
                 },
             },
         },
@@ -1052,8 +1052,8 @@ type _76a = Assert<IsExact<'parameters' extends keyof R76Install ? true : false,
 const r77 = parseArgsPlus(
     {
         options: {
-            saveDev: { type: 'boolean' as const },
-            outputDir: { type: 'string' as const },
+            saveDev: { type: 'boolean' },
+            outputDir: { type: 'string' },
         },
         args: ['--save-dev', '--output-dir', './dist'],
     },
@@ -1066,8 +1066,8 @@ type _77b = Assert<IsExact<typeof r77.values.outputDir, string | undefined>>;
 const r78 = parseArgsPlus(
     {
         options: {
-            logLevel: { type: 'string' as const, default: 'info' },
-            verbose: { type: 'boolean' as const },
+            logLevel: { type: 'string', default: 'info' },
+            verbose: { type: 'boolean' },
         },
         args: [],
     },
@@ -1080,7 +1080,7 @@ type _78b = Assert<IsExact<typeof r78.values.verbose, boolean | undefined>>;
 const r79 = parseArgsPlus(
     {
         options: {
-            includePath: { type: 'string' as const, multiple: true as const },
+            includePath: { type: 'string', multiple: true },
         },
         args: ['--include-path', './src'],
     },
@@ -1094,7 +1094,7 @@ const r80 = parseArgsPlus(
         name: 'my-cli',
         version: '1.0.0',
         options: {
-            saveDev: { type: 'boolean' as const, description: 'Save as dev' },
+            saveDev: { type: 'boolean', description: 'Save as dev' },
         },
         args: ['--save-dev'],
     },
@@ -1106,12 +1106,12 @@ type _80a = Assert<IsExact<typeof r80.values.saveDev, boolean | undefined>>;
 const r81 = parseArgsPlus(
     {
         options: {
-            logLevel: { type: 'string' as const },
+            logLevel: { type: 'string' },
         },
         commands: {
             build: {
                 options: {
-                    watchMode: { type: 'boolean' as const },
+                    watchMode: { type: 'boolean' },
                 },
             },
         },
@@ -1127,7 +1127,7 @@ type _81b = Assert<IsExact<R81Build['values']['watchMode'], boolean | undefined>
 const r82 = parseArgsPlus(
     {
         options: {
-            saveDev: { type: 'boolean' as const },
+            saveDev: { type: 'boolean' },
         },
         parameters: ['<package name>'],
         args: ['--save-dev', 'my-pkg'],
@@ -1141,12 +1141,12 @@ type _82b = Assert<IsExact<typeof r82.parameters, { packageName: string }>>;
 const r83 = parseArgsPlus(
     {
         options: {
-            logLevel: { type: 'string' as const },
+            logLevel: { type: 'string' },
         },
         commands: {
             install: {
                 options: {
-                    saveDev: { type: 'boolean' as const },
+                    saveDev: { type: 'boolean' },
                 },
                 parameters: ['<package>'],
             },
@@ -1166,13 +1166,13 @@ const r84 = parseArgsPlus(
         name: 'my-cli',
         version: '1.0.0',
         options: {
-            logLevel: { type: 'string' as const, description: 'Log level' },
+            logLevel: { type: 'string', description: 'Log level' },
         },
         commands: {
             install: {
                 description: 'Install packages',
                 options: {
-                    saveDev: { type: 'boolean' as const, description: 'Dev dep' },
+                    saveDev: { type: 'boolean', description: 'Dev dep' },
                 },
                 parameters: ['<package>'],
             },
@@ -1190,8 +1190,8 @@ type _84c = Assert<IsExact<R84Install['parameters'], { package: string }>>;
 const r85 = parseArgsPlus(
     {
         options: {
-            verbose: { type: 'boolean' as const },
-            output: { type: 'string' as const },
+            verbose: { type: 'boolean' },
+            output: { type: 'string' },
         },
         args: ['--verbose', '--output', 'file.txt'],
     },
@@ -1208,7 +1208,7 @@ type _85b = Assert<IsExact<typeof r85.values.output, string | undefined>>;
 const r86 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const },
+            filter: { type: 'string', optionalValue: true },
         },
         args: ['--filter'],
     },
@@ -1220,7 +1220,7 @@ type _86a = Assert<IsExact<typeof r86.values.filter, string | undefined>>;
 const r87 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const, default: 'all' as const },
+            filter: { type: 'string', optionalValue: true, default: 'all' },
         },
         args: [],
     },
@@ -1232,7 +1232,7 @@ type _87a = Assert<IsExact<typeof r87.values.filter, string>>;
 const r88 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, multiple: true as const, optionalValue: true as const },
+            filter: { type: 'string', multiple: true, optionalValue: true },
         },
         args: ['--filter'],
     },
@@ -1244,7 +1244,7 @@ type _88a = Assert<IsExact<typeof r88.values.filter, string[] | undefined>>;
 const r89 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, multiple: true as const, optionalValue: true as const, default: [] as string[] },
+            filter: { type: 'string', multiple: true, optionalValue: true, default: [] as string[] },
         },
         args: [],
     },
@@ -1258,8 +1258,8 @@ const r90 = parseArgsPlus(
         name: 'test-cli',
         version: '1.0.0',
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const, description: 'Filter results' },
-            name: { type: 'string' as const, description: 'Your name' },
+            filter: { type: 'string', optionalValue: true, description: 'Filter results' },
+            name: { type: 'string', description: 'Your name' },
         },
         args: ['--filter'],
     },
@@ -1272,12 +1272,12 @@ type _90b = Assert<IsExact<typeof r90.values.name, string | undefined>>;
 const r91 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const },
+            filter: { type: 'string', optionalValue: true },
         },
         commands: {
             build: {
                 options: {
-                    watch: { type: 'boolean' as const },
+                    watch: { type: 'boolean' },
                 },
             },
         },
@@ -1297,7 +1297,7 @@ const r92 = parseArgsPlus(
         commands: {
             build: {
                 options: {
-                    mode: { type: 'string' as const, optionalValue: true as const },
+                    mode: { type: 'string', optionalValue: true },
                 },
             },
         },
@@ -1313,7 +1313,7 @@ type _92a = Assert<IsExact<R92Build['values']['mode'], string | undefined>>;
 const r93 = parseArgsPlus(
     {
         options: {
-            logLevel: { type: 'string' as const, optionalValue: true as const },
+            logLevel: { type: 'string', optionalValue: true },
         },
         args: ['--log-level'],
     },
@@ -1325,9 +1325,9 @@ type _93a = Assert<IsExact<typeof r93.values.logLevel, string | undefined>>;
 const r94 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const },
+            filter: { type: 'string', optionalValue: true },
         },
-        parameters: ['<name>'] as const,
+        parameters: ['<name>'],
         args: ['hello', '--filter'],
     },
     [optionalValue, parameters]
@@ -1339,8 +1339,8 @@ type _94b = Assert<IsExact<typeof r94.parameters, { name: string }>>;
 const r95 = parseArgsPlus(
     {
         options: {
-            verbose: { type: 'boolean' as const },
-            filter: { type: 'string' as const, optionalValue: true as const },
+            verbose: { type: 'boolean' },
+            filter: { type: 'string', optionalValue: true },
         },
         args: ['--verbose', '--filter'],
     },
@@ -1355,13 +1355,13 @@ const r96 = parseArgsPlus(
         name: 'test-cli',
         version: '1.0.0',
         options: {
-            logLevel: { type: 'string' as const, optionalValue: true as const, description: 'Log level' },
+            logLevel: { type: 'string', optionalValue: true, description: 'Log level' },
         },
         commands: {
             build: {
                 description: 'Build the project',
                 options: {
-                    watchMode: { type: 'boolean' as const, description: 'Watch mode' },
+                    watchMode: { type: 'boolean', description: 'Watch mode' },
                 },
             },
         },
@@ -1386,7 +1386,7 @@ type _96b = Assert<IsExact<R96Build['values']['watchMode'], boolean | undefined>
 const r97 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const },
+            port: { type: 'string' },
         },
         args: ['--port', '8080'],
     },
@@ -1398,7 +1398,7 @@ type _97a = Assert<IsExact<typeof r97.values.port, string | undefined>>;
 const r98 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const, default: '3000' },
+            port: { type: 'string', default: '3000' },
         },
         args: [],
     },
@@ -1410,7 +1410,7 @@ type _98a = Assert<IsExact<typeof r98.values.port, string>>;
 const r99 = parseArgsPlus(
     {
         options: {
-            verbose: { type: 'boolean' as const },
+            verbose: { type: 'boolean' },
         },
         args: ['--verbose'],
     },
@@ -1422,7 +1422,7 @@ type _99a = Assert<IsExact<typeof r99.values.verbose, boolean | undefined>>;
 const r100 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const, multiple: true as const },
+            port: { type: 'string', multiple: true },
         },
         args: ['--port', '80', '--port', '443'],
     },
@@ -1434,7 +1434,7 @@ type _100a = Assert<IsExact<typeof r100.values.port, string[] | undefined>>;
 const r101 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const, multiple: true as const, default: ['80'] as string[] },
+            port: { type: 'string', multiple: true, default: ['80'] as string[] },
         },
         args: [],
     },
@@ -1448,8 +1448,8 @@ const r102 = parseArgsPlus(
         name: 'my-cli',
         version: '1.0.0',
         options: {
-            port: { type: 'string' as const, description: 'Port number' },
-            verbose: { type: 'boolean' as const, description: 'Verbose output' },
+            port: { type: 'string', description: 'Port number' },
+            verbose: { type: 'boolean', description: 'Verbose output' },
         },
         args: ['--port', '3000'],
     },
@@ -1462,12 +1462,12 @@ type _102b = Assert<IsExact<typeof r102.values.verbose, boolean | undefined>>;
 const r103 = parseArgsPlus(
     {
         options: {
-            timeout: { type: 'string' as const },
+            timeout: { type: 'string' },
         },
         commands: {
             serve: {
                 options: {
-                    port: { type: 'string' as const },
+                    port: { type: 'string' },
                 },
             },
         },
@@ -1484,7 +1484,7 @@ type _103b = Assert<IsExact<R103Serve['values']['timeout'], string | undefined>>
 const r104 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const },
+            port: { type: 'string' },
         },
         commands: {
             clean: {
@@ -1503,8 +1503,8 @@ type _104a = Assert<IsExact<R104Clean['values']['port'], string | undefined>>;
 const r105 = parseArgsPlus(
     {
         options: {
-            serverPort: { type: 'string' as const },
-            maxRetries: { type: 'string' as const, default: '3' },
+            serverPort: { type: 'string' },
+            maxRetries: { type: 'string', default: '3' },
         },
         args: ['--server-port', '4000'],
     },
@@ -1517,12 +1517,12 @@ type _105b = Assert<IsExact<typeof r105.values.maxRetries, string>>;
 const r106 = parseArgsPlus(
     {
         options: {
-            logLevel: { type: 'string' as const },
+            logLevel: { type: 'string' },
         },
         commands: {
             serve: {
                 options: {
-                    serverPort: { type: 'string' as const },
+                    serverPort: { type: 'string' },
                 },
             },
         },
@@ -1539,9 +1539,9 @@ type _106b = Assert<IsExact<R106Serve['values']['logLevel'], string | undefined>
 const r107 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const },
+            port: { type: 'string' },
         },
-        parameters: ['<name>'] as const,
+        parameters: ['<name>'],
         args: ['hello', '--port', '8080'],
     },
     [customValue, parameters]
@@ -1553,8 +1553,8 @@ type _107b = Assert<IsExact<typeof r107.parameters, { name: string }>>;
 const r108 = parseArgsPlus(
     {
         options: {
-            filter: { type: 'string' as const, optionalValue: true as const },
-            port: { type: 'string' as const },
+            filter: { type: 'string', optionalValue: true },
+            port: { type: 'string' },
         },
         args: ['--filter', '--port', '3000'],
     },
@@ -1567,9 +1567,9 @@ type _108b = Assert<IsExact<typeof r108.values.port, string | undefined>>;
 const r109 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const },
-            verbose: { type: 'boolean' as const },
-            name: { type: 'string' as const, default: 'app' },
+            port: { type: 'string' },
+            verbose: { type: 'boolean' },
+            name: { type: 'string', default: 'app' },
         },
         args: ['--port', '80', '--verbose'],
     },
@@ -1585,13 +1585,13 @@ const r110 = parseArgsPlus(
         name: 'test-cli',
         version: '1.0.0',
         options: {
-            logLevel: { type: 'string' as const, description: 'Log level' },
+            logLevel: { type: 'string', description: 'Log level' },
         },
         commands: {
             serve: {
                 description: 'Start server',
                 options: {
-                    serverPort: { type: 'string' as const, description: 'Port' },
+                    serverPort: { type: 'string', description: 'Port' },
                 },
             },
         },
@@ -1608,13 +1608,13 @@ type _110b = Assert<IsExact<R110Serve['values']['logLevel'], string | undefined>
 const r111 = parseArgsPlus(
     {
         options: {
-            timeout: { type: 'string' as const },
+            timeout: { type: 'string' },
         },
         commands: {
             deploy: {
                 parameters: ['<target>', '[files...]'],
                 options: {
-                    port: { type: 'string' as const },
+                    port: { type: 'string' },
                 },
             },
         },
@@ -1632,7 +1632,7 @@ type _111c = Assert<IsExact<R111Deploy['parameters'], { target: string; files?: 
 const r112 = parseArgsPlus(
     {
         options: {
-            port: { type: 'string' as const },
+            port: { type: 'string' },
         },
         tokens: true,
         args: ['--port', '8080'],
@@ -1688,7 +1688,7 @@ type _115a = Assert<IsExact<typeof r115.values.port, number>>;
 const r116 = parseArgsPlus(
     {
         options: {
-            port: { type: Number, multiple: true as const },
+            port: { type: Number, multiple: true },
         },
         args: ['--port', '80', '--port', '443'],
     },
@@ -1701,8 +1701,8 @@ const r117 = parseArgsPlus(
     {
         options: {
             port: { type: Number },
-            name: { type: 'string' as const },
-            verbose: { type: 'boolean' as const },
+            name: { type: 'string' },
+            verbose: { type: 'boolean' },
         },
         args: ['--port', '80', '--name', 'app', '--verbose'],
     },
@@ -1719,7 +1719,7 @@ const r118 = parseArgsPlus(
         version: '1.0.0',
         options: {
             port: { type: Number, description: 'Port number' },
-            verbose: { type: 'boolean' as const, description: 'Verbose output' },
+            verbose: { type: 'boolean', description: 'Verbose output' },
         },
         args: ['--port', '3000'],
     },
@@ -1768,7 +1768,7 @@ const r121 = parseArgsPlus(
         options: {
             port: { type: Number },
         },
-        parameters: ['<name>'] as const,
+        parameters: ['<name>'],
         args: ['hello', '--port', '8080'],
     },
     [customValue, parameters]
@@ -1819,7 +1819,7 @@ type _123b = Assert<IsExact<R123Serve['values']['maxRetries'], number | undefine
 const r124 = parseArgsPlus(
     {
         options: {
-            ports: { type: Number, multiple: true as const, default: ['80'] as string[] },
+            ports: { type: Number, multiple: true, default: ['80'] as string[] },
         },
         args: [],
     },
