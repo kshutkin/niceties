@@ -1,4 +1,5 @@
 import { parseArgsPlus } from '@niceties/node-parseargs-plus';
+import { camelCase } from '@niceties/node-parseargs-plus/camel-case';
 import { commands } from '@niceties/node-parseargs-plus/commands';
 import { help } from '@niceties/node-parseargs-plus/help';
 import { parameters } from '@niceties/node-parseargs-plus/parameters';
@@ -1040,3 +1041,159 @@ const r76 = parseArgsPlus(
 );
 type R76Install = Extract<typeof r76, { command: 'install' }>;
 type _76a = Assert<IsExact<'parameters' extends keyof R76Install ? true : false, false>>;
+
+// ---------------------------------------------------------------------------
+// CamelCase middleware type tests
+// ---------------------------------------------------------------------------
+
+// 77. camelCase middleware with simple camelCase option keys
+const r77 = parseArgsPlus(
+    {
+        options: {
+            saveDev: { type: 'boolean' as const },
+            outputDir: { type: 'string' as const },
+        },
+        args: ['--save-dev', '--output-dir', './dist'],
+    },
+    [camelCase]
+);
+type _77a = Assert<IsExact<typeof r77.values.saveDev, boolean | undefined>>;
+type _77b = Assert<IsExact<typeof r77.values.outputDir, string | undefined>>;
+
+// 78. camelCase middleware with default values preserves required typing
+const r78 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' as const, default: 'info' },
+            verbose: { type: 'boolean' as const },
+        },
+        args: [],
+    },
+    [camelCase]
+);
+type _78a = Assert<IsExact<typeof r78.values.logLevel, string>>;
+type _78b = Assert<IsExact<typeof r78.values.verbose, boolean | undefined>>;
+
+// 79. camelCase middleware with multiple option
+const r79 = parseArgsPlus(
+    {
+        options: {
+            includePath: { type: 'string' as const, multiple: true as const },
+        },
+        args: ['--include-path', './src'],
+    },
+    [camelCase]
+);
+type _79a = Assert<IsExact<typeof r79.values.includePath, string[] | undefined>>;
+
+// 80. camelCase + help middleware
+const r80 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            saveDev: { type: 'boolean' as const, description: 'Save as dev' },
+        },
+        args: ['--save-dev'],
+    },
+    [camelCase, help]
+);
+type _80a = Assert<IsExact<typeof r80.values.saveDev, boolean | undefined>>;
+
+// 81. camelCase + commands middleware
+const r81 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' as const },
+        },
+        commands: {
+            build: {
+                options: {
+                    watchMode: { type: 'boolean' as const },
+                },
+            },
+        },
+        args: ['build', '--watch-mode'],
+    },
+    [camelCase, commands]
+);
+type R81Build = Extract<typeof r81, { command: 'build' }>;
+type _81a = Assert<IsExact<R81Build['values']['logLevel'], string | undefined>>;
+type _81b = Assert<IsExact<R81Build['values']['watchMode'], boolean | undefined>>;
+
+// 82. camelCase + parameters middleware
+const r82 = parseArgsPlus(
+    {
+        options: {
+            saveDev: { type: 'boolean' as const },
+        },
+        parameters: ['<package name>'],
+        args: ['--save-dev', 'my-pkg'],
+    },
+    [camelCase, parameters]
+);
+type _82a = Assert<IsExact<typeof r82.values.saveDev, boolean | undefined>>;
+type _82b = Assert<IsExact<typeof r82.parameters, { packageName: string }>>;
+
+// 83. camelCase + commands + parameters middleware
+const r83 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' as const },
+        },
+        commands: {
+            install: {
+                options: {
+                    saveDev: { type: 'boolean' as const },
+                },
+                parameters: ['<package>'],
+            },
+        },
+        args: ['install', '--save-dev', 'lodash'],
+    },
+    [camelCase, commands, parameters]
+);
+type R83Install = Extract<typeof r83, { command: 'install' }>;
+type _83a = Assert<IsExact<R83Install['values']['saveDev'], boolean | undefined>>;
+type _83b = Assert<IsExact<R83Install['values']['logLevel'], string | undefined>>;
+type _83c = Assert<IsExact<R83Install['parameters'], { package: string }>>;
+
+// 84. camelCase with all four middlewares
+const r84 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            logLevel: { type: 'string' as const, description: 'Log level' },
+        },
+        commands: {
+            install: {
+                description: 'Install packages',
+                options: {
+                    saveDev: { type: 'boolean' as const, description: 'Dev dep' },
+                },
+                parameters: ['<package>'],
+            },
+        },
+        args: ['install', '--save-dev', 'lodash'],
+    },
+    [camelCase, help, commands, parameters]
+);
+type R84Install = Extract<typeof r84, { command: 'install' }>;
+type _84a = Assert<IsExact<R84Install['values']['saveDev'], boolean | undefined>>;
+type _84b = Assert<IsExact<R84Install['values']['logLevel'], string | undefined>>;
+type _84c = Assert<IsExact<R84Install['parameters'], { package: string }>>;
+
+// 85. camelCase with single-word keys (no conversion needed)
+const r85 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' as const },
+            output: { type: 'string' as const },
+        },
+        args: ['--verbose', '--output', 'file.txt'],
+    },
+    [camelCase]
+);
+type _85a = Assert<IsExact<typeof r85.values.verbose, boolean | undefined>>;
+type _85b = Assert<IsExact<typeof r85.values.output, string | undefined>>;

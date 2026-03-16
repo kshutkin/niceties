@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { whiteBright } from '@niceties/ansi';
 
+import { camelCase } from '../src/camel-case.js';
 import { commands } from '../src/commands.js';
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';
@@ -3356,6 +3357,521 @@ describe('node-parseargs-plus', () => {
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
             expect(output).toContain('<package> [version]');
+        });
+    });
+
+    describe('camelCase middleware', () => {
+        it('converts camelCase option keys to kebab-case CLI flags', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        saveDev: { type: 'boolean' },
+                    },
+                    args: ['--save-dev'],
+                },
+                [camelCase]
+            );
+            expect(result.values.saveDev).toBe(true);
+        });
+
+        it('converts multi-word camelCase keys', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        outputDir: { type: 'string' },
+                    },
+                    args: ['--output-dir', './dist'],
+                },
+                [camelCase]
+            );
+            expect(result.values.outputDir).toBe('./dist');
+        });
+
+        it('leaves single-word keys unchanged', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                    },
+                    args: ['--verbose'],
+                },
+                [camelCase]
+            );
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('handles acronyms in option keys (lossy roundtrip)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        enableSsr: { type: 'boolean' },
+                    },
+                    args: ['--enable-ssr'],
+                },
+                [camelCase]
+            );
+            expect(result.values.enableSsr).toBe(true);
+        });
+
+        it('handles complex acronym patterns (lossy roundtrip)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        useHttpsProxy: { type: 'boolean' },
+                    },
+                    args: ['--use-https-proxy'],
+                },
+                [camelCase]
+            );
+            expect(result.values.useHttpsProxy).toBe(true);
+        });
+
+        it('works with short aliases', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        saveDev: { type: 'boolean', short: 'D' },
+                    },
+                    args: ['-D'],
+                },
+                [camelCase]
+            );
+            expect(result.values.saveDev).toBe(true);
+        });
+
+        it('works with string type options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        outputDir: { type: 'string' },
+                        logLevel: { type: 'string' },
+                    },
+                    args: ['--output-dir', './dist', '--log-level', 'debug'],
+                },
+                [camelCase]
+            );
+            expect(result.values.outputDir).toBe('./dist');
+            expect(result.values.logLevel).toBe('debug');
+        });
+
+        it('works with default values', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        outputDir: { type: 'string', default: './build' },
+                    },
+                    args: [],
+                },
+                [camelCase]
+            );
+            expect(result.values.outputDir).toBe('./build');
+        });
+
+        it('works with multiple option', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        includePath: { type: 'string', multiple: true },
+                    },
+                    args: ['--include-path', './src', '--include-path', './lib'],
+                },
+                [camelCase]
+            );
+            expect(result.values.includePath).toEqual(['./src', './lib']);
+        });
+
+        it('does not convert token names (low-level API)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        saveDev: { type: 'boolean' },
+                    },
+                    tokens: true,
+                    args: ['--save-dev'],
+                },
+                [camelCase]
+            );
+            expect(result.values.saveDev).toBe(true);
+            const optionToken = result.tokens.find(t => t.kind === 'option');
+            expect(optionToken.name).toBe('save-dev');
+            expect(optionToken.rawName).toBe('--save-dev');
+        });
+
+        it('works with allowNegative', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        useColor: { type: 'boolean' },
+                    },
+                    allowNegative: true,
+                    args: ['--no-use-color'],
+                },
+                [camelCase]
+            );
+            expect(result.values.useColor).toBe(false);
+        });
+
+        it('works with empty options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    args: [],
+                },
+                [camelCase]
+            );
+            expect(result.values).toEqual({});
+        });
+
+        it('works without options in config', () => {
+            const result = parseArgsPlus(
+                {
+                    args: [],
+                    strict: false,
+                },
+                [camelCase]
+            );
+            expect(result.values).toEqual({});
+        });
+
+        it('is a valid middleware tuple', () => {
+            expect(Array.isArray(camelCase)).toBe(true);
+            expect(camelCase.length).toBe(2);
+            expect(typeof camelCase[0]).toBe('function');
+            expect(typeof camelCase[1]).toBe('function');
+        });
+
+        it('has order 5 on transformConfig and 15 on transformResult', () => {
+            expect(camelCase[0].order).toBe(5);
+            expect(camelCase[1].order).toBe(15);
+        });
+
+        it('converts multiple camelCase options in one call', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        saveDev: { type: 'boolean' },
+                        outputDir: { type: 'string' },
+                        logLevel: { type: 'string', default: 'info' },
+                    },
+                    args: ['--save-dev', '--output-dir', './dist'],
+                },
+                [camelCase]
+            );
+            expect(result.values.saveDev).toBe(true);
+            expect(result.values.outputDir).toBe('./dist');
+            expect(result.values.logLevel).toBe('info');
+        });
+    });
+
+    describe('camelCase + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows kebab-case flags in help output', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {
+                            saveDev: { type: 'boolean', description: 'Save as dev dependency' },
+                            outputDir: { type: 'string', description: 'Output directory' },
+                        },
+                        args: ['--help'],
+                    },
+                    [camelCase, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--save-dev');
+            expect(output).toContain('--output-dir');
+            expect(output).toContain('Save as dev dependency');
+            expect(output).toContain('Output directory');
+        });
+
+        it('does not interfere with help and version flags', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    options: {
+                        saveDev: { type: 'boolean' },
+                    },
+                    args: ['--save-dev'],
+                },
+                [camelCase, help]
+            );
+            expect(result.values.saveDev).toBe(true);
+            expect(result.values.help).toBeUndefined();
+            expect(result.values.version).toBeUndefined();
+        });
+
+        it('prints version correctly with camelCase middleware', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '2.0.0',
+                        options: {
+                            saveDev: { type: 'boolean' },
+                        },
+                        args: ['--version'],
+                    },
+                    [camelCase, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('2.0.0');
+        });
+    });
+
+    describe('camelCase + commands middleware cooperation', () => {
+        it('converts command-level option keys', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string' },
+                    },
+                    commands: {
+                        install: {
+                            options: {
+                                saveDev: { type: 'boolean' },
+                            },
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['install', '--save-dev', '--log-level', 'debug', 'my-package'],
+                },
+                [camelCase, commands]
+            );
+            expect(result.command).toBe('install');
+            expect(result.values.saveDev).toBe(true);
+            expect(result.values.logLevel).toBe('debug');
+            expect(result.positionals).toEqual(['my-package']);
+        });
+
+        it('converts global option keys with commands', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        outputDir: { type: 'string' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                watchMode: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['--output-dir', './dist', 'build', '--watch-mode'],
+                },
+                [camelCase, commands]
+            );
+            expect(result.command).toBe('build');
+            expect(result.values.outputDir).toBe('./dist');
+            expect(result.values.watchMode).toBe(true);
+        });
+
+        it('does not convert command names', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        'run-script': {
+                            options: {},
+                            allowPositionals: true,
+                        },
+                    },
+                    args: ['run-script', 'build'],
+                },
+                [camelCase, commands]
+            );
+            expect(result.command).toBe('run-script');
+            expect(result.positionals).toEqual(['build']);
+        });
+
+        it('works with defaultCommand', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        watchMode: { type: 'boolean' },
+                    },
+                    commands: {
+                        run: {
+                            options: {},
+                        },
+                    },
+                    defaultCommand: 'run',
+                    args: ['--watch-mode'],
+                },
+                [camelCase, commands]
+            );
+            expect(result.command).toBe('run');
+            expect(result.values.watchMode).toBe(true);
+        });
+
+        it('handles commands with no options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string' },
+                    },
+                    commands: {
+                        clean: {
+                            description: 'Clean build artifacts',
+                        },
+                    },
+                    args: ['--log-level', 'info', 'clean'],
+                },
+                [camelCase, commands]
+            );
+            expect(result.command).toBe('clean');
+            expect(result.values.logLevel).toBe('info');
+        });
+    });
+
+    describe('camelCase + commands + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('shows kebab-case flags in command help', () => {
+            expect(() =>
+                parseArgsPlus(
+                    {
+                        name: 'my-cli',
+                        version: '1.0.0',
+                        options: {
+                            logLevel: { type: 'string', description: 'Log level' },
+                        },
+                        commands: {
+                            install: {
+                                description: 'Install packages',
+                                options: {
+                                    saveDev: { type: 'boolean', description: 'Save as dev dependency' },
+                                },
+                            },
+                        },
+                        args: ['install', '--help'],
+                    },
+                    [camelCase, commands, help]
+                )
+            ).toThrow('process.exit called');
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--save-dev');
+            expect(output).toContain('Save as dev dependency');
+            expect(output).toContain('--log-level');
+            expect(output).toContain('Log level');
+        });
+
+        it('does not interfere with normal command parsing', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    options: {
+                        logLevel: { type: 'string' },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                watchMode: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--watch-mode', '--log-level', 'debug'],
+                },
+                [camelCase, commands, help]
+            );
+            expect(result.command).toBe('build');
+            expect(result.values.watchMode).toBe(true);
+            expect(result.values.logLevel).toBe('debug');
+        });
+    });
+
+    describe('camelCase + parameters middleware cooperation', () => {
+        it('works alongside parameters middleware', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        saveDev: { type: 'boolean', short: 'D' },
+                    },
+                    parameters: ['<package name>'],
+                    args: ['-D', 'my-package'],
+                },
+                [camelCase, parameters]
+            );
+            expect(result.values.saveDev).toBe(true);
+            expect(result.parameters.packageName).toBe('my-package');
+        });
+
+        it('works with all three middlewares', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'my-cli',
+                    version: '1.0.0',
+                    options: {
+                        saveDev: { type: 'boolean', description: 'Dev dependency' },
+                    },
+                    parameters: ['<package>'],
+                    args: ['--save-dev', 'lodash'],
+                },
+                [camelCase, help, parameters]
+            );
+            expect(result.values.saveDev).toBe(true);
+            expect(result.parameters.package).toBe('lodash');
+        });
+    });
+
+    describe('camelCase + commands + parameters middleware cooperation', () => {
+        it('converts option keys and maps parameters for commands', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string' },
+                    },
+                    commands: {
+                        install: {
+                            options: {
+                                saveDev: { type: 'boolean' },
+                            },
+                            parameters: ['<package name>'],
+                        },
+                    },
+                    args: ['install', '--save-dev', '--log-level', 'debug', 'my-package'],
+                },
+                [camelCase, commands, parameters]
+            );
+            expect(result.command).toBe('install');
+            expect(result.values.saveDev).toBe(true);
+            expect(result.values.logLevel).toBe('debug');
+            expect(result.parameters.packageName).toBe('my-package');
         });
     });
 });

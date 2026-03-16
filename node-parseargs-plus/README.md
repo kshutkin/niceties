@@ -219,6 +219,107 @@ import { commands } from "@niceties/node-parseargs-plus/commands";
 
 Adds subcommand support with a two-pass parsing strategy. See the [commands + help cooperation](#commands--help-cooperation) section below for details on how they work together.
 
+### `camelCase` middleware
+
+```js
+import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
+```
+
+Bridges camelCase JS option keys and kebab-case CLI flags. Users define options with camelCase keys in their config, and the middleware automatically converts them to kebab-case for `parseArgs` (so that CLI flags follow the `--kebab-case` convention), then converts the result values back to camelCase.
+
+```js
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
+import { help } from "@niceties/node-parseargs-plus/help";
+
+const { values } = parseArgsPlus(
+    {
+        name: "my-cli",
+        version: "1.0.0",
+        options: {
+            saveDev: {
+                type: "boolean",
+                short: "D",
+                description: "Save as a dev dependency",
+            },
+            outputDir: {
+                type: "string",
+                short: "o",
+                description: "Output directory",
+            },
+        },
+    },
+    [camelCase, help],
+);
+
+// CLI:  my-cli --save-dev --output-dir ./dist
+// JS:   values.saveDev === true
+//       values.outputDir === './dist'
+```
+
+Running `my-cli --help` prints kebab-case flags:
+
+```
+my-cli v1.0.0
+
+Usage:
+  my-cli [options]
+
+Options:
+  -D, --save-dev              Save as a dev dependency
+  -o, --output-dir <value>    Output directory
+  -h, --help                  Show this help message
+  -v, --version               Show version number
+```
+
+#### Conversion rules
+
+| camelCase key   | CLI flag            | Result key      |
+| --------------- | ------------------- | --------------- |
+| `saveDev`       | `--save-dev`        | `saveDev`       |
+| `outputDir`     | `--output-dir`      | `outputDir`     |
+| `verbose`       | `--verbose`         | `verbose`       |
+| `enableSsr`     | `--enable-ssr`      | `enableSsr`     |
+| `useHttpsProxy` | `--use-https-proxy` | `useHttpsProxy` |
+
+> **Note:** The camelCase → kebab-case → camelCase roundtrip is lossy for acronyms.
+> If you define `enableSSR`, it converts to `--enable-ssr`, which converts back to `enableSsr` (not `enableSSR`).
+> Use standard camelCase (`enableSsr`) for consistent results.
+
+#### What is and isn't converted
+
+- **Option keys** in `config.options` — converted (camelCase → kebab-case in config, kebab-case → camelCase in result)
+- **Command option keys** in `config.commands.*.options` — converted
+- **Command names** — not converted (`run-script` stays `run-script`)
+- **Parameter names** — not converted (the `parameters` middleware has its own camelCase conversion)
+- **Token names** — not converted (tokens are a low-level API; `token.name` retains the kebab-case form, `token.rawName` is unchanged)
+- **`short` aliases** — not converted (single characters)
+
+#### Works with `allowNegative`
+
+When `allowNegative: true` is set, negated flags work as expected:
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            useColor: { type: "boolean" },
+        },
+        allowNegative: true,
+    },
+    [camelCase],
+);
+
+// CLI:  my-cli --no-use-color
+// JS:   values.useColor === false
+```
+
+#### Middleware ordering
+
+| `transformConfig.order` | `transformResult.order` | Rationale                                                                                                                                                  |
+| ----------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `5`                     | `15`                    | Converts option keys after help adds its options (-10), before commands merges them (10). Result conversion runs after commands (10) but before help (20). |
+
 ## Custom Help Sections
 
 The `helpSections` property lets you add extra sections to the help output or override the built-in ones. Each key is a **section id** and the value is a `HelpSection` object:
@@ -365,6 +466,7 @@ Each transform function can declare its own execution priority via the `order` p
 | `help`       | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
 | _(default)_  | `0`                     | `0`                     | Normal priority.                                                                                 |
 | `parameters` | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
+| `camelCase`  | `5`                     | `15`                    | Converts option keys after help adds its options; result conversion after commands, before help. |
 | `commands`   | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
 
 Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter - `[help, commands]` and `[commands, help]` behave identically.

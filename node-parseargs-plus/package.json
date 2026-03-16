@@ -24,6 +24,10 @@
             "types": "./types/index.d.ts",
             "default": "./src/parameters.js"
         },
+        "./camel-case": {
+            "types": "./types/index.d.ts",
+            "default": "./src/camel-case.js"
+        },
         "./package.json": "./package.json"
     },
     "main": "./src/index.js",
@@ -53,7 +57,7 @@
         "options"
     ],
     "scripts": {
-        "build": "dts-buddy -m @niceties/node-parseargs-plus:src/exports.d.ts -m @niceties/node-parseargs-plus/help:src/help-exports.d.ts -m @niceties/node-parseargs-plus/commands:src/commands-exports.d.ts -m @niceties/node-parseargs-plus/parameters:src/parameters-exports.d.ts",
+        "build": "dts-buddy -m @niceties/node-parseargs-plus:src/exports.d.ts -m @niceties/node-parseargs-plus/help:src/help-exports.d.ts -m @niceties/node-parseargs-plus/commands:src/commands-exports.d.ts -m @niceties/node-parseargs-plus/parameters:src/parameters-exports.d.ts -m @niceties/node-parseargs-plus/camel-case:src/camel-case-exports.d.ts",
         "prepack": "pkgprn-internal --flatten types,src --strip-comments --remove-sourcemaps",
         "test": "vitest run --coverage --config ../vitest.config.js"
     },
