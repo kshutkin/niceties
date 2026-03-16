@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 8fe5bd6: fix packaging
+
 ## 0.1.0
 
 ### Minor Changes
