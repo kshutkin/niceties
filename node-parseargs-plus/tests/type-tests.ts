@@ -1,6 +1,7 @@
 import { parseArgsPlus } from '@niceties/node-parseargs-plus';
 import { camelCase } from '@niceties/node-parseargs-plus/camel-case';
 import { commands } from '@niceties/node-parseargs-plus/commands';
+import { customValue } from '@niceties/node-parseargs-plus/custom-value';
 import { help } from '@niceties/node-parseargs-plus/help';
 import { optionalValue } from '@niceties/node-parseargs-plus/optional-value';
 import { parameters } from '@niceties/node-parseargs-plus/parameters';
@@ -1372,3 +1373,480 @@ type R96 = typeof r96;
 type R96Build = Extract<R96, { command: 'build' }>;
 type _96a = Assert<IsExact<R96Build['values']['logLevel'], string | undefined>>;
 type _96b = Assert<IsExact<R96Build['values']['watchMode'], boolean | undefined>>;
+
+// ---------------------------------------------------------------------------
+// Custom-value middleware type tests
+// ---------------------------------------------------------------------------
+// The customValue middleware allows `type` to be a function (e.g. `Number`).
+// At the TypeScript level, the return type of the function is inferred and
+// propagated into the result values. These tests verify both standard option
+// types and function-typed options work correctly.
+
+// 97. customValue alone with string option → string | undefined
+const r97 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const },
+        },
+        args: ['--port', '8080'],
+    },
+    [customValue]
+);
+type _97a = Assert<IsExact<typeof r97.values.port, string | undefined>>;
+
+// 98. customValue with default → string (required)
+const r98 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const, default: '3000' },
+        },
+        args: [],
+    },
+    [customValue]
+);
+type _98a = Assert<IsExact<typeof r98.values.port, string>>;
+
+// 99. customValue with boolean option → boolean | undefined
+const r99 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' as const },
+        },
+        args: ['--verbose'],
+    },
+    [customValue]
+);
+type _99a = Assert<IsExact<typeof r99.values.verbose, boolean | undefined>>;
+
+// 100. customValue with multiple: true → string[] | undefined
+const r100 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const, multiple: true as const },
+        },
+        args: ['--port', '80', '--port', '443'],
+    },
+    [customValue]
+);
+type _100a = Assert<IsExact<typeof r100.values.port, string[] | undefined>>;
+
+// 101. customValue with multiple: true and default → string[]
+const r101 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const, multiple: true as const, default: ['80'] as string[] },
+        },
+        args: [],
+    },
+    [customValue]
+);
+type _101a = Assert<IsExact<typeof r101.values.port, string[]>>;
+
+// 102. customValue + help: description accepted, values typed correctly
+const r102 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            port: { type: 'string' as const, description: 'Port number' },
+            verbose: { type: 'boolean' as const, description: 'Verbose output' },
+        },
+        args: ['--port', '3000'],
+    },
+    [customValue, help]
+);
+type _102a = Assert<IsExact<typeof r102.values.port, string | undefined>>;
+type _102b = Assert<IsExact<typeof r102.values.verbose, boolean | undefined>>;
+
+// 103. customValue + commands: discriminated union works
+const r103 = parseArgsPlus(
+    {
+        options: {
+            timeout: { type: 'string' as const },
+        },
+        commands: {
+            serve: {
+                options: {
+                    port: { type: 'string' as const },
+                },
+            },
+        },
+        args: ['serve', '--port', '8080'],
+    },
+    [customValue, commands]
+);
+type R103 = typeof r103;
+type R103Serve = Extract<R103, { command: 'serve' }>;
+type _103a = Assert<IsExact<R103Serve['values']['port'], string | undefined>>;
+type _103b = Assert<IsExact<R103Serve['values']['timeout'], string | undefined>>;
+
+// 104. customValue + commands: command with no options
+const r104 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const },
+        },
+        commands: {
+            clean: {
+                description: 'Clean up',
+            },
+        },
+        args: ['clean'],
+    },
+    [customValue, commands]
+);
+type R104 = typeof r104;
+type R104Clean = Extract<R104, { command: 'clean' }>;
+type _104a = Assert<IsExact<R104Clean['values']['port'], string | undefined>>;
+
+// 105. customValue + camelCase: camelCase keys work
+const r105 = parseArgsPlus(
+    {
+        options: {
+            serverPort: { type: 'string' as const },
+            maxRetries: { type: 'string' as const, default: '3' },
+        },
+        args: ['--server-port', '4000'],
+    },
+    [customValue, camelCase]
+);
+type _105a = Assert<IsExact<typeof r105.values.serverPort, string | undefined>>;
+type _105b = Assert<IsExact<typeof r105.values.maxRetries, string>>;
+
+// 106. customValue + camelCase + commands: full cooperation
+const r106 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' as const },
+        },
+        commands: {
+            serve: {
+                options: {
+                    serverPort: { type: 'string' as const },
+                },
+            },
+        },
+        args: ['serve', '--server-port', '3000'],
+    },
+    [customValue, camelCase, commands]
+);
+type R106 = typeof r106;
+type R106Serve = Extract<R106, { command: 'serve' }>;
+type _106a = Assert<IsExact<R106Serve['values']['serverPort'], string | undefined>>;
+type _106b = Assert<IsExact<R106Serve['values']['logLevel'], string | undefined>>;
+
+// 107. customValue + parameters: both work together
+const r107 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const },
+        },
+        parameters: ['<name>'] as const,
+        args: ['hello', '--port', '8080'],
+    },
+    [customValue, parameters]
+);
+type _107a = Assert<IsExact<typeof r107.values.port, string | undefined>>;
+type _107b = Assert<IsExact<typeof r107.parameters, { name: string }>>;
+
+// 108. customValue + optionalValue: both work on their respective options
+const r108 = parseArgsPlus(
+    {
+        options: {
+            filter: { type: 'string' as const, optionalValue: true as const },
+            port: { type: 'string' as const },
+        },
+        args: ['--filter', '--port', '3000'],
+    },
+    [customValue, optionalValue]
+);
+type _108a = Assert<IsExact<typeof r108.values.filter, string | undefined>>;
+type _108b = Assert<IsExact<typeof r108.values.port, string | undefined>>;
+
+// 109. customValue with mixed string and boolean options
+const r109 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const },
+            verbose: { type: 'boolean' as const },
+            name: { type: 'string' as const, default: 'app' },
+        },
+        args: ['--port', '80', '--verbose'],
+    },
+    [customValue]
+);
+type _109a = Assert<IsExact<typeof r109.values.port, string | undefined>>;
+type _109b = Assert<IsExact<typeof r109.values.verbose, boolean | undefined>>;
+type _109c = Assert<IsExact<typeof r109.values.name, string>>;
+
+// 110. customValue + all middlewares together
+const r110 = parseArgsPlus(
+    {
+        name: 'test-cli',
+        version: '1.0.0',
+        options: {
+            logLevel: { type: 'string' as const, description: 'Log level' },
+        },
+        commands: {
+            serve: {
+                description: 'Start server',
+                options: {
+                    serverPort: { type: 'string' as const, description: 'Port' },
+                },
+            },
+        },
+        args: ['serve', '--server-port', '3000'],
+    },
+    [customValue, camelCase, optionalValue, commands, help]
+);
+type R110 = typeof r110;
+type R110Serve = Extract<R110, { command: 'serve' }>;
+type _110a = Assert<IsExact<R110Serve['values']['serverPort'], string | undefined>>;
+type _110b = Assert<IsExact<R110Serve['values']['logLevel'], string | undefined>>;
+
+// 111. customValue + parameters + commands: per-command parameters with custom values
+const r111 = parseArgsPlus(
+    {
+        options: {
+            timeout: { type: 'string' as const },
+        },
+        commands: {
+            deploy: {
+                parameters: ['<target>', '[files...]'],
+                options: {
+                    port: { type: 'string' as const },
+                },
+            },
+        },
+        args: ['deploy', '--port', '22', 'production', 'app.js'],
+    },
+    [customValue, commands, parameters]
+);
+type R111 = typeof r111;
+type R111Deploy = Extract<R111, { command: 'deploy' }>;
+type _111a = Assert<IsExact<R111Deploy['values']['port'], string | undefined>>;
+type _111b = Assert<IsExact<R111Deploy['values']['timeout'], string | undefined>>;
+type _111c = Assert<IsExact<R111Deploy['parameters'], { target: string; files?: string[] }>>;
+
+// 112. customValue with tokens: true
+const r112 = parseArgsPlus(
+    {
+        options: {
+            port: { type: 'string' as const },
+        },
+        tokens: true,
+        args: ['--port', '8080'],
+    },
+    [customValue]
+);
+type _112a = Assert<IsExact<typeof r112.values.port, string | undefined>>;
+type _112b = Assert<'tokens' extends keyof typeof r112 ? true : false>;
+
+// ---------------------------------------------------------------------------
+// Custom-value function-type inference tests
+// ---------------------------------------------------------------------------
+// These tests verify that when `type` is a function, the return type of
+// that function is correctly inferred in the result values.
+
+// 113. type: Number → number | undefined
+const r113 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number },
+        },
+        args: ['--port', '8080'],
+    },
+    [customValue]
+);
+type _113a = Assert<IsExact<typeof r113.values.port, number | undefined>>;
+
+// 114. type: custom arrow fn → inferred return type
+const r114 = parseArgsPlus(
+    {
+        options: {
+            tags: { type: (v: string) => v.split(',') },
+        },
+        args: ['--tags', 'a,b,c'],
+    },
+    [customValue]
+);
+type _114a = Assert<IsExact<typeof r114.values.tags, string[] | undefined>>;
+
+// 115. type: Number with default → number (required, since default is present)
+const r115 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number, default: '3000' },
+        },
+        args: [],
+    },
+    [customValue]
+);
+type _115a = Assert<IsExact<typeof r115.values.port, number>>;
+
+// 116. type: Number with multiple: true → number[] | undefined
+const r116 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number, multiple: true as const },
+        },
+        args: ['--port', '80', '--port', '443'],
+    },
+    [customValue]
+);
+type _116a = Assert<IsExact<typeof r116.values.port, number[] | undefined>>;
+
+// 117. mixed: Number function + regular string + regular boolean
+const r117 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number },
+            name: { type: 'string' as const },
+            verbose: { type: 'boolean' as const },
+        },
+        args: ['--port', '80', '--name', 'app', '--verbose'],
+    },
+    [customValue]
+);
+type _117a = Assert<IsExact<typeof r117.values.port, number | undefined>>;
+type _117b = Assert<IsExact<typeof r117.values.name, string | undefined>>;
+type _117c = Assert<IsExact<typeof r117.values.verbose, boolean | undefined>>;
+
+// 118. type: Number + help middleware
+const r118 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            port: { type: Number, description: 'Port number' },
+            verbose: { type: 'boolean' as const, description: 'Verbose output' },
+        },
+        args: ['--port', '3000'],
+    },
+    [customValue, help]
+);
+type _118a = Assert<IsExact<typeof r118.values.port, number | undefined>>;
+type _118b = Assert<IsExact<typeof r118.values.verbose, boolean | undefined>>;
+
+// 119. type: Number in command options + commands middleware
+const r119 = parseArgsPlus(
+    {
+        options: {
+            timeout: { type: Number },
+        },
+        commands: {
+            serve: {
+                options: {
+                    port: { type: Number },
+                },
+            },
+        },
+        args: ['serve', '--port', '8080'],
+    },
+    [customValue, commands]
+);
+type R119 = typeof r119;
+type R119Serve = Extract<R119, { command: 'serve' }>;
+type _119a = Assert<IsExact<R119Serve['values']['port'], number | undefined>>;
+type _119b = Assert<IsExact<R119Serve['values']['timeout'], number | undefined>>;
+
+// 120. type: Number + camelCase middleware
+const r120 = parseArgsPlus(
+    {
+        options: {
+            serverPort: { type: Number },
+        },
+        args: ['--server-port', '4000'],
+    },
+    [customValue, camelCase]
+);
+type _120a = Assert<IsExact<typeof r120.values.serverPort, number | undefined>>;
+
+// 121. type: Number + parameters middleware
+const r121 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number },
+        },
+        parameters: ['<name>'] as const,
+        args: ['hello', '--port', '8080'],
+    },
+    [customValue, parameters]
+);
+type _121a = Assert<IsExact<typeof r121.values.port, number | undefined>>;
+type _121b = Assert<IsExact<typeof r121.parameters, { name: string }>>;
+
+// 122. type: Number with tokens: true
+const r122 = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number },
+        },
+        tokens: true,
+        args: ['--port', '8080'],
+    },
+    [customValue]
+);
+type _122a = Assert<IsExact<typeof r122.values.port, number | undefined>>;
+type _122b = Assert<'tokens' extends keyof typeof r122 ? true : false>;
+
+// 123. type: Number + commands + help + camelCase (all middlewares)
+const r123 = parseArgsPlus(
+    {
+        name: 'test-cli',
+        version: '1.0.0',
+        options: {
+            maxRetries: { type: Number, description: 'Retry count' },
+        },
+        commands: {
+            serve: {
+                description: 'Start server',
+                options: {
+                    serverPort: { type: Number, description: 'Port' },
+                },
+            },
+        },
+        args: ['serve', '--server-port', '3000'],
+    },
+    [customValue, camelCase, commands, help]
+);
+type R123 = typeof r123;
+type R123Serve = Extract<R123, { command: 'serve' }>;
+type _123a = Assert<IsExact<R123Serve['values']['serverPort'], number | undefined>>;
+type _123b = Assert<IsExact<R123Serve['values']['maxRetries'], number | undefined>>;
+
+// 124. type: Number + multiple: true + default → number[]
+const r124 = parseArgsPlus(
+    {
+        options: {
+            ports: { type: Number, multiple: true as const, default: ['80'] as string[] },
+        },
+        args: [],
+    },
+    [customValue]
+);
+type _124a = Assert<IsExact<typeof r124.values.ports, number[]>>;
+
+// 125. type: Number + commands + parameters: per-command parameters with Number values
+const r125 = parseArgsPlus(
+    {
+        options: {
+            timeout: { type: Number },
+        },
+        commands: {
+            deploy: {
+                parameters: ['<target>'],
+                options: {
+                    port: { type: Number },
+                },
+            },
+        },
+        args: ['deploy', '--port', '22', 'production'],
+    },
+    [customValue, commands, parameters]
+);
+type R125 = typeof r125;
+type R125Deploy = Extract<R125, { command: 'deploy' }>;
+type _125a = Assert<IsExact<R125Deploy['values']['port'], number | undefined>>;
+type _125b = Assert<IsExact<R125Deploy['values']['timeout'], number | undefined>>;
+type _125c = Assert<IsExact<R125Deploy['parameters'], { target: string }>>;

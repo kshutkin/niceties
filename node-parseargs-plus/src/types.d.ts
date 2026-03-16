@@ -39,16 +39,22 @@ export interface OptionConfig {
     default?: string | boolean | string[] | boolean[];
 }
 
-// Resolve the value type for a single option based on its type and multiple flag
-type ResolveOptionType<T extends OptionConfig> = T extends { type: 'string'; multiple: true }
-    ? string[]
-    : T extends { type: 'boolean'; multiple: true }
-      ? boolean[]
-      : T extends { type: 'string' }
-        ? string
-        : T extends { type: 'boolean' }
-          ? boolean
-          : string | boolean;
+// Resolve the value type for a single option based on its type and multiple flag.
+// When `__customReturn` is present (injected by StripExtFromOptions for function-typed options),
+// the return type of the transform function is used instead of the standard string/boolean.
+type ResolveOptionType<T extends OptionConfig> = T extends { __customReturn: infer R }
+    ? T extends { multiple: true }
+        ? R[]
+        : R
+    : T extends { type: 'string'; multiple: true }
+      ? string[]
+      : T extends { type: 'boolean'; multiple: true }
+        ? boolean[]
+        : T extends { type: 'string' }
+          ? string
+          : T extends { type: 'boolean' }
+            ? boolean
+            : string | boolean;
 
 // Determine whether an option has a default value (and is therefore always present)
 type HasDefault<T> = T extends { default: infer D } ? (undefined extends D ? false : true) : false;
@@ -180,9 +186,11 @@ export type MergeMiddlewareResultExts<M extends readonly Middleware<any, any, an
     // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no extensions
     UnionToIntersection<ExtractResultExt<M[number]>> extends infer R extends Record<string, any> ? R : {};
 
-// An OptionConfig extended with the extra fields contributed by middlewares
+// An OptionConfig extended with the extra fields contributed by middlewares.
+// Uses Omit so that extension fields (e.g. `type` in CustomValueOptionExtension)
+// *replace* the base OptionConfig field instead of being narrowed by intersection.
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
-type ExtendedOptionConfig<Ext extends Record<string, any>> = OptionConfig & Ext;
+type ExtendedOptionConfig<Ext extends Record<string, any>> = Omit<OptionConfig, keyof Ext> & Ext;
 
 // ---------------------------------------------------------------------------
 // Result extension application
@@ -270,8 +278,25 @@ export type ValidateCommandOptionTypes<T extends Record<string, any>> = T extend
     ? Omit<T, 'commands'> & { commands: ValidateCommands<GO, C> }
     : T;
 
+// Thread OptionExt into command configs so that command-level options also accept
+// extended option types (e.g. function-typed `type` from customValue middleware).
+// biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
+type ExtendCommandConfigOptions<C, OptionExt extends Record<string, any>> = C extends { options?: Record<string, any> }
+    ? Omit<C, 'options'> & { options?: Record<string, ExtendedOptionConfig<OptionExt>> }
+    : C;
+
+// When ConfigExt contains a `commands` field (from the commands middleware),
+// replace each command's `options` type with the extended option config.
+// biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
+type ExtendConfigExtCommands<CE extends Record<string, any>, OptionExt extends Record<string, any>> = CE extends {
+    commands: Record<string, infer C>;
+}
+    ? Omit<CE, 'commands'> & { commands: Record<string, ExtendCommandConfigOptions<C, OptionExt>> }
+    : CE;
+
 // The config accepted by parseArgsPlus when middlewares extend the option and/or config shape.
 // The `ConfigExt` fields are merged into the top-level config via intersection.
+// Command-level options are also extended with OptionExt via ExtendConfigExtCommands.
 // biome-ignore lint/suspicious/noExplicitAny: extension record is intentionally open-ended
 export type ParseArgsPlusConfigWithMiddleware<OptionExt extends Record<string, any>, ConfigExt extends Record<string, any>> = {
     options?: Record<string, ExtendedOptionConfig<OptionExt>>;
@@ -280,7 +305,7 @@ export type ParseArgsPlusConfigWithMiddleware<OptionExt extends Record<string, a
     strict?: boolean;
     args?: string[];
     tokens?: boolean;
-} & ConfigExt;
+} & ExtendConfigExtCommands<ConfigExt, OptionExt>;
 
 // ---------------------------------------------------------------------------
 // Result
@@ -317,9 +342,22 @@ export type ParseArgsPlusResult<T extends ParseArgsPlusConfig> = T extends { opt
 
 // Same as above but strips the middleware extension keys from OptionConfig before resolving values,
 // so that extra fields like `description` don't break the OptionConfig constraint.
+//
+// When an option's `type` is a function (from the customValue middleware), the standard
+// Pick → OptionConfig path fails because the function doesn't satisfy `type: 'string' | 'boolean'`.
+// In that case we synthesise a compatible OptionConfig with a `__customReturn` phantom marker
+// carrying the function's return type, so that `ResolveOptionType` can resolve it correctly.
 // biome-ignore lint/suspicious/noExplicitAny: accepts any option extension shape
 type StripExtFromOptions<O extends Record<string, any>> = {
-    [K in keyof O]: Pick<O[K], keyof OptionConfig> extends infer P extends OptionConfig ? P : OptionConfig;
+    [K in keyof O]: Pick<O[K], keyof OptionConfig & keyof O[K]> extends infer Picked
+        ? Picked extends OptionConfig
+            ? Picked
+            : // biome-ignore lint/suspicious/noExplicitAny: function types may have any signature
+              O[K] extends { type: (...args: any[]) => infer R }
+              ? { type: 'string'; __customReturn: R } & (O[K] extends { multiple: true } ? { multiple: true } : {}) &
+                    (O[K] extends { default: infer D } ? { default: D } : {})
+              : OptionConfig
+        : never;
 };
 
 // ---------------------------------------------------------------------------
@@ -333,7 +371,8 @@ type CommandArmBase<
     CmdName extends string,
     Cmd extends CommandConfig,
     WithTokens extends boolean,
-> = Cmd extends { options: infer CO extends Record<string, OptionConfig> }
+    // biome-ignore lint/suspicious/noExplicitAny: command options may include function-typed extensions
+> = Cmd extends { options: infer CO extends Record<string, any> }
     ? WithTokens extends true
         ? { command: CmdName; values: MergedParsedValues<GlobalOpts, StripExtFromOptions<CO>>; positionals: string[]; tokens: Token[] }
         : { command: CmdName; values: MergedParsedValues<GlobalOpts, StripExtFromOptions<CO>>; positionals: string[] }
@@ -344,7 +383,8 @@ type CommandArmBase<
 /** Conditionally add `parameters` to a command arm when the command defines parameters */
 type CommandArmWithParameters<
     Base,
-    Cmd extends CommandConfig,
+    // biome-ignore lint/suspicious/noExplicitAny: command configs may include extended option types
+    Cmd extends Record<string, any>,
     HasParametersMiddleware extends boolean,
 > = HasParametersMiddleware extends true
     ? Cmd extends { parameters: infer P extends readonly string[] }
@@ -355,7 +395,8 @@ type CommandArmWithParameters<
 type CommandArm<
     GlobalOpts extends Record<string, OptionConfig>,
     CmdName extends string,
-    Cmd extends CommandConfig,
+    // biome-ignore lint/suspicious/noExplicitAny: command configs may include extended option types
+    Cmd extends Record<string, any>,
     WithTokens extends boolean,
     HasParametersMiddleware extends boolean = false,
 > = CommandArmWithParameters<CommandArmBase<GlobalOpts, CmdName, Cmd, WithTokens>, Cmd, HasParametersMiddleware>;
@@ -368,7 +409,8 @@ type NoCommandArm<GlobalOpts extends Record<string, OptionConfig>, WithTokens ex
 // Distribute across all command names to build the full union
 type CommandUnion<
     GlobalOpts extends Record<string, OptionConfig>,
-    Commands extends Record<string, CommandConfig>,
+    // biome-ignore lint/suspicious/noExplicitAny: command configs may include extended option types
+    Commands extends Record<string, any>,
     WithTokens extends boolean,
     HasParametersMiddleware extends boolean = false,
 > =
@@ -407,7 +449,8 @@ export type ParseArgsPlusResultFromExtended<
         ? T extends {
               // biome-ignore lint/suspicious/noExplicitAny: inferred options are open-ended
               options: infer O extends Record<string, any>;
-              commands: infer C extends Record<string, CommandConfig>;
+              // biome-ignore lint/suspicious/noExplicitAny: command configs may include extended option types
+              commands: infer C extends Record<string, any>;
           }
             ? CommandUnion<
                   MergeExtraValues<StripExtFromOptions<O>, RE>,
@@ -415,7 +458,8 @@ export type ParseArgsPlusResultFromExtended<
                   T extends { tokens: true } ? true : false,
                   HasParametersMarker<RE>
               >
-            : T extends { commands: infer C extends Record<string, CommandConfig> }
+            : // biome-ignore lint/suspicious/noExplicitAny: command configs may include extended option types
+              T extends { commands: infer C extends Record<string, any> }
               ? CommandUnion<
                     // biome-ignore lint/complexity/noBannedTypes: empty object is the correct fallback for no options
                     RE extends ResultExtraValues ? RE['extraValues'] : {},
@@ -760,4 +804,37 @@ export interface OptionalValueOptionExtension {
      * Only meaningful for `type: 'string'` options.
      */
     optionalValue?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Custom-value middleware
+// ---------------------------------------------------------------------------
+
+/**
+ * Extension that the custom-value middleware adds to each option.
+ *
+ * When `type` is set to a function (e.g. `Number`, `JSON.parse`, or any
+ * `(value: string) => T`), the middleware replaces it with `'string'` for
+ * `parseArgs` and calls the function on each parsed string value to produce
+ * the final transformed result.
+ *
+ * Works with both single and `multiple: true` options.
+ * Default string values ARE transformed, since `parseArgs` places them in
+ * `values` indistinguishably from CLI-provided values.
+ */
+export interface CustomValueOptionExtension {
+    /**
+     * Override `type` to also accept a transform function.
+     * When a function is provided, the option is parsed as a string
+     * and the function is called with the string value to produce
+     * the final value.
+     *
+     * Built-in constructors like `Number`, `Boolean`, `URL`, `Date`
+     * work naturally as transform functions.
+     *
+     * The return type of the function is preserved at the type level,
+     * so `{ type: Number }` produces `number` in the result values.
+     */
+    // biome-ignore lint/suspicious/noExplicitAny: custom transform functions may return any type
+    type: ((value: string) => any) | 'string' | 'boolean';
 }

@@ -320,6 +320,120 @@ const { values } = parseArgsPlus(
 | ----------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `5`                     | `15`                    | Converts option keys after help adds its options (-10), before commands merges them (10). Result conversion runs after commands (10) but before help (20). |
 
+### `customValue` middleware
+
+```js
+import { customValue } from "@niceties/node-parseargs-plus/custom-value";
+```
+
+Allows an option's `type` to be a **function** (constructor or transform) instead of the usual `'string'` or `'boolean'`. The middleware replaces the function with `'string'` before `parseArgs` sees it, then calls the function on each parsed string value to produce the final result.
+
+```js
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { customValue } from "@niceties/node-parseargs-plus/custom-value";
+import { help } from "@niceties/node-parseargs-plus/help";
+
+const { values } = parseArgsPlus(
+    {
+        name: "my-cli",
+        version: "1.0.0",
+        options: {
+            port: {
+                type: Number,
+                short: "p",
+                description: "Port to listen on",
+            },
+            tags: {
+                type: (v) => v.split(","),
+                description: "Comma-separated tags",
+            },
+            data: {
+                type: JSON.parse,
+                description: "Inline JSON config",
+            },
+            verbose: {
+                type: "boolean",
+                short: "V",
+                description: "Verbose output",
+            },
+        },
+    },
+    [customValue, help],
+);
+
+// CLI:  my-cli --port 8080 --tags a,b,c --data '{"x":1}' --verbose
+// JS:   values.port    === 8080          (number)
+//       values.tags    === ['a','b','c'] (string[])
+//       values.data    === { x: 1 }      (object)
+//       values.verbose === true           (boolean, unaffected)
+```
+
+Any function that accepts a single `string` argument works — built-in constructors like `Number`, `Boolean`, `URL`, and `Date`, as well as utilities like `JSON.parse` or custom arrow functions.
+
+#### How it works
+
+1. **Config phase** — scans all options (global and command-level). For every option whose `type` is a function, stashes the function and replaces `type` with `'string'`.
+2. **Result phase** — for each parsed value, looks up the stashed function and calls it on the string to produce the final value.
+
+#### `multiple: true`
+
+When an option is marked `multiple: true`, each occurrence is individually transformed:
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number, multiple: true },
+        },
+        args: ["--port", "80", "--port", "443"],
+    },
+    [customValue],
+);
+// values.port === [80, 443]
+```
+
+#### Default values
+
+Default values specified via `default` **are** transformed. `parseArgs` places them into `values` as plain strings, which are indistinguishable from CLI-provided values at the middleware level.
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            port: { type: Number, default: "3000" },
+        },
+        args: [],
+    },
+    [customValue],
+);
+// values.port === 3000  (Number('3000'))
+```
+
+#### TypeScript note
+
+At the TypeScript level, the `type` field on options remains constrained to `'string' | 'boolean'`. Function-typed `type` values are a **runtime-only** convenience. In `.ts` files, use `as any` if you want to pass a function directly:
+
+```ts
+options: {
+    port: { type: Number as any, description: "Port number" },
+}
+```
+
+The inferred result type for such options will be `string` (the underlying `parseArgs` type). If you need precise typing, assert the result or use a wrapper.
+
+#### Cooperation with other middlewares
+
+- **`camelCase`** — works seamlessly. Option keys are converted to kebab-case before function extraction, so the stashed map uses kebab-case keys matching the values at transform time.
+- **`commands`** — command-level options with function `type` are handled. The functions are extracted in the config phase (order 7) before command resolution (order 10).
+- **`help`** — function-typed options show `<value>` in help output (they become `type: 'string'` internally).
+- **`optionalValue`** — the two middlewares work side by side on **different** options. Because `optionalValue` (config order 6) runs before `customValue` (config order 7), it doesn't recognise function-typed options as strings. Use `optionalValue` on regular `type: 'string'` options only.
+
+#### Middleware ordering
+
+| `transformConfig.order` | `transformResult.order` | Rationale                                                                                                                                                                         |
+| ----------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `7`                     | `12`                    | Extracts functions after camelCase (5) and optionalValue (6) but before commands (10). Result transform runs after commands (10) merges values but before camelCase (15) renames. |
+
 ## Custom Help Sections
 
 The `helpSections` property lets you add extra sections to the help output or override the built-in ones. Each key is a **section id** and the value is a `HelpSection` object:
@@ -461,13 +575,15 @@ const result = parseArgsPlus(
 
 Each transform function can declare its own execution priority via the `order` property. Defaults to `0`.
 
-| Middleware   | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
-| ------------ | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
-| `help`       | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
-| _(default)_  | `0`                     | `0`                     | Normal priority.                                                                                 |
-| `parameters` | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
-| `camelCase`  | `5`                     | `15`                    | Converts option keys after help adds its options; result conversion after commands, before help. |
-| `commands`   | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
+| Middleware      | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
+| --------------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `help`          | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
+| _(default)_     | `0`                     | `0`                     | Normal priority.                                                                                 |
+| `parameters`    | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
+| `camelCase`     | `5`                     | `15`                    | Converts option keys after help adds its options; result conversion after commands, before help. |
+| `optionalValue` | `6`                     | `0`                     | Rewrites args after camelCase converts keys; no result transformation needed.                    |
+| `customValue`   | `7`                     | `12`                    | Extracts function types after camelCase/optionalValue; transforms values after commands.         |
+| `commands`      | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
 
 Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter - `[help, commands]` and `[commands, help]` behave identically.
 

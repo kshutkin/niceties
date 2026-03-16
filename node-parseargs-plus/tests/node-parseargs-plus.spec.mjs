@@ -4,6 +4,7 @@ import { whiteBright } from '@niceties/ansi';
 
 import { camelCase } from '../src/camel-case.js';
 import { commands } from '../src/commands.js';
+import { customValue } from '../src/custom-value.js';
 import { help } from '../src/help.js';
 import { parseArgsPlus } from '../src/index.js';
 import { optionalValue } from '../src/optional-value.js';
@@ -4468,6 +4469,595 @@ describe('node-parseargs-plus', () => {
 
             const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
             expect(output).toContain('--mode [<value>]');
+        });
+    });
+
+    describe('custom-value middleware', () => {
+        it('transforms a string value using Number constructor', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number },
+                    },
+                    args: ['--port', '8080'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBe(8080);
+            expect(typeof result.values.port).toBe('number');
+        });
+
+        it('transforms a string value using a custom function', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        tags: { type: v => v.split(',') },
+                    },
+                    args: ['--tags', 'a,b,c'],
+                },
+                [customValue]
+            );
+            expect(result.values.tags).toEqual(['a', 'b', 'c']);
+        });
+
+        it('transforms a string value using JSON.parse', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        data: { type: JSON.parse },
+                    },
+                    args: ['--data', '{"a":1}'],
+                },
+                [customValue]
+            );
+            expect(result.values.data).toEqual({ a: 1 });
+        });
+
+        it('leaves regular string options untouched', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        name: { type: 'string' },
+                        port: { type: Number },
+                    },
+                    args: ['--name', 'hello', '--port', '3000'],
+                },
+                [customValue]
+            );
+            expect(result.values.name).toBe('hello');
+            expect(result.values.port).toBe(3000);
+        });
+
+        it('leaves regular boolean options untouched', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        verbose: { type: 'boolean' },
+                        port: { type: Number },
+                    },
+                    args: ['--verbose', '--port', '42'],
+                },
+                [customValue]
+            );
+            expect(result.values.verbose).toBe(true);
+            expect(result.values.port).toBe(42);
+        });
+
+        it('handles multiple: true by transforming each element', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, multiple: true },
+                    },
+                    args: ['--port', '80', '--port', '443'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toEqual([80, 443]);
+        });
+
+        it('does not transform undefined values (option not passed)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number },
+                    },
+                    args: [],
+                    strict: false,
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBeUndefined();
+        });
+
+        it('transforms default values (defaults are indistinguishable from CLI input)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, default: '3000' },
+                    },
+                    args: [],
+                },
+                [customValue]
+            );
+            // parseArgs puts default '3000' into values as a string,
+            // the middleware transforms it just like a CLI-provided value
+            expect(result.values.port).toBe(3000);
+        });
+
+        it('transforms value when option is passed, even with default', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, default: '3000' },
+                    },
+                    args: ['--port', '8080'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBe(8080);
+        });
+
+        it('works with short aliases', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, short: 'p' },
+                    },
+                    args: ['-p', '9090'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBe(9090);
+        });
+
+        it('passes through when no options have function types', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        name: { type: 'string' },
+                        verbose: { type: 'boolean' },
+                    },
+                    args: ['--name', 'test', '--verbose'],
+                },
+                [customValue]
+            );
+            expect(result.values.name).toBe('test');
+            expect(result.values.verbose).toBe(true);
+        });
+
+        it('passes through when options is undefined', () => {
+            const result = parseArgsPlus(
+                {
+                    args: [],
+                    strict: false,
+                },
+                [customValue]
+            );
+            expect(result.values).toEqual({});
+        });
+
+        it('is a valid middleware tuple', () => {
+            expect(customValue).toHaveLength(2);
+            expect(typeof customValue[0]).toBe('function');
+            expect(typeof customValue[1]).toBe('function');
+        });
+
+        it('has order 7 on transformConfig and 12 on transformResult', () => {
+            expect(customValue[0].order).toBe(7);
+            expect(customValue[1].order).toBe(12);
+        });
+
+        it('handles multiple function-typed options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number },
+                        count: { type: Number },
+                    },
+                    args: ['--port', '80', '--count', '5'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBe(80);
+            expect(result.values.count).toBe(5);
+        });
+
+        it('transforms inline value (=)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number },
+                    },
+                    args: ['--port=8080'],
+                },
+                [customValue]
+            );
+            expect(result.values.port).toBe(8080);
+        });
+    });
+
+    describe('custom-value + commands middleware cooperation', () => {
+        it('transforms command-level function-typed options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        serve: {
+                            options: {
+                                port: { type: Number },
+                            },
+                        },
+                    },
+                    args: ['serve', '--port', '3000'],
+                },
+                [customValue, commands]
+            );
+            expect(result.values.port).toBe(3000);
+        });
+
+        it('transforms global function-typed options with commands', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        timeout: { type: Number },
+                    },
+                    commands: {
+                        serve: {
+                            options: {
+                                port: { type: Number },
+                            },
+                        },
+                    },
+                    args: ['--timeout', '30', 'serve', '--port', '8080'],
+                },
+                [customValue, commands]
+            );
+            expect(result.values.timeout).toBe(30);
+            expect(result.values.port).toBe(8080);
+        });
+
+        it('leaves string command options untouched', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        build: {
+                            options: {
+                                outdir: { type: 'string' },
+                                port: { type: Number },
+                            },
+                        },
+                    },
+                    args: ['build', '--outdir', 'dist', '--port', '5000'],
+                },
+                [customValue, commands]
+            );
+            expect(result.values.outdir).toBe('dist');
+            expect(result.values.port).toBe(5000);
+        });
+    });
+
+    describe('custom-value + camelCase middleware cooperation', () => {
+        it('transforms camelCase options with function types', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        serverPort: { type: Number },
+                    },
+                    args: ['--server-port', '4000'],
+                },
+                [customValue, camelCase]
+            );
+            expect(result.values.serverPort).toBe(4000);
+        });
+
+        it('transforms multiple camelCase options with function types', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        serverPort: { type: Number },
+                        maxRetries: { type: Number },
+                    },
+                    args: ['--server-port', '4000', '--max-retries', '3'],
+                },
+                [customValue, camelCase]
+            );
+            expect(result.values.serverPort).toBe(4000);
+            expect(result.values.maxRetries).toBe(3);
+        });
+    });
+
+    describe('custom-value + camelCase + commands middleware cooperation', () => {
+        it('transforms camelCase command-level function-typed options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        logLevel: { type: 'string' },
+                    },
+                    commands: {
+                        serve: {
+                            options: {
+                                serverPort: { type: Number },
+                            },
+                        },
+                    },
+                    args: ['--log-level', 'debug', 'serve', '--server-port', '3000'],
+                },
+                [customValue, camelCase, commands]
+            );
+            expect(result.values.logLevel).toBe('debug');
+            expect(result.values.serverPort).toBe(3000);
+        });
+    });
+
+    describe('custom-value + optionalValue middleware cooperation', () => {
+        it('transforms a string optionalValue option post-parse via custom function', () => {
+            // optionalValue requires type: 'string' at config time (order 6),
+            // so function types in `type` are not compatible with optionalValue
+            // directly. Instead, use a regular string option with optionalValue
+            // and apply a custom transform via a separate option.
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                        port: { type: Number },
+                    },
+                    args: ['--filter', '--port', '8080'],
+                },
+                [customValue, optionalValue]
+            );
+            // optionalValue rewrites bare --filter to --filter= (empty string)
+            expect(result.values.filter).toBe('');
+            // customValue transforms --port value
+            expect(result.values.port).toBe(8080);
+        });
+
+        it('both middlewares work side by side on different options', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                        port: { type: Number },
+                    },
+                    args: ['--filter', 'pattern', '--port', '3000'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.filter).toBe('pattern');
+            expect(result.values.port).toBe(3000);
+        });
+    });
+
+    describe('custom-value + help middleware cooperation', () => {
+        let exitSpy;
+        let consoleLogSpy;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+        });
+
+        it('does not interfere with help when function-typed options are present', () => {
+            const result = parseArgsPlus(
+                {
+                    name: 'test-cli',
+                    version: '1.0.0',
+                    options: {
+                        port: { type: Number, description: 'Port number' },
+                        name: { type: 'string' },
+                    },
+                    args: ['--port', '3000', '--name', 'test'],
+                },
+                [customValue, help]
+            );
+            expect(result.values.port).toBe(3000);
+            expect(result.values.name).toBe('test');
+        });
+
+        it('shows help without error when function-typed options exist', () => {
+            try {
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            port: { type: Number, description: 'Port number' },
+                        },
+                        args: ['--help'],
+                    },
+                    [customValue, help]
+                );
+            } catch {}
+
+            const output = consoleLogSpy.mock.calls.map(c => c[0]).join('\n');
+            expect(output).toContain('--port');
+        });
+    });
+
+    describe('optional-value negation form (--no-) handling', () => {
+        it('passes through --no-name negation form without rewriting', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        filter: { type: 'string', optionalValue: true },
+                    },
+                    strict: false,
+                    args: ['--no-filter'],
+                },
+                [optionalValue]
+            );
+            // With strict:false, --no-filter is treated as an unknown flag
+            // The important thing is rewriteArgs did NOT rewrite it to --no-filter=
+            expect(result.values['no-filter']).toBe(true);
+        });
+    });
+
+    describe('custom-value command with no function-typed options', () => {
+        it('leaves commands with only regular options unchanged', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        serve: {
+                            options: {
+                                port: { type: Number },
+                            },
+                        },
+                        build: {
+                            options: {
+                                outdir: { type: 'string' },
+                            },
+                        },
+                    },
+                    args: ['build', '--outdir', 'dist'],
+                },
+                [customValue, commands]
+            );
+            expect(result.values.outdir).toBe('dist');
+        });
+    });
+
+    describe('custom-value non-string value passthrough', () => {
+        it('passes through non-string values without transforming', () => {
+            // Use commands middleware to produce a boolean value for a key
+            // that is in the customValue transform map. Global option has
+            // type: Number (function), command option has type: 'boolean'.
+            // Commands middleware merges pass2 boolean value over pass1,
+            // and customValue sees a boolean for a mapped key.
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        debug: { type: Number },
+                    },
+                    commands: {
+                        build: {
+                            options: {
+                                debug: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--debug'],
+                },
+                [customValue, commands]
+            );
+            // The boolean value from command parse passes through untransformed
+            expect(result.values.debug).toBe(true);
+        });
+    });
+
+    describe('help narrow layout with optionalValue', () => {
+        let exitSpy;
+        let consoleLogSpy;
+        let originalColumns;
+
+        beforeEach(() => {
+            exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit called');
+            });
+            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            originalColumns = process.stdout.columns;
+        });
+
+        afterEach(() => {
+            exitSpy.mockRestore();
+            consoleLogSpy.mockRestore();
+            Object.defineProperty(process.stdout, 'columns', {
+                value: originalColumns,
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('shows [<value>] suffix for optionalValue options in narrow layout', () => {
+            Object.defineProperty(process.stdout, 'columns', {
+                value: 60,
+                writable: true,
+                configurable: true,
+            });
+            try {
+                parseArgsPlus(
+                    {
+                        name: 'test-cli',
+                        version: '1.0.0',
+                        options: {
+                            filter: { type: 'string', optionalValue: true, description: 'Filter results' },
+                        },
+                        args: ['--help'],
+                    },
+                    [optionalValue, help]
+                );
+            } catch {}
+
+            const output = consoleLogSpy.mock.calls.map(c => c.join(' ')).join('\n');
+            expect(output).toContain('--filter [<value>]');
+        });
+    });
+
+    describe('optional-value fallback to process.argv', () => {
+        it('falls back to process.argv when args is not provided', () => {
+            const originalArgv = process.argv;
+            try {
+                process.argv = ['node', 'test', '--filter'];
+                const result = parseArgsPlus(
+                    {
+                        options: {
+                            filter: { type: 'string', optionalValue: true },
+                        },
+                    },
+                    [optionalValue]
+                );
+                expect(result.values.filter).toBe('');
+            } finally {
+                process.argv = originalArgv;
+            }
+        });
+    });
+
+    describe('custom-value multiple with non-string element passthrough', () => {
+        it('passes through non-string elements in a multiple array', () => {
+            // Use commands middleware to produce merged values where a
+            // multiple:true function-typed option gets a boolean element
+            // from the command scope alongside string elements from global scope.
+            // Global has type: Number (function) + multiple, command has type: 'boolean'.
+            // Commands middleware merges pass2 boolean value over pass1 array.
+            //
+            // Alternative approach: use a custom middleware that injects a
+            // non-string element into the array before customValue processes it.
+            const injectMiddleware = [
+                config => config,
+                (result, _config) => {
+                    if (result.values.port) {
+                        // Replace the array with one containing a non-string element
+                        result = {
+                            ...result,
+                            values: { ...result.values, port: [result.values.port[0], 42] },
+                        };
+                    }
+                    return result;
+                },
+            ];
+            injectMiddleware[1].order = 11; // after commands (10), before customValue (12)
+
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, multiple: true },
+                    },
+                    args: ['--port', '8080', '--port', '3000'],
+                },
+                [injectMiddleware, customValue]
+            );
+            // First element was string '8080' → transformed by Number → 8080
+            // Second element was injected as number 42 → passed through as-is
+            expect(result.values.port).toEqual([8080, 42]);
         });
     });
 });
