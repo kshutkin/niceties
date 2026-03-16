@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- 9a05816: optional value middleware
+- 5d73e11: support camelCase options
+- 7856392: custom value middleware
+
 ## 0.1.2
 
 ### Patch Changes
