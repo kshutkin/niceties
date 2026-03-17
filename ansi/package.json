@@ -6,6 +6,7 @@
         "name": "Konstantin Shutkin"
     },
     "type": "module",
+    "sideEffects": false,
     "types": "./types/index.d.ts",
     "exports": {
         ".": {
