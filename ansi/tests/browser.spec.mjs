@@ -169,7 +169,7 @@ describe('browser: input coercion', () => {
 
 describe('browser: nesting', () => {
     it('should handle nested colors with the same close code', () => {
-        const result = red('Hello ' + blue('world') + ' !');
+        const result = red(`Hello ${blue('world')} !`);
         expect(result).toBe('\x1b[31mHello \x1b[34mworld\x1b[31m !\x1b[39m');
     });
 
@@ -194,7 +194,7 @@ describe('browser: nesting', () => {
     });
 
     it('should handle text around nested formatter', () => {
-        const result = red('before ' + blue('middle') + ' after');
+        const result = red(`before ${blue('middle')} after`);
         expect(result).toBe('\x1b[31mbefore \x1b[34mmiddle\x1b[31m after\x1b[39m');
     });
 });
@@ -211,7 +211,7 @@ describe('browser: replaceClose edge cases', () => {
     });
 
     it('should handle input containing the close code multiple times', () => {
-        const inner = blue('a') + 'b' + green('c');
+        const inner = `${blue('a')}b${green('c')}`;
         const result = red(inner);
         expect(result).toBe('\x1b[31m\x1b[34ma\x1b[31mb\x1b[32mc\x1b[31m\x1b[39m');
     });

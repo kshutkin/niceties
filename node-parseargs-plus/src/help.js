@@ -359,7 +359,7 @@ function buildSection(id, defaultTitle, defaultText, defaultOrder, userSections)
  * @param {Record<string, import('./types.d.ts').HelpSection>} userSections
  */
 function renderHelp(header, description, sections, userSections) {
-    console.log(header + '\n');
+    console.log(`${header}\n`);
 
     if (description) {
         const termWidth = getTerminalWidth();
@@ -401,7 +401,7 @@ function renderHelp(header, description, sections, userSections) {
  */
 function formatParametersUsage(params) {
     if (!params || params.length === 0) return '';
-    return ' ' + params.join(' ');
+    return ` ${params.join(' ')}`;
 }
 
 /** @param {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').HelpConfigExtension} config */
@@ -477,7 +477,7 @@ function printCommandHelp(config, commandName, commandConfig, _commands) {
         sections['command-options'] = buildSection('command-options', 'Options', buildOptionsText(commandOptions, false), 1, userSections);
     }
 
-    sections['options'] = buildSection('options', 'Global Options', buildOptionsText(globalOptions), 2, userSections);
+    sections.options = buildSection('options', 'Global Options', buildOptionsText(globalOptions), 2, userSections);
 
     renderHelp(`${config.name} ${commandName}`, commandConfig.description, sections, userSections);
 }

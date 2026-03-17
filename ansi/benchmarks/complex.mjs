@@ -23,7 +23,7 @@ summary(() => {
             niceties.yellow('.') +
             niceties.green('.') +
             niceties.bgRed(niceties.black(' ERROR ')) +
-            niceties.red(' Add plugin ' + niceties.yellow('name') + ' to use time limit with ' + niceties.yellow(`${++index}`))
+            niceties.red(` Add plugin ${niceties.yellow('name')} to use time limit with ${niceties.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -33,7 +33,7 @@ summary(() => {
             picocolors.yellow('.') +
             picocolors.green('.') +
             picocolors.bgRed(picocolors.black(' ERROR ')) +
-            picocolors.red(' Add plugin ' + picocolors.yellow('name') + ' to use time limit with ' + picocolors.yellow(`${++index}`))
+            picocolors.red(` Add plugin ${picocolors.yellow('name')} to use time limit with ${picocolors.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -43,7 +43,7 @@ summary(() => {
             colorette.yellow('.') +
             colorette.green('.') +
             colorette.bgRed(colorette.black(' ERROR ')) +
-            colorette.red(' Add plugin ' + colorette.yellow('name') + ' to use time limit with ' + colorette.yellow(`${++index}`))
+            colorette.red(` Add plugin ${colorette.yellow('name')} to use time limit with ${colorette.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -53,7 +53,7 @@ summary(() => {
             kleur.yellow('.') +
             kleur.green('.') +
             kleur.bgRed(kleur.black(' ERROR ')) +
-            kleur.red(' Add plugin ' + kleur.yellow('name') + ' to use time limit with ' + kleur.yellow(`${++index}`))
+            kleur.red(` Add plugin ${kleur.yellow('name')} to use time limit with ${kleur.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -63,7 +63,7 @@ summary(() => {
             kleurColors.yellow('.') +
             kleurColors.green('.') +
             kleurColors.bgRed(kleurColors.black(' ERROR ')) +
-            kleurColors.red(' Add plugin ' + kleurColors.yellow('name') + ' to use time limit with ' + kleurColors.yellow(`${++index}`))
+            kleurColors.red(` Add plugin ${kleurColors.yellow('name')} to use time limit with ${kleurColors.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -73,7 +73,7 @@ summary(() => {
             chalk.yellow('.') +
             chalk.green('.') +
             chalk.bgRed(chalk.black(' ERROR ')) +
-            chalk.red(' Add plugin ' + chalk.yellow('name') + ' to use time limit with ' + chalk.yellow(`${++index}`))
+            chalk.red(` Add plugin ${chalk.yellow('name')} to use time limit with ${chalk.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -83,7 +83,7 @@ summary(() => {
             ansiColors.yellow('.') +
             ansiColors.green('.') +
             ansiColors.bgRed(ansiColors.black(' ERROR ')) +
-            ansiColors.red(' Add plugin ' + ansiColors.yellow('name') + ' to use time limit with ' + ansiColors.yellow(`${++index}`))
+            ansiColors.red(` Add plugin ${ansiColors.yellow('name')} to use time limit with ${ansiColors.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -93,7 +93,7 @@ summary(() => {
             yoctocolors.yellow('.') +
             yoctocolors.green('.') +
             yoctocolors.bgRed(yoctocolors.black(' ERROR ')) +
-            yoctocolors.red(' Add plugin ' + yoctocolors.yellow('name') + ' to use time limit with ' + yoctocolors.yellow(`${++index}`))
+            yoctocolors.red(` Add plugin ${yoctocolors.yellow('name')} to use time limit with ${yoctocolors.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -103,7 +103,7 @@ summary(() => {
             nanocolors.yellow('.') +
             nanocolors.green('.') +
             nanocolors.bgRed(nanocolors.black(' ERROR ')) +
-            nanocolors.red(' Add plugin ' + nanocolors.yellow('name') + ' to use time limit with ' + nanocolors.yellow(`${++index}`))
+            nanocolors.red(` Add plugin ${nanocolors.yellow('name')} to use time limit with ${nanocolors.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -113,7 +113,7 @@ summary(() => {
             cliColor.yellow('.') +
             cliColor.green('.') +
             cliColor.bgRed(cliColor.black(' ERROR ')) +
-            cliColor.red(' Add plugin ' + cliColor.yellow('name') + ' to use time limit with ' + cliColor.yellow(`${++index}`))
+            cliColor.red(` Add plugin ${cliColor.yellow('name')} to use time limit with ${cliColor.yellow(`${++index}`)}`)
     );
 
     bench(
@@ -123,7 +123,7 @@ summary(() => {
             s('yellow', '.') +
             s('green', '.') +
             s(['bgRed'], s('black', ' ERROR ')) +
-            s('red', ' Add plugin ' + s('yellow', 'name') + ' to use time limit with ' + s('yellow', `${++index}`))
+            s('red', ` Add plugin ${s('yellow', 'name')} to use time limit with ${s('yellow', `${++index}`)}`)
     );
 });
 

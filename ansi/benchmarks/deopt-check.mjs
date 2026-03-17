@@ -19,7 +19,7 @@ for (let i = 0; i < ITERATIONS; i++) {
 // Phase 2: Nested colors (triggers replaceClose path)
 phase('Nested colors (triggers replaceClose)');
 for (let i = 0; i < ITERATIONS; i++) {
-    red('a ' + blue('nested') + ' text');
+    red(`a ${blue('nested')} text`);
 }
 
 // Phase 3: Number input (triggers Smi deopt on "" + input)
@@ -44,7 +44,7 @@ for (let i = 0; i < ITERATIONS; i++) {
 // Phase 6: Nested with custom replace
 phase('Nested with custom replace');
 for (let i = 0; i < ITERATIONS; i++) {
-    bold('a ' + bold('double bold') + ' text');
+    bold(`a ${bold('double bold')} text`);
 }
 
 // Phase 7: Heavy recursion - long strings with many close sequences

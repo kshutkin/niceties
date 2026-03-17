@@ -166,7 +166,7 @@ describe('nesting', () => {
     it('should handle nested colors with the same close code', () => {
         // blue uses \x1b[39m as close, same as red
         // When red wraps blue("world"), the inner \x1b[39m should be replaced with \x1b[31m (red open)
-        const result = red('Hello ' + blue('world') + ' !');
+        const result = red(`Hello ${blue('world')} !`);
         expect(result).toBe('\x1b[31mHello \x1b[34mworld\x1b[31m !\x1b[39m');
     });
 
@@ -195,7 +195,7 @@ describe('nesting', () => {
     });
 
     it('should handle text around nested formatter', () => {
-        const result = red('before ' + blue('middle') + ' after');
+        const result = red(`before ${blue('middle')} after`);
         expect(result).toBe('\x1b[31mbefore \x1b[34mmiddle\x1b[31m after\x1b[39m');
     });
 });
@@ -213,7 +213,7 @@ describe('replaceClose edge cases', () => {
     });
 
     it('should handle input containing the close code multiple times', () => {
-        const inner = blue('a') + 'b' + green('c');
+        const inner = `${blue('a')}b${green('c')}`;
         // inner = \x1b[34ma\x1b[39mb\x1b[32mc\x1b[39m
         const result = red(inner);
         // Both \x1b[39m should be replaced with \x1b[31m
