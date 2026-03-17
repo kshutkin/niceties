@@ -5060,4 +5060,58 @@ describe('node-parseargs-plus', () => {
             expect(result.values.port).toEqual([8080, 42]);
         });
     });
+
+    describe('readPackageJson', () => {
+        let readPackageJson;
+
+        beforeEach(async () => {
+            ({ readPackageJson } = await import('../src/package-info.js'));
+        });
+
+        it('reads the nearest package.json from import.meta.url', async () => {
+            const pkg = await readPackageJson(import.meta.url);
+            // This test file lives inside the node-parseargs-plus package,
+            // so it should find that package.json
+            expect(pkg.name).toBe('@niceties/node-parseargs-plus');
+            expect(typeof pkg.version).toBe('string');
+        });
+
+        it('returns name, version, and description fields', async () => {
+            const pkg = await readPackageJson(import.meta.url);
+            expect(pkg).toHaveProperty('name');
+            expect(pkg).toHaveProperty('version');
+            // description is optional but should be present in this package
+            expect(typeof pkg.description).toBe('string');
+        });
+
+        it('accepts a URL string (file:// protocol)', async () => {
+            const pkg = await readPackageJson(import.meta.url);
+            expect(pkg.name).toBe('@niceties/node-parseargs-plus');
+        });
+
+        it('accepts a URL object', async () => {
+            const pkg = await readPackageJson(new URL(import.meta.url));
+            expect(pkg.name).toBe('@niceties/node-parseargs-plus');
+        });
+
+        it('walks up directories to find package.json', async () => {
+            // import.meta.url points to tests/ directory, so it must walk up
+            // to find the package.json in the parent directory
+            const pkg = await readPackageJson(import.meta.url);
+            expect(pkg.name).toBe('@niceties/node-parseargs-plus');
+        });
+
+        it('returns a full package.json object with all fields', async () => {
+            const pkg = await readPackageJson(import.meta.url);
+            // Verify it's a complete package.json, not just selected fields
+            expect(pkg).toHaveProperty('exports');
+            expect(pkg).toHaveProperty('license');
+        });
+
+        it('returns an empty object when no package.json is found', async () => {
+            // Use the filesystem root — no package.json should exist there
+            const pkg = await readPackageJson('file:///package-info-test-nonexistent.js');
+            expect(pkg).toEqual({});
+        });
+    });
 });

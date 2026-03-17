@@ -548,6 +548,57 @@ The inferred result type for such options will be `string` (the underlying `pars
 | ----------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `7`                     | `12`                    | Extracts functions after camelCase (5) and optionalValue (6) but before commands (10). Result transform runs after commands (10) merges values but before camelCase (15) renames. |
 
+### `readPackageJson` utility
+
+```js
+import { readPackageJson } from "@niceties/node-parseargs-plus/package-info";
+```
+
+An async helper that walks up the directory tree from a given URL to find and parse the nearest `package.json`. This is useful for automatically populating `name`, `version`, and `description` in your CLI config without hardcoding them.
+
+```js
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { help } from "@niceties/node-parseargs-plus/help";
+import { readPackageJson } from "@niceties/node-parseargs-plus/package-info";
+
+const pkg = await readPackageJson(import.meta.url);
+
+const { values } = parseArgsPlus(
+    {
+        name: pkg.name,
+        version: pkg.version,
+        description: pkg.description,
+        options: {
+            output: {
+                type: "string",
+                short: "o",
+                description: "Output file path",
+            },
+        },
+    },
+    [help],
+);
+```
+
+#### Parameters
+
+| Parameter | Type            | Description                                                                                          |
+| --------- | --------------- | ---------------------------------------------------------------------------------------------------- |
+| `fromUrl` | `string \| URL` | The URL to start searching from. Pass `import.meta.url` to search from the calling file's directory. |
+
+#### Return value
+
+Returns `Promise<object>` — the full parsed `package.json` contents (including `name`, `version`, `description`, and any other fields). Returns an empty object `{}` if no `package.json` is found after walking to the filesystem root.
+
+#### How it works
+
+1. Converts the given URL to a directory path (using `node:url` and `node:path`).
+2. Looks for `package.json` in that directory.
+3. If not found, moves to the parent directory and repeats.
+4. Stops when `package.json` is found or the filesystem root is reached.
+
+Because it's `async`, you can `await` it at the top level of your CLI entry point alongside any other startup work (e.g. reading config files) without blocking.
+
 ## Custom Help Sections
 
 The `helpSections` property lets you add extra sections to the help output or override the built-in ones. Each key is a **section id** and the value is a `HelpSection` object:

@@ -36,6 +36,10 @@
             "types": "./types/index.d.ts",
             "default": "./src/custom-value.js"
         },
+        "./package-info": {
+            "types": "./types/index.d.ts",
+            "default": "./src/package-info.js"
+        },
         "./package.json": "./package.json"
     },
     "main": "./src/index.js",
@@ -65,7 +69,7 @@
         "options"
     ],
     "scripts": {
-        "build": "dts-buddy -m @niceties/node-parseargs-plus:src/exports.d.ts -m @niceties/node-parseargs-plus/help:src/help-exports.d.ts -m @niceties/node-parseargs-plus/commands:src/commands-exports.d.ts -m @niceties/node-parseargs-plus/parameters:src/parameters-exports.d.ts -m @niceties/node-parseargs-plus/camel-case:src/camel-case-exports.d.ts -m @niceties/node-parseargs-plus/optional-value:src/optional-value-exports.d.ts -m @niceties/node-parseargs-plus/custom-value:src/custom-value-exports.d.ts",
+        "build": "dts-buddy -m @niceties/node-parseargs-plus:src/exports.d.ts -m @niceties/node-parseargs-plus/help:src/help-exports.d.ts -m @niceties/node-parseargs-plus/commands:src/commands-exports.d.ts -m @niceties/node-parseargs-plus/parameters:src/parameters-exports.d.ts -m @niceties/node-parseargs-plus/camel-case:src/camel-case-exports.d.ts -m @niceties/node-parseargs-plus/optional-value:src/optional-value-exports.d.ts -m @niceties/node-parseargs-plus/custom-value:src/custom-value-exports.d.ts -m @niceties/node-parseargs-plus/package-info:src/package-info-exports.d.ts",
         "prepack": "pkgprn-internal --flatten types,src --strip-comments --remove-sourcemaps",
         "test": "vitest run --coverage --config ../vitest.config.js"
     },
