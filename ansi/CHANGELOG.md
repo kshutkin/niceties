@@ -1,5 +1,11 @@
 # @niceties/ansi
 
+## 1.1.1
+
+### Patch Changes
+
+- 30863c2: fix comments packaging
+
 ## 1.1.0
 
 ### Minor Changes
