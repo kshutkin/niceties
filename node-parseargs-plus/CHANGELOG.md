@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- ee4674e: added package info helper
+
 ## 0.2.1
 
 ### Patch Changes
