@@ -320,6 +320,120 @@ const { values } = parseArgsPlus(
 | ----------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `5`                     | `15`                    | Converts option keys after help adds its options (-10), before commands merges them (10). Result conversion runs after commands (10) but before help (20). |
 
+### `optionalValue` middleware
+
+```js
+import { optionalValue } from "@niceties/node-parseargs-plus/optional-value";
+```
+
+Allows `type: 'string'` options to be used **bare** on the command line (without a following value). When an option is marked with `optionalValue: true`, using it without a value produces an empty string `""` in the parsed result instead of throwing an error.
+
+```js
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { optionalValue } from "@niceties/node-parseargs-plus/optional-value";
+
+const { values } = parseArgsPlus(
+    {
+        options: {
+            filter: {
+                type: "string",
+                short: "f",
+                optionalValue: true,
+                description: "Filter results (omit value to match all)",
+            },
+        },
+        args: process.argv.slice(2),
+    },
+    [optionalValue],
+);
+
+// --filter pattern  → values.filter === "pattern"
+// --filter          → values.filter === ""
+// -f pattern        → values.filter === "pattern"
+// -f                → values.filter === ""
+// --filter=         → values.filter === ""
+// (not passed)      → values.filter === undefined
+```
+
+#### How it works
+
+The middleware pre-processes the `args` array **before** `parseArgs` sees it:
+
+- A bare long option `--option` (no `=`) is rewritten to `--option=` (inline empty value).
+- A bare short option `-o` is followed by an injected empty string `''`.
+
+The middleware only affects options with **both** `type: 'string'` and `optionalValue: true`. Boolean options and regular string options are untouched.
+
+#### `multiple: true`
+
+Works with `multiple: true` string options as well. Each bare occurrence adds an empty string to the array:
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            filter: { type: "string", multiple: true, optionalValue: true },
+        },
+        args: ["--filter", "a", "--filter"],
+    },
+    [optionalValue],
+);
+// values.filter === ["a", ""]
+```
+
+#### Default values
+
+When the option is not passed at all, the `default` value is used as normal. However, when used bare (`--filter` with no value), the explicit empty string `""` **overrides** the default:
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            filter: { type: "string", optionalValue: true, default: "all" },
+        },
+        args: ["--filter"],
+    },
+    [optionalValue],
+);
+// values.filter === ""  (bare use overrides default)
+```
+
+```js
+const { values } = parseArgsPlus(
+    {
+        options: {
+            filter: { type: "string", optionalValue: true, default: "all" },
+        },
+        args: [],
+    },
+    [optionalValue],
+);
+// values.filter === "all"  (not passed, default applies)
+```
+
+#### Help output
+
+When used with the `help` middleware, options with `optionalValue: true` display `[<value>]` (bracketed) instead of the usual `<value>` suffix, signalling that the value is optional:
+
+```
+  -f, --filter [<value>]  Filter results (omit value to match all)
+      --name <value>      Your name
+```
+
+#### Cooperation with other middlewares
+
+- **`camelCase`** — works seamlessly. Define options with camelCase keys as usual; the middleware rewrites args after camelCase converts to kebab-case (config order 5 → 6).
+- **`commands`** — command-level options with `optionalValue: true` are handled. The args are rewritten before command resolution (config order 6 → 10).
+- **`parameters`** — works alongside parameters without interference.
+- **`help`** — shows `[<value>]` for optional-value options.
+- **`customValue`** — the two middlewares operate on **different** options. Use `optionalValue` on regular `type: 'string'` options only; `customValue` handles function-typed options.
+
+#### Middleware ordering
+
+| `transformConfig.order` | `transformResult.order` | Rationale                                                                                                     |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `6`                     | `0`                     | Rewrites args after camelCase (5) converts keys but before commands (10). No result transformation is needed. |
+
 ### `customValue` middleware
 
 ```js
