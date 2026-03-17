@@ -554,7 +554,7 @@ The inferred result type for such options will be `string` (the underlying `pars
 import { readPackageJson } from "@niceties/node-parseargs-plus/package-info";
 ```
 
-An async helper that walks up the directory tree from a given URL to find and parse the nearest `package.json`. This is useful for automatically populating `name`, `version`, and `description` in your CLI config without hardcoding them.
+An async helper that walks up the directory tree from a given URL to find the nearest `package.json` and extract its `name`, `version`, and `description` fields. This is useful for automatically populating those values in your CLI config without hardcoding them. If no `package.json` is found or a field is missing, `name` defaults to `''`, `version` to `'<unknown>'`, and `description` to `''`.
 
 ```js
 import { parseArgsPlus } from "@niceties/node-parseargs-plus";
@@ -588,7 +588,7 @@ const { values } = parseArgsPlus(
 
 #### Return value
 
-Returns `Promise<object>` — the full parsed `package.json` contents (including `name`, `version`, `description`, and any other fields). Returns an empty object `{}` if no `package.json` is found after walking to the filesystem root.
+Returns `Promise<{ name: string; version: string; description: string }>` — an object with only the `name`, `version`, and `description` fields extracted from the nearest `package.json`. If no `package.json` is found or a field is missing, `name` defaults to `''`, `version` to `'<unknown>'`, and `description` to `''`.
 
 #### How it works
 

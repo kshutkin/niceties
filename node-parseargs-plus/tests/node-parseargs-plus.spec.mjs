@@ -5153,14 +5153,19 @@ describe('node-parseargs-plus', () => {
             // so it should find that package.json
             expect(pkg.name).toBe('@niceties/node-parseargs-plus');
             expect(typeof pkg.version).toBe('string');
+            expect(pkg.version).not.toBe('<unknown>');
         });
 
-        it('returns name, version, and description fields', async () => {
+        it('returns name, version, and description as strings', async () => {
             const pkg = await readPackageJson(import.meta.url);
-            expect(pkg).toHaveProperty('name');
-            expect(pkg).toHaveProperty('version');
-            // description is optional but should be present in this package
+            expect(typeof pkg.name).toBe('string');
+            expect(typeof pkg.version).toBe('string');
             expect(typeof pkg.description).toBe('string');
+        });
+
+        it('returns only name, version, and description fields', async () => {
+            const pkg = await readPackageJson(import.meta.url);
+            expect(Object.keys(pkg).sort()).toEqual(['description', 'name', 'version']);
         });
 
         it('accepts a URL string (file:// protocol)', async () => {
@@ -5180,17 +5185,10 @@ describe('node-parseargs-plus', () => {
             expect(pkg.name).toBe('@niceties/node-parseargs-plus');
         });
 
-        it('returns a full package.json object with all fields', async () => {
-            const pkg = await readPackageJson(import.meta.url);
-            // Verify it's a complete package.json, not just selected fields
-            expect(pkg).toHaveProperty('exports');
-            expect(pkg).toHaveProperty('license');
-        });
-
-        it('returns an empty object when no package.json is found', async () => {
+        it('returns defaults when no package.json is found', async () => {
             // Use the filesystem root — no package.json should exist there
             const pkg = await readPackageJson('file:///package-info-test-nonexistent.js');
-            expect(pkg).toEqual({});
+            expect(pkg).toEqual({ name: '', version: '<unknown>', description: '' });
         });
     });
 });

@@ -1,9 +1,13 @@
 /**
  * Walks up from the given URL (typically `import.meta.url`) to find
- * the nearest `package.json` and returns its parsed contents.
+ * the nearest `package.json` and returns its `name`, `version`, and
+ * `description` fields.
  *
  * @param fromUrl - The URL to start searching from (e.g. `import.meta.url`).
- * @returns The parsed package.json contents, or an empty object if none is found.
+ * @returns An object with `name`, `version`, and `description` extracted from
+ *   the nearest `package.json`. If no `package.json` is found or a field is
+ *   missing, `name` defaults to `''`, `version` to `'<unknown>'`, and
+ *   `description` to `''`.
  *
  * @example
  * ```ts
@@ -20,8 +24,7 @@
  * ```
  */
 export declare function readPackageJson(fromUrl: string | URL): Promise<{
-    name?: string;
-    version?: string;
-    description?: string;
-    [key: string]: unknown;
+    name: string;
+    version: string;
+    description: string;
 }>;
