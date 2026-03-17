@@ -1,5 +1,12 @@
 # examples
 
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [a1b63da]
+  - @niceties/node-parseargs-plus@0.2.1
+
 ## 1.0.8
 
 ### Patch Changes
