@@ -25,7 +25,7 @@ export async function readPackageJson(fromUrl) {
         try {
             const content = await readFile(candidate, 'utf8');
             return JSON.parse(content);
-        } catch (err) {
+        } catch (/** @type {any} */ err) {
             // If the file doesn't exist, continue walking up
             if (err.code === 'ENOENT') {
                 const parent = dirname(dir);

@@ -4543,11 +4543,11 @@ describe('node-parseargs-plus', () => {
             expect(result.values.port).toBe(42);
         });
 
-        it('handles multiple: true by transforming each element', () => {
+        it('handles multiple: true by passing the whole array to the factory', () => {
             const result = parseArgsPlus(
                 {
                     options: {
-                        port: { type: Number, multiple: true },
+                        port: { type: values => values.map(Number), multiple: true },
                     },
                     args: ['--port', '80', '--port', '443'],
                 },
@@ -5021,43 +5021,27 @@ describe('node-parseargs-plus', () => {
         });
     });
 
-    describe('custom-value multiple with non-string element passthrough', () => {
-        it('passes through non-string elements in a multiple array', () => {
-            // Use commands middleware to produce merged values where a
-            // multiple:true function-typed option gets a boolean element
-            // from the command scope alongside string elements from global scope.
-            // Global has type: Number (function) + multiple, command has type: 'boolean'.
-            // Commands middleware merges pass2 boolean value over pass1 array.
-            //
-            // Alternative approach: use a custom middleware that injects a
-            // non-string element into the array before customValue processes it.
-            const injectMiddleware = [
-                config => config,
-                (result, _config) => {
-                    if (result.values.port) {
-                        // Replace the array with one containing a non-string element
-                        result = {
-                            ...result,
-                            values: { ...result.values, port: [result.values.port[0], 42] },
-                        };
-                    }
-                    return result;
-                },
-            ];
-            injectMiddleware[1].order = 11; // after commands (10), before customValue (12)
-
+    describe('custom-value multiple receives the whole array', () => {
+        it('factory function receives the full string array for multiple: true', () => {
+            const received = [];
             const result = parseArgsPlus(
                 {
                     options: {
-                        port: { type: Number, multiple: true },
+                        port: {
+                            type: values => {
+                                received.push(values);
+                                return values.map(Number);
+                            },
+                            multiple: true,
+                        },
                     },
                     args: ['--port', '8080', '--port', '3000'],
                 },
-                [injectMiddleware, customValue]
+                [customValue]
             );
-            // First element was string '8080' → transformed by Number → 8080
-            // Second element was injected as number 42 → passed through as-is
-            expect(result.values.port).toEqual([8080, 42]);
+            // Factory received the whole array at once
+            expect(received).toEqual([['8080', '3000']]);
+            expect(result.values.port).toEqual([8080, 3000]);
         });
     });
 

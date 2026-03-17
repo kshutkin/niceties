@@ -1684,11 +1684,11 @@ const r115 = parseArgsPlus(
 );
 type _115a = Assert<IsExact<typeof r115.values.port, number>>;
 
-// 116. type: Number with multiple: true → number[] | undefined
+// 116. type: factory receiving string[] with multiple: true → number[] | undefined
 const r116 = parseArgsPlus(
     {
         options: {
-            port: { type: Number, multiple: true },
+            port: { type: (values: string[]) => values.map(Number), multiple: true },
         },
         args: ['--port', '80', '--port', '443'],
     },
@@ -1815,11 +1815,11 @@ type R123Serve = Extract<R123, { command: 'serve' }>;
 type _123a = Assert<IsExact<R123Serve['values']['serverPort'], number | undefined>>;
 type _123b = Assert<IsExact<R123Serve['values']['maxRetries'], number | undefined>>;
 
-// 124. type: Number + multiple: true + default → number[]
+// 124. type: factory receiving string[] + multiple: true + default → number[]
 const r124 = parseArgsPlus(
     {
         options: {
-            ports: { type: Number, multiple: true, default: ['80'] as string[] },
+            ports: { type: (values: string[]) => values.map(Number), multiple: true, default: ['80'] as string[] },
         },
         args: [],
     },

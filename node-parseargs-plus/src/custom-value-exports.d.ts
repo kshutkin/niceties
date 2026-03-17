@@ -14,7 +14,9 @@ import type { CustomValueOptionExtension, Middleware } from './types.d.ts';
  *   `{ type: JSON.parse }`        → `--data '{"a":1}'` → `{ a: 1 }` (object)
  *   `{ type: v => v.split(',') }` → `--tags a,b,c`     → `['a','b','c']` (array)
  *
- * Works with `multiple: true` — each occurrence is individually transformed.
+ * Works with `multiple: true` — the entire `string[]` array from `parseArgs`
+ * is passed to the function, so the factory receives the full array and can
+ * return any type (e.g. `(values: string[]) => values.map(Number)`).
  * Works with `default` — default string values ARE transformed, since `parseArgs`
  * places them in `values` indistinguishably from CLI-provided values. If you need
  * an already-typed default, set `default` to the final value and handle the type

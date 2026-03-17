@@ -41,11 +41,11 @@ export interface OptionConfig {
 
 // Resolve the value type for a single option based on its type and multiple flag.
 // When `__customReturn` is present (injected by StripExtFromOptions for function-typed options),
-// the return type of the transform function is used instead of the standard string/boolean.
+// the return type of the transform function is used directly — no automatic `R[]` wrapping,
+// because with `multiple: true` the factory function receives the whole `string[]` array
+// and is responsible for returning the final type itself.
 type ResolveOptionType<T extends OptionConfig> = T extends { __customReturn: infer R }
-    ? T extends { multiple: true }
-        ? R[]
-        : R
+    ? R
     : T extends { type: 'string'; multiple: true }
       ? string[]
       : T extends { type: 'boolean'; multiple: true }
@@ -354,10 +354,8 @@ type StripExtFromOptions<O extends Record<string, any>> = {
             ? Picked
             : // biome-ignore lint/suspicious/noExplicitAny: function types may have any signature
               O[K] extends { type: (...args: any[]) => infer R }
-              ? // biome-ignore lint/complexity/noBannedTypes: required
-                { type: 'string'; __customReturn: R } & (O[K] extends { multiple: true } ? { multiple: true } : {}) &
-                    // biome-ignore lint/complexity/noBannedTypes: required
-                    (O[K] extends { default: infer D } ? { default: D } : {})
+              ? { type: 'string'; __customReturn: R } & // biome-ignore lint/complexity/noBannedTypes: required
+                (O[K] extends { default: infer D } ? { default: D } : {})
               : OptionConfig
         : never;
 };
@@ -828,15 +826,20 @@ export interface CustomValueOptionExtension {
     /**
      * Override `type` to also accept a transform function.
      * When a function is provided, the option is parsed as a string
-     * and the function is called with the string value to produce
+     * and the function is called with the parsed value to produce
      * the final value.
      *
+     * For single-value options the function receives a `string`.
+     * For `multiple: true` options the function receives the whole
+     * `string[]` array, giving full control over the final shape
+     * (e.g. deduplication, sorting, batch conversion).
+     *
      * Built-in constructors like `Number`, `Boolean`, `URL`, `Date`
-     * work naturally as transform functions.
+     * work naturally as transform functions for single-value options.
      *
      * The return type of the function is preserved at the type level,
      * so `{ type: Number }` produces `number` in the result values.
      */
     // biome-ignore lint/suspicious/noExplicitAny: custom transform functions may return any type
-    type: ((value: string) => any) | 'string' | 'boolean';
+    type: ((value: string) => any) | ((value: string[]) => any) | 'string' | 'boolean';
 }

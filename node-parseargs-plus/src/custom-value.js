@@ -4,15 +4,19 @@
  * When an option's `type` is set to a function (e.g. `Number`, `JSON.parse`,
  * or any `(value: string) => T`), the middleware:
  * 1. Replaces `type` with `'string'` so `parseArgs` accepts it
- * 2. After parsing, calls the function with the string value to produce the
+ * 2. After parsing, calls the function with the parsed value to produce the
  *    final transformed value
  *
- * Examples:
- *   `{ type: Number }`          → `--port 8080`    → `8080` (number)
- *   `{ type: JSON.parse }`      → `--data '{"a":1}'` → `{ a: 1 }` (object)
- *   `{ type: v => v.split(',') }` → `--tags a,b,c` → `['a','b','c']` (array)
+ * For single-value options the function receives a `string`.
+ * For `multiple: true` options the function receives the whole `string[]`
+ * array, giving the factory full control over the result shape.
  *
- * Works with `multiple: true` — each occurrence is individually transformed.
+ * Examples:
+ *   `{ type: Number }`                                   → `--port 8080`              → `8080` (number)
+ *   `{ type: JSON.parse }`                               → `--data '{"a":1}'`         → `{ a: 1 }` (object)
+ *   `{ type: v => v.split(',') }`                        → `--tags a,b,c`             → `['a','b','c']` (array)
+ *   `{ type: vs => vs.map(Number), multiple: true }`     → `--port 80 --port 443`     → `[80, 443]` (number[])
+ *
  * Works with `default` — default string values ARE transformed, since `parseArgs`
  * places them in `values` indistinguishably from CLI-provided values. If you need
  * an already-typed default, set `default` to the final value and handle the type
@@ -122,8 +126,11 @@ customValueTransformConfig.order = 7;
 /**
  * Transform result: apply the stashed transform functions to parsed values.
  *
- * Handles both single values and `multiple: true` arrays.
- * Only transforms values that are strings (skips undefined / already-typed defaults).
+ * For single-value options the function receives the string value.
+ * For `multiple: true` options the function receives the whole `string[]`
+ * array so the factory has full control over the output shape.
+ * Only transforms values that are strings/string-arrays (skips undefined /
+ * already-typed non-string values).
  *
  * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
  * @param {import('./types.d.ts').ParseArgsPlusConfig} config
@@ -145,8 +152,8 @@ function customValueTransformResult(result, config) {
         const fn = map.get(key);
         if (fn && value !== undefined) {
             if (Array.isArray(value)) {
-                // multiple: true — transform each element
-                newValues[key] = value.map((/** @type {string} */ v) => (typeof v === 'string' ? fn(v) : v));
+                // multiple: true — pass the whole array to the factory
+                newValues[key] = fn(value);
             } else if (typeof value === 'string') {
                 newValues[key] = fn(value);
             } else {
