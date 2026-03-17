@@ -22,10 +22,11 @@
  * an already-typed default, set `default` to the final value and handle the type
  * mismatch externally.
  *
- * Has `transformConfig.order = 7`, so it runs after help (-10), camelCase (5),
- * and optionalValue (6), but before commands (10). This ensures option keys
- * are already in their final (kebab-case) form and that the commands middleware
- * sees normal `type: 'string'` options.
+ * Has `transformConfig.order = 6`, so it runs after help (-10) and camelCase (5),
+ * but before optionalValue (7) and commands (10). This ensures option keys
+ * are already in their final (kebab-case) form, that optionalValue sees
+ * `type: 'string'` (not a function) when checking for optional-value options,
+ * and that the commands middleware sees normal `type: 'string'` options.
  *
  * Has `transformResult.order = 12`, so it runs after commands (10) which
  * merges command-level values, but before camelCase (15) which renames keys
@@ -121,7 +122,7 @@ function customValueTransformConfig(config) {
 
     return newConfig;
 }
-customValueTransformConfig.order = 7;
+customValueTransformConfig.order = 6;
 
 /**
  * Transform result: apply the stashed transform functions to parsed values.

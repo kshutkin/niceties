@@ -422,17 +422,17 @@ When used with the `help` middleware, options with `optionalValue: true` display
 
 #### Cooperation with other middlewares
 
-- **`camelCase`** — works seamlessly. Define options with camelCase keys as usual; the middleware rewrites args after camelCase converts to kebab-case (config order 5 → 6).
-- **`commands`** — command-level options with `optionalValue: true` are handled. The args are rewritten before command resolution (config order 6 → 10).
+- **`camelCase`** — works seamlessly. Define options with camelCase keys as usual; the middleware rewrites args after camelCase converts to kebab-case (config order 5 → 7).
+- **`commands`** — command-level options with `optionalValue: true` are handled. The args are rewritten before command resolution (config order 7 → 10).
 - **`parameters`** — works alongside parameters without interference.
 - **`help`** — shows `[<value>]` for optional-value options.
-- **`customValue`** — the two middlewares operate on **different** options. Use `optionalValue` on regular `type: 'string'` options only; `customValue` handles function-typed options.
+- **`customValue`** — works on the **same** option. `customValue` (config order 6) replaces function-typed `type` values with `'string'` before `optionalValue` (config order 7) scans options, so `{ type: Number, optionalValue: true }` works as expected — bare `--port` yields `Number('')` → `0`, while `--port 8080` yields `Number('8080')` → `8080`.
 
 #### Middleware ordering
 
-| `transformConfig.order` | `transformResult.order` | Rationale                                                                                                     |
-| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `6`                     | `0`                     | Rewrites args after camelCase (5) converts keys but before commands (10). No result transformation is needed. |
+| `transformConfig.order` | `transformResult.order` | Rationale                                                                                                                                   |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `7`                     | `0`                     | Rewrites args after camelCase (5) converts keys and customValue (6) normalises types, but before commands (10). No result transform needed. |
 
 ### `customValue` middleware
 
@@ -538,15 +538,15 @@ The inferred result type for such options will be `string` (the underlying `pars
 #### Cooperation with other middlewares
 
 - **`camelCase`** — works seamlessly. Option keys are converted to kebab-case before function extraction, so the stashed map uses kebab-case keys matching the values at transform time.
-- **`commands`** — command-level options with function `type` are handled. The functions are extracted in the config phase (order 7) before command resolution (order 10).
+- **`commands`** — command-level options with function `type` are handled. The functions are extracted in the config phase (order 6) before command resolution (order 10).
 - **`help`** — function-typed options show `<value>` in help output (they become `type: 'string'` internally).
-- **`optionalValue`** — the two middlewares work side by side on **different** options. Because `optionalValue` (config order 6) runs before `customValue` (config order 7), it doesn't recognise function-typed options as strings. Use `optionalValue` on regular `type: 'string'` options only.
+- **`optionalValue`** — works on the **same** option. Because `customValue` (config order 6) runs before `optionalValue` (config order 7), function-typed `type` values are already replaced with `'string'` when `optionalValue` scans options. This means `{ type: Number, optionalValue: true }` is fully supported.
 
 #### Middleware ordering
 
 | `transformConfig.order` | `transformResult.order` | Rationale                                                                                                                                                                         |
 | ----------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `7`                     | `12`                    | Extracts functions after camelCase (5) and optionalValue (6) but before commands (10). Result transform runs after commands (10) merges values but before camelCase (15) renames. |
+| `6`                     | `12`                    | Extracts functions after camelCase (5) but before optionalValue (7) and commands (10). Result transform runs after commands (10) merges values but before camelCase (15) renames. |
 
 ### `readPackageJson` utility
 
@@ -740,15 +740,15 @@ const result = parseArgsPlus(
 
 Each transform function can declare its own execution priority via the `order` property. Defaults to `0`.
 
-| Middleware      | `transformConfig.order` | `transformResult.order` | Rationale                                                                                        |
-| --------------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
-| `help`          | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values. |
-| _(default)_     | `0`                     | `0`                     | Normal priority.                                                                                 |
-| `parameters`    | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                      |
-| `camelCase`     | `5`                     | `15`                    | Converts option keys after help adds its options; result conversion after commands, before help. |
-| `optionalValue` | `6`                     | `0`                     | Rewrites args after camelCase converts keys; no result transformation needed.                    |
-| `customValue`   | `7`                     | `12`                    | Extracts function types after camelCase/optionalValue; transforms values after commands.         |
-| `commands`      | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                      |
+| Middleware      | `transformConfig.order` | `transformResult.order` | Rationale                                                                                         |
+| --------------- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------- |
+| `help`          | `-10`                   | `20`                    | Adds `--help`/`--version` to global options early; intercepts them after commands merges values.  |
+| _(default)_     | `0`                     | `0`                     | Normal priority.                                                                                  |
+| `parameters`    | `0`                     | `5`                     | Enables `allowPositionals` normally; maps positionals before commands/help.                       |
+| `camelCase`     | `5`                     | `15`                    | Converts option keys after help adds its options; result conversion after commands, before help.  |
+| `customValue`   | `6`                     | `12`                    | Normalises function types to `'string'` after camelCase; transforms values after commands.        |
+| `optionalValue` | `7`                     | `0`                     | Rewrites args after camelCase and customValue normalise options; no result transformation needed. |
+| `commands`      | `10`                    | `10`                    | Resolves the command after all options are known; does pass-2 parsing last.                       |
 
 Because ordering is explicit, the array order you pass to `parseArgsPlus` doesn't matter - `[help, commands]` and `[commands, help]` behave identically.
 

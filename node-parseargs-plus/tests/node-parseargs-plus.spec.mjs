@@ -4126,8 +4126,8 @@ describe('node-parseargs-plus', () => {
             expect(typeof optionalValue[1]).toBe('function');
         });
 
-        it('has order 6 on transformConfig', () => {
-            expect(optionalValue[0].order).toBe(6);
+        it('has order 7 on transformConfig', () => {
+            expect(optionalValue[0].order).toBe(7);
         });
 
         it('works with default values', () => {
@@ -4643,8 +4643,8 @@ describe('node-parseargs-plus', () => {
             expect(typeof customValue[1]).toBe('function');
         });
 
-        it('has order 7 on transformConfig and 12 on transformResult', () => {
-            expect(customValue[0].order).toBe(7);
+        it('has order 6 on transformConfig and 12 on transformResult', () => {
+            expect(customValue[0].order).toBe(6);
             expect(customValue[1].order).toBe(12);
         });
 
@@ -4793,10 +4793,10 @@ describe('node-parseargs-plus', () => {
 
     describe('custom-value + optionalValue middleware cooperation', () => {
         it('transforms a string optionalValue option post-parse via custom function', () => {
-            // optionalValue requires type: 'string' at config time (order 6),
-            // so function types in `type` are not compatible with optionalValue
-            // directly. Instead, use a regular string option with optionalValue
-            // and apply a custom transform via a separate option.
+            // customValue (order 6) converts type: Number → type: 'string',
+            // then optionalValue (order 7) sees type: 'string' + optionalValue: true
+            // and can rewrite bare options. Both middlewares coexist on separate
+            // or the same options.
             const result = parseArgsPlus(
                 {
                     options: {
@@ -4826,6 +4826,101 @@ describe('node-parseargs-plus', () => {
             );
             expect(result.values.filter).toBe('pattern');
             expect(result.values.port).toBe(3000);
+        });
+
+        it('supports optionalValue on an option with function type (bare usage)', () => {
+            // customValue (order 6) replaces type: Number with type: 'string',
+            // then optionalValue (order 7) sees type: 'string' + optionalValue: true
+            // and rewrites bare --port to --port= (empty string).
+            // Finally customValue result transform calls Number('') → 0.
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, optionalValue: true },
+                    },
+                    args: ['--port'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.port).toBe(0);
+        });
+
+        it('supports optionalValue on an option with function type (with value)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, optionalValue: true },
+                    },
+                    args: ['--port', '8080'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.port).toBe(8080);
+        });
+
+        it('supports optionalValue on an option with function type (inline value)', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, optionalValue: true },
+                    },
+                    args: ['--port=3000'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.port).toBe(3000);
+        });
+
+        it('supports optionalValue + function type with short alias bare', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, optionalValue: true, short: 'p' },
+                    },
+                    args: ['-p'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.port).toBe(0);
+        });
+
+        it('supports optionalValue + function type with short alias and value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        port: { type: Number, optionalValue: true, short: 'p' },
+                    },
+                    args: ['-p', '443'],
+                },
+                [customValue, optionalValue]
+            );
+            expect(result.values.port).toBe(443);
+        });
+
+        it('supports optionalValue + function type + camelCase', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        serverPort: { type: Number, optionalValue: true },
+                    },
+                    args: ['--server-port'],
+                },
+                [camelCase, customValue, optionalValue]
+            );
+            expect(result.values.serverPort).toBe(0);
+        });
+
+        it('supports optionalValue + function type + camelCase with value', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {
+                        serverPort: { type: Number, optionalValue: true },
+                    },
+                    args: ['--server-port', '9090'],
+                },
+                [camelCase, customValue, optionalValue]
+            );
+            expect(result.values.serverPort).toBe(9090);
         });
     });
 

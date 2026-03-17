@@ -13,10 +13,12 @@
  *
  * Only applies to options with `type: 'string'` and `optionalValue: true`.
  *
- * Has `transformConfig.order = 6`, so it runs after help (-10) and camelCase (5)
- * but before commands (10), ensuring option keys are already in their final
- * (kebab-case) form when args are rewritten, and that the rewritten args are
- * visible to the commands middleware's discovery parse.
+ * Has `transformConfig.order = 7`, so it runs after help (-10), camelCase (5),
+ * and customValue (6), but before commands (10). This ensures option keys are
+ * already in their final (kebab-case) form, function-typed `type` values have
+ * been replaced with `'string'` by customValue (so `optionalValue` can
+ * recognise them), and the rewritten args are visible to the commands
+ * middleware's discovery parse.
  * Has `transformResult.order = 0` (default), as no result transformation is needed.
  */
 
@@ -157,7 +159,7 @@ function optionalValueTransformConfig(config) {
         args: rewritten,
     };
 }
-optionalValueTransformConfig.order = 6;
+optionalValueTransformConfig.order = 7;
 
 /**
  * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
