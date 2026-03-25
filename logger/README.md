@@ -1,4 +1,4 @@
-# Logger
+# @niceties/logger
 
 Logger that can handle async tasks.
 
@@ -168,13 +168,13 @@ Returns current appender for the specific instance of the logger.
 
 ## Log levels
 
-```typescript
-const enum LogLevel {
-    verbose, // for debugging logs, not for displaying on screen in normal cases
-    info, // should be printed to user but not an error
-    warn, // something is probably wrong, but we can continue
-    error, // operation completely failed
-}
+```javascript
+const LogLevel = {
+    verbose: 0, // for debugging logs, not for displaying on screen in normal cases
+    info: 1, // should be printed to user but not an error
+    warn: 2, // something is probably wrong, but we can continue
+    error: 3, // operation completely failed
+};
 ```
 
 ## Setting another appender
@@ -220,12 +220,12 @@ type Appender<ErrorContext = Error> = ((
     api?: object;
 };
 
-const enum Action {
-    start,
-    update,
-    finish,
-    log,
-}
+const Action = {
+    start: 0,
+    update: 1,
+    finish: 2,
+    log: 3,
+};
 
 type LogMessage<ErrorContext = Error> =
     | {

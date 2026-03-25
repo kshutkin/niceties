@@ -61,7 +61,7 @@
         "url": "https://github.com/kshutkin/niceties/issues"
     },
     "homepage": "https://github.com/kshutkin/niceties/blob/main/logger/README.md",
-    "readme": "REAMDE.md",
+    "readme": "README.md",
     "description": "Logger that supports async tasks",
     "keywords": [
         "@niceties",

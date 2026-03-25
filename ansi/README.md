@@ -2,9 +2,9 @@
 
 Minimalistic ANSI colors library for terminal output.
 
-## Why & Acknowlegments
+## Why & Acknowledgments
 
-I've been using [kleur](https://github.com/lukeed/kleur) for many years until I found that there are no bright colors that I wanted for some functionality. I tried to replace it with [picocolors](https://github.com/alexeyraspopov/picocolors) but there is no ESM packaging, and I was not happy with color support detection, and I want it to be tree-shakable during bundling. So in the end I built this package, which mostly started with picocolors' idea but I use slower (but more memory flriendly) replaceAll instead of fast custom replace.
+I've been using [kleur](https://github.com/lukeed/kleur) for many years until I found that there are no bright colors that I wanted for some functionality. I tried to replace it with [picocolors](https://github.com/alexeyraspopov/picocolors) but there is no ESM packaging, and I was not happy with color support detection, and I want it to be tree-shakable during bundling. So in the end I built this package, which mostly started with picocolors' idea but I use slower (but more memory friendly) replaceAll instead of fast custom replace.
 
 It is not the fastest library!
 

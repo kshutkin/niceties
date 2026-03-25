@@ -1,6 +1,6 @@
-# Draftlog Appender
+# @niceties/draftlog-appender
 
-Appender for [`'@niceties/logger'`](../logger/README.md) implemented using the @niceties/draftlog package.
+Appender for [`@niceties/logger`](../logger/README.md) implemented using the @niceties/draftlog package.
 
 - Uses animation in the console to display log messages
 

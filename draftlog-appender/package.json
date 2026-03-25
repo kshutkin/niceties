@@ -40,7 +40,7 @@
     },
     "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog-appender/README.md",
     "readme": "README.md",
-    "description": "Appender for '@niceites/logger' implemented using draftlog package.",
+    "description": "Appender for '@niceties/logger' implemented using draftlog package.",
     "keywords": [
         "@niceties",
         "draftlog-appender",

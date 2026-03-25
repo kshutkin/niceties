@@ -32,7 +32,7 @@
     },
     "homepage": "https://github.com/kshutkin/niceties/blob/main/draftlog/README.md",
     "readme": "README.md",
-    "description": "Create mutable log lines into the terminal",
+    "description": "Create mutable log lines in the terminal",
     "keywords": [
         "@niceties",
         "draftlog",
