@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- bbce4ae: fix typos and docs
+
 ## 1.0.0
 
 ### Major Changes

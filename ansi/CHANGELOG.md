@@ -1,5 +1,11 @@
 # @niceties/ansi
 
+## 1.1.2
+
+### Patch Changes
+
+- bbce4ae: fix typos and docs
+
 ## 1.1.1
 
 ### Patch Changes
