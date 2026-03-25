@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- b1abc60: fix customValue and optionalValue cooperation
+
+  minor change because of order swap
+
+- e9c28b0: change package info design
+
 ## 0.4.0
 
 ### Minor Changes
