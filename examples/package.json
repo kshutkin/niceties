@@ -1,6 +1,6 @@
 {
     "name": "examples",
-    "version": "1.0.13",
+    "version": "1.0.14",
     "type": "module",
     "description": "Examples for @niceties/logger and basic integration tests",
     "main": "index.js",
