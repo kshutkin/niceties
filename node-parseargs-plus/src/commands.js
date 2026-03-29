@@ -156,10 +156,15 @@ function commandsTransformResult(result, config) {
     // Enable positionals if the command explicitly allows them or has parameters defined
     const hasParameters = Array.isArray(commandConfig.parameters) && commandConfig.parameters.length > 0;
     const allowPositionals = hasParameters || commandConfig.allowPositionals || false;
+
+    // allowNegative: command-level override takes precedence, then global config
+    const allowNegative = commandConfig.allowNegative ?? config.allowNegative ?? false;
+
     const pass2 = parseArgs({
         args: commandArgs,
         strict: config.strict ?? true,
         allowPositionals,
+        allowNegative,
         options: /** @type {any} */ (mergedOptions),
     });
 

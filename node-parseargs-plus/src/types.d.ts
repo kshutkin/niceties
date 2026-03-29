@@ -508,6 +508,8 @@ export interface CommandConfig {
     options?: Record<string, OptionConfig>;
     /** Whether this command accepts positional arguments. Default: false. */
     allowPositionals?: boolean;
+    /** Whether to allow `--no-*` negation of boolean flags for this command. When not set, inherits the global `allowNegative` value. */
+    allowNegative?: boolean;
     /** Positional parameter definitions for this command. Each string must be `<name>`, `[name]`, `<name...>`, or `[name...]`. */
     parameters?: readonly string[];
 }

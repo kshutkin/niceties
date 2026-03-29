@@ -1983,3 +1983,243 @@ const r131 = parseArgsPlus(
     [help, commands, parameters]
 );
 type _131a = Assert<IsExact<typeof r131.values.verbose, boolean | undefined>>;
+
+// ---------------------------------------------------------------------------
+// allowNegative on command level type tests
+// ---------------------------------------------------------------------------
+
+// 132. allowNegative accepted on command config with commands middleware
+const r132 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    watch: { type: 'boolean' },
+                },
+                allowNegative: true,
+            },
+            test: {
+                description: 'Run tests',
+                options: {
+                    coverage: { type: 'boolean' },
+                },
+            },
+        },
+        args: ['build', '--no-watch'],
+    },
+    [commands]
+);
+type R132 = typeof r132;
+type R132Build = Extract<R132, { command: 'build' }>;
+type _132a = Assert<IsExact<R132Build['command'], 'build'>>;
+type _132b = Assert<IsExact<R132Build['values']['verbose'], boolean | undefined>>;
+type _132c = Assert<IsExact<R132Build['values']['watch'], boolean | undefined>>;
+type R132Test = Extract<R132, { command: 'test' }>;
+type _132d = Assert<IsExact<R132Test['values']['coverage'], boolean | undefined>>;
+type R132None = Extract<R132, { command: undefined }>;
+type _132e = Assert<IsExact<R132None['values']['verbose'], boolean | undefined>>;
+
+// 133. global allowNegative with commands middleware
+const r133 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        allowNegative: true,
+        commands: {
+            build: {
+                options: {
+                    watch: { type: 'boolean' },
+                },
+            },
+        },
+        args: ['build', '--no-watch'],
+    },
+    [commands]
+);
+type R133 = typeof r133;
+type R133Build = Extract<R133, { command: 'build' }>;
+type _133a = Assert<IsExact<R133Build['values']['watch'], boolean | undefined>>;
+type _133b = Assert<IsExact<R133Build['values']['verbose'], boolean | undefined>>;
+
+// 134. allowNegative on command with help + commands middlewares
+const r134 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Verbose output' },
+        },
+        commands: {
+            build: {
+                description: 'Build the project',
+                options: {
+                    minify: { type: 'boolean', description: 'Minify output' },
+                },
+                allowNegative: true,
+            },
+        },
+        args: ['build', '--no-minify'],
+    },
+    [help, commands]
+);
+type R134 = typeof r134;
+type R134Build = Extract<R134, { command: 'build' }>;
+type _134a = Assert<IsExact<R134Build['command'], 'build'>>;
+type _134b = Assert<IsExact<R134Build['values']['minify'], boolean | undefined>>;
+type _134c = Assert<IsExact<R134Build['values']['verbose'], boolean | undefined>>;
+
+// 135. allowNegative on command with camelCase + commands middlewares
+const r135 = parseArgsPlus(
+    {
+        options: {
+            logLevel: { type: 'string' },
+        },
+        commands: {
+            build: {
+                options: {
+                    watchMode: { type: 'boolean' },
+                },
+                allowNegative: true,
+            },
+        },
+        args: ['build', '--no-watch-mode'],
+    },
+    [camelCase, commands]
+);
+type R135 = typeof r135;
+type R135Build = Extract<R135, { command: 'build' }>;
+type _135a = Assert<IsExact<R135Build['values']['watchMode'], boolean | undefined>>;
+type _135b = Assert<IsExact<R135Build['values']['logLevel'], string | undefined>>;
+
+// 136. allowNegative on command with commands + parameters middlewares
+const r136 = parseArgsPlus(
+    {
+        commands: {
+            install: {
+                parameters: ['<package>'],
+                options: {
+                    'save-dev': { type: 'boolean' },
+                },
+                allowNegative: true,
+                description: 'Install a package',
+            },
+        },
+        args: ['install', 'foo', '--no-save-dev'],
+    },
+    [commands, parameters]
+);
+type R136 = typeof r136;
+type R136Install = Extract<R136, { command: 'install' }>;
+type _136a = Assert<IsExact<R136Install['values']['save-dev'], boolean | undefined>>;
+type _136b = Assert<IsExact<R136Install['parameters'], { package: string }>>;
+
+// 137. allowNegative on command with all middlewares: help + camelCase + commands + parameters
+const r137 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Verbose output' },
+        },
+        commands: {
+            deploy: {
+                description: 'Deploy the app',
+                parameters: ['<target>'],
+                options: {
+                    dryRun: { type: 'boolean', description: 'Dry run' },
+                },
+                allowNegative: true,
+            },
+        },
+        args: ['deploy', 'prod', '--no-dry-run'],
+    },
+    [help, camelCase, commands, parameters]
+);
+type R137 = typeof r137;
+type R137Deploy = Extract<R137, { command: 'deploy' }>;
+type _137a = Assert<IsExact<R137Deploy['command'], 'deploy'>>;
+type _137b = Assert<IsExact<R137Deploy['values']['dryRun'], boolean | undefined>>;
+type _137c = Assert<IsExact<R137Deploy['values']['verbose'], boolean | undefined>>;
+type _137d = Assert<IsExact<R137Deploy['parameters'], { target: string }>>;
+
+// 138. per-command allowNegative override: one command true, another without
+const r138 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        commands: {
+            build: {
+                options: {
+                    watch: { type: 'boolean' },
+                },
+                allowNegative: true,
+            },
+            serve: {
+                options: {
+                    cors: { type: 'boolean' },
+                },
+            },
+        },
+        args: ['build', '--no-watch'],
+    },
+    [commands]
+);
+type R138 = typeof r138;
+type R138Build = Extract<R138, { command: 'build' }>;
+type _138a = Assert<IsExact<R138Build['values']['watch'], boolean | undefined>>;
+type R138Serve = Extract<R138, { command: 'serve' }>;
+type _138b = Assert<IsExact<R138Serve['values']['cors'], boolean | undefined>>;
+type R138None = Extract<R138, { command: undefined }>;
+type _138c = Assert<IsExact<R138None['values']['verbose'], boolean | undefined>>;
+
+// 139. allowNegative: false explicitly on command overriding global allowNegative
+const r139 = parseArgsPlus(
+    {
+        options: {
+            verbose: { type: 'boolean' },
+        },
+        allowNegative: true,
+        commands: {
+            build: {
+                options: {
+                    watch: { type: 'boolean' },
+                },
+                allowNegative: false,
+            },
+        },
+        args: ['build', '--watch'],
+    },
+    [commands]
+);
+type R139 = typeof r139;
+type R139Build = Extract<R139, { command: 'build' }>;
+type _139a = Assert<IsExact<R139Build['values']['watch'], boolean | undefined>>;
+type _139b = Assert<IsExact<R139Build['values']['verbose'], boolean | undefined>>;
+
+// 140. allowNegative on command with default values
+const r140 = parseArgsPlus(
+    {
+        options: {},
+        commands: {
+            build: {
+                options: {
+                    minify: { type: 'boolean', default: true },
+                    output: { type: 'string', default: 'dist' },
+                },
+                allowNegative: true,
+            },
+        },
+        args: ['build', '--no-minify'],
+    },
+    [commands]
+);
+type R140 = typeof r140;
+type R140Build = Extract<R140, { command: 'build' }>;
+type _140a = Assert<IsExact<R140Build['values']['minify'], boolean>>;
+type _140b = Assert<IsExact<R140Build['values']['output'], string>>;

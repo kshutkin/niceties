@@ -1557,6 +1557,88 @@ describe('node-parseargs-plus', () => {
             expect(result.values.outdir).toBe('dist');
             expect(result.values.watch).toBe(false);
         });
+
+        it('forwards global allowNegative to command pass-2 parsing', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    allowNegative: true,
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                        },
+                    },
+                    args: ['build', '--no-watch'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.watch).toBe(false);
+        });
+
+        it('supports per-command allowNegative', () => {
+            const result = parseArgsPlus(
+                {
+                    options: {},
+                    commands: {
+                        build: {
+                            options: {
+                                watch: { type: 'boolean' },
+                            },
+                            allowNegative: true,
+                        },
+                    },
+                    args: ['build', '--no-watch'],
+                },
+                [commands]
+            );
+
+            expect(result.command).toBe('build');
+            expect(result.values.watch).toBe(false);
+        });
+
+        it('per-command allowNegative overrides global allowNegative', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        options: {},
+                        allowNegative: true,
+                        commands: {
+                            build: {
+                                options: {
+                                    watch: { type: 'boolean' },
+                                },
+                                allowNegative: false,
+                            },
+                        },
+                        args: ['build', '--no-watch'],
+                    },
+                    [commands]
+                );
+            }).toThrow();
+        });
+
+        it('does not allow negation by default in command scope', () => {
+            expect(() => {
+                parseArgsPlus(
+                    {
+                        options: {},
+                        commands: {
+                            build: {
+                                options: {
+                                    watch: { type: 'boolean' },
+                                },
+                            },
+                        },
+                        args: ['build', '--no-watch'],
+                    },
+                    [commands]
+                );
+            }).toThrow();
+        });
     });
 
     describe('commands + help middleware cooperation', () => {
