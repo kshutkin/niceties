@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+### Patch Changes
+
+- 2cff0e7: fix helpSections inference issue
+
 ## 0.5.0
 
 ### Minor Changes
