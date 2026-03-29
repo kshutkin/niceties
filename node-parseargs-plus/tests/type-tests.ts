@@ -1850,3 +1850,136 @@ type R125Deploy = Extract<R125, { command: 'deploy' }>;
 type _125a = Assert<IsExact<R125Deploy['values']['port'], number | undefined>>;
 type _125b = Assert<IsExact<R125Deploy['values']['timeout'], number | undefined>>;
 type _125c = Assert<IsExact<R125Deploy['parameters'], { target: string }>>;
+
+// ---------------------------------------------------------------------------
+// helpSections inference tests
+// ---------------------------------------------------------------------------
+
+// 126. helpSections with a single entry (string text) — help only
+const r126 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            output: { type: 'string', description: 'Output file' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: 'my-cli -o out.txt' },
+        },
+        args: [],
+    },
+    [help]
+);
+type _126a = Assert<IsExact<typeof r126.values.output, string | undefined>>;
+
+// 127. helpSections with array text — previously caused inference collapse
+const r127 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            output: { type: 'string', description: 'Output file' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: ['my-cli -o out.txt', 'my-cli --output=file.txt'] },
+        },
+        args: [],
+    },
+    [help]
+);
+type _127a = Assert<IsExact<typeof r127.values.output, string | undefined>>;
+
+// 128. helpSections with multiple entries, mixed text types and order
+const r128 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            output: { type: 'string', description: 'Output file' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: ['my-cli -o out.txt', 'my-cli --output=file.txt'] },
+            notes: { title: 'Notes', text: 'Some notes here', order: 10 },
+            usage: { title: 'How to use' },
+        },
+        args: [],
+    },
+    [help]
+);
+type _128a = Assert<IsExact<typeof r128.values.output, string | undefined>>;
+
+// 129. helpSections + parameters middleware
+const r129 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            name: { type: 'string', default: 'world', description: 'Your name' },
+            verbose: { type: 'boolean', description: 'Enable verbose output' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: ['my-cli file.txt', 'my-cli --name foo file.txt'] },
+        },
+        parameters: ['<file>'],
+        args: [],
+    },
+    [help, parameters]
+);
+type _129a = Assert<IsExact<typeof r129.values.name, string>>;
+type _129b = Assert<IsExact<typeof r129.values.verbose, boolean | undefined>>;
+type _129c = Assert<IsExact<typeof r129.parameters.file, string>>;
+
+// 130. helpSections + commands middleware
+const r130 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Verbose' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: ['my-cli build', 'my-cli build --output dist'] },
+        },
+        commands: {
+            build: {
+                description: 'Build project',
+                options: {
+                    output: { type: 'string', description: 'Output path' },
+                },
+            },
+        },
+        args: [],
+    },
+    [help, commands]
+);
+type _130a = Assert<IsExact<typeof r130.values.verbose, boolean | undefined>>;
+
+// 131. helpSections + commands + parameters middleware (stress test)
+const r131 = parseArgsPlus(
+    {
+        name: 'my-cli',
+        version: '1.0.0',
+        options: {
+            verbose: { type: 'boolean', description: 'Verbose' },
+        },
+        helpSections: {
+            examples: { title: 'Examples', text: ['my-cli install foo', 'my-cli build'] },
+            notes: { title: 'Notes', text: 'Some notes', order: 5 },
+        },
+        commands: {
+            install: {
+                parameters: ['<package>'],
+                description: 'Install a package',
+            },
+            build: {
+                description: 'Build project',
+                options: {
+                    output: { type: 'string', description: 'Output path' },
+                },
+            },
+        },
+        args: [],
+    },
+    [help, commands, parameters]
+);
+type _131a = Assert<IsExact<typeof r131.values.verbose, boolean | undefined>>;

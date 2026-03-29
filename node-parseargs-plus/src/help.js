@@ -305,7 +305,7 @@ function buildCommandsText(commands) {
 
 /**
  * Prints a section: title in bright white, then body lines indented.
- * @param {{ title: string; text?: string | string[] }} section
+ * @param {{ title: string; text?: string | readonly string[] }} section
  */
 function printSection(section) {
     console.log(whiteBright(`${section.title}:`));
@@ -336,10 +336,10 @@ function printSection(section) {
  * Creates a section descriptor, applying user overrides for title, text, and order if present.
  * @param {string} id
  * @param {string} defaultTitle
- * @param {string | string[]} defaultText
+ * @param {string | readonly string[]} defaultText
  * @param {number} defaultOrder
  * @param {Record<string, import('./types.d.ts').HelpSection>} userSections
- * @returns {{ title: string; text?: string | string[]; order: number }}
+ * @returns {{ title: string; text?: string | readonly string[]; order: number }}
  */
 function buildSection(id, defaultTitle, defaultText, defaultOrder, userSections) {
     const override = userSections[id];
@@ -355,7 +355,7 @@ function buildSection(id, defaultTitle, defaultText, defaultOrder, userSections)
  * then merges default sections with user-defined custom sections and prints them all.
  * @param {string} header
  * @param {string | undefined} description
- * @param {Record<string, { title: string; text?: string | string[]; order: number }>} sections
+ * @param {Record<string, { title: string; text?: string | readonly string[]; order: number }>} sections
  * @param {Record<string, import('./types.d.ts').HelpSection>} userSections
  */
 function renderHelp(header, description, sections, userSections) {
@@ -461,7 +461,7 @@ function printCommandHelp(config, commandName, commandConfig, _commands) {
     const paramsSuffix = formatParametersUsage(params);
     const positionalsSuffix = !paramsSuffix && commandConfig.allowPositionals ? ' [arguments]' : '';
 
-    /** @type {Record<string, { title: string; text?: string | string[]; order: number }>} */
+    /** @type {Record<string, { title: string; text?: string | readonly string[]; order: number }>} */
     const sections = {
         usage: buildSection(
             'usage',

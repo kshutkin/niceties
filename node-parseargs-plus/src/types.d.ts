@@ -542,7 +542,7 @@ export interface HelpSection {
     /** Section title displayed as a bright-white header. */
     title: string;
     /** Body text displayed below the title, indented. Can be a single string or an array of strings (one per line). */
-    text?: string | string[];
+    text?: string | readonly string[];
     /** Controls the position of this section relative to others. Lower numbers appear first. */
     order?: number;
 }
