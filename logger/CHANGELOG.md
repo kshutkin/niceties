@@ -1,5 +1,13 @@
 Changelog
 
+## 2.1.1
+
+### Patch Changes
+
+- bbce4ae: fix typos and docs
+- Updated dependencies [bbce4ae]
+  - @niceties/ansi@1.1.2
+
 ## 2.1.0
 
 ### Minor Changes
