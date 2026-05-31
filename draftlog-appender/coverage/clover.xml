@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1780262441181" clover="3.2.0">
+  <project timestamp="1780262441181" name="All files">
+    <metrics statements="115" coveredstatements="115" conditionals="75" coveredconditionals="75" methods="17" coveredmethods="17" elements="207" coveredelements="207" complexity="0" loc="115" ncloc="115" packages="2" files="4" classes="4"/>
+    <package name="src">
+      <metrics statements="16" coveredstatements="16" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+      <file name="core.js" path="/home/runner/work/niceties/niceties/draftlog-appender/src/core.js">
+        <metrics statements="16" coveredstatements="16" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+        <line num="21" count="22" type="stmt"/>
+        <line num="22" count="22" type="stmt"/>
+        <line num="24" count="22" type="stmt"/>
+        <line num="25" count="57" type="stmt"/>
+        <line num="26" count="57" type="stmt"/>
+        <line num="30" count="57" type="stmt"/>
+        <line num="31" count="57" type="cond" truecount="4" falsecount="0"/>
+        <line num="32" count="14" type="stmt"/>
+        <line num="33" count="14" type="stmt"/>
+        <line num="34" count="43" type="cond" truecount="4" falsecount="0"/>
+        <line num="35" count="7" type="stmt"/>
+        <line num="36" count="7" type="stmt"/>
+        <line num="41" count="10" type="stmt"/>
+        <line num="42" count="10" type="stmt"/>
+        <line num="43" count="10" type="stmt"/>
+        <line num="44" count="10" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.details">
+      <metrics statements="99" coveredstatements="99" conditionals="67" coveredconditionals="67" methods="13" coveredmethods="13"/>
+      <file name="canvas.js" path="/home/runner/work/niceties/niceties/draftlog-appender/src/details/canvas.js">
+        <metrics statements="34" coveredstatements="34" conditionals="27" coveredconditionals="27" methods="3" coveredmethods="3"/>
+        <line num="21" count="22" type="stmt"/>
+        <line num="23" count="22" type="stmt"/>
+        <line num="30" count="67" type="cond" truecount="2" falsecount="0"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="32" count="3" type="stmt"/>
+        <line num="34" count="67" type="stmt"/>
+        <line num="36" count="67" type="stmt"/>
+        <line num="37" count="67" type="stmt"/>
+        <line num="38" count="129" type="cond" truecount="5" falsecount="0"/>
+        <line num="39" count="107" type="stmt"/>
+        <line num="40" count="107" type="stmt"/>
+        <line num="41" count="107" type="stmt"/>
+        <line num="42" count="107" type="stmt"/>
+        <line num="43" count="113" type="stmt"/>
+        <line num="44" count="113" type="cond" truecount="2" falsecount="0"/>
+        <line num="45" count="45" type="stmt"/>
+        <line num="46" count="45" type="stmt"/>
+        <line num="48" count="113" type="stmt"/>
+        <line num="61" count="113" type="cond" truecount="5" falsecount="0"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="66" count="107" type="cond" truecount="2" falsecount="0"/>
+        <line num="67" count="53" type="stmt"/>
+        <line num="68" count="53" type="stmt"/>
+        <line num="72" count="22" type="stmt"/>
+        <line num="74" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="75" count="43" type="stmt"/>
+        <line num="77" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="78" count="43" type="stmt"/>
+        <line num="80" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="81" count="43" type="stmt"/>
+        <line num="85" count="67" type="stmt"/>
+        <line num="86" count="18" type="stmt"/>
+        <line num="97" count="107" type="cond" truecount="2" falsecount="0"/>
+      </file>
+      <file name="model.js" path="/home/runner/work/niceties/niceties/draftlog-appender/src/details/model.js">
+        <metrics statements="59" coveredstatements="59" conditionals="34" coveredconditionals="34" methods="8" coveredmethods="8"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="52" count="22" type="stmt"/>
+        <line num="54" count="22" type="stmt"/>
+        <line num="56" count="22" type="stmt"/>
+        <line num="58" count="22" type="stmt"/>
+        <line num="61" count="57" type="stmt"/>
+        <line num="62" count="57" type="stmt"/>
+        <line num="63" count="57" type="cond" truecount="2" falsecount="0"/>
+        <line num="64" count="27" type="stmt"/>
+        <line num="66" count="57" type="cond" truecount="2" falsecount="0"/>
+        <line num="67" count="19" type="stmt"/>
+        <line num="69" count="57" type="cond" truecount="2" falsecount="0"/>
+        <line num="71" count="52" type="stmt"/>
+        <line num="73" count="57" type="stmt"/>
+        <line num="74" count="57" type="cond" truecount="2" falsecount="0"/>
+        <line num="75" count="5" type="stmt"/>
+        <line num="77" count="57" type="stmt"/>
+        <line num="80" count="67" type="stmt"/>
+        <line num="81" count="67" type="stmt"/>
+        <line num="90" count="25" type="cond" truecount="2" falsecount="0"/>
+        <line num="91" count="1" type="stmt"/>
+        <line num="93" count="24" type="stmt"/>
+        <line num="95" count="25" type="cond" truecount="2" falsecount="0"/>
+        <line num="103" count="52" type="stmt"/>
+        <line num="104" count="52" type="cond" truecount="2" falsecount="0"/>
+        <line num="106" count="31" type="stmt"/>
+        <line num="107" count="31" type="stmt"/>
+        <line num="108" count="31" type="stmt"/>
+        <line num="109" count="31" type="cond" truecount="2" falsecount="0"/>
+        <line num="110" count="14" type="stmt"/>
+        <line num="112" count="17" type="stmt"/>
+        <line num="115" count="21" type="cond" truecount="4" falsecount="0"/>
+        <line num="116" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="117" count="21" type="stmt"/>
+        <line num="118" count="21" type="stmt"/>
+        <line num="119" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="120" count="2" type="stmt"/>
+        <line num="121" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="122" count="2" type="stmt"/>
+        <line num="123" count="2" type="stmt"/>
+        <line num="124" count="2" type="stmt"/>
+        <line num="135" count="16" type="stmt"/>
+        <line num="136" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="137" count="3" type="stmt"/>
+        <line num="143" count="3" type="stmt"/>
+        <line num="144" count="3" type="stmt"/>
+        <line num="146" count="16" type="stmt"/>
+        <line num="147" count="16" type="stmt"/>
+        <line num="148" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="152" count="124" type="stmt"/>
+        <line num="153" count="117" type="cond" truecount="2" falsecount="0"/>
+        <line num="154" count="5" type="stmt"/>
+        <line num="155" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="156" count="5" type="stmt"/>
+        <line num="158" count="112" type="stmt"/>
+        <line num="169" count="18" type="stmt"/>
+        <line num="170" count="18" type="stmt"/>
+        <line num="171" count="8" type="stmt"/>
+        <line num="173" count="18" type="stmt"/>
+      </file>
+      <file name="split-by-lines.js" path="/home/runner/work/niceties/niceties/draftlog-appender/src/details/split-by-lines.js">
+        <metrics statements="6" coveredstatements="6" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="6" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="19" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="129" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="129" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

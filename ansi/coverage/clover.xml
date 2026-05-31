@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1780262440841" clover="3.2.0">
+  <project timestamp="1780262440842" name="All files">
+    <metrics statements="96" coveredstatements="96" conditionals="7" coveredconditionals="7" methods="6" coveredmethods="6" elements="109" coveredelements="109" complexity="0" loc="96" ncloc="96" packages="1" files="3" classes="3"/>
+    <file name="browser.js" path="/home/runner/work/niceties/niceties/ansi/src/browser.js">
+      <metrics statements="44" coveredstatements="44" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="7" count="1" type="stmt"/>
+      <line num="8" count="1" type="stmt"/>
+      <line num="9" count="1" type="stmt"/>
+      <line num="13" count="1" type="stmt"/>
+      <line num="15" count="1" type="stmt"/>
+      <line num="17" count="1" type="stmt"/>
+      <line num="19" count="1" type="stmt"/>
+      <line num="21" count="1" type="stmt"/>
+      <line num="23" count="1" type="stmt"/>
+      <line num="25" count="1" type="stmt"/>
+      <line num="27" count="1" type="stmt"/>
+      <line num="31" count="1" type="stmt"/>
+      <line num="33" count="1" type="stmt"/>
+      <line num="35" count="1" type="stmt"/>
+      <line num="37" count="1" type="stmt"/>
+      <line num="39" count="1" type="stmt"/>
+      <line num="41" count="1" type="stmt"/>
+      <line num="43" count="1" type="stmt"/>
+      <line num="45" count="1" type="stmt"/>
+      <line num="47" count="1" type="stmt"/>
+      <line num="51" count="1" type="stmt"/>
+      <line num="53" count="1" type="stmt"/>
+      <line num="55" count="1" type="stmt"/>
+      <line num="57" count="1" type="stmt"/>
+      <line num="59" count="1" type="stmt"/>
+      <line num="61" count="1" type="stmt"/>
+      <line num="63" count="1" type="stmt"/>
+      <line num="65" count="1" type="stmt"/>
+      <line num="69" count="1" type="stmt"/>
+      <line num="71" count="1" type="stmt"/>
+      <line num="73" count="1" type="stmt"/>
+      <line num="75" count="1" type="stmt"/>
+      <line num="77" count="1" type="stmt"/>
+      <line num="79" count="1" type="stmt"/>
+      <line num="81" count="1" type="stmt"/>
+      <line num="83" count="1" type="stmt"/>
+      <line num="87" count="1" type="stmt"/>
+      <line num="89" count="1" type="stmt"/>
+      <line num="91" count="1" type="stmt"/>
+      <line num="93" count="1" type="stmt"/>
+      <line num="95" count="1" type="stmt"/>
+      <line num="97" count="1" type="stmt"/>
+      <line num="99" count="1" type="stmt"/>
+      <line num="101" count="1" type="stmt"/>
+    </file>
+    <file name="index.js" path="/home/runner/work/niceties/niceties/ansi/src/index.js">
+      <metrics statements="47" coveredstatements="47" conditionals="4" coveredconditionals="4" methods="3" coveredmethods="3"/>
+      <line num="8" count="2" type="stmt"/>
+      <line num="9" count="2" type="stmt"/>
+      <line num="10" count="2" type="stmt"/>
+      <line num="12" count="2" type="stmt"/>
+      <line num="14" count="44" type="stmt"/>
+      <line num="15" count="40" type="cond" truecount="2" falsecount="0"/>
+      <line num="19" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="21" count="2" type="stmt"/>
+      <line num="23" count="2" type="stmt"/>
+      <line num="25" count="2" type="stmt"/>
+      <line num="27" count="2" type="stmt"/>
+      <line num="29" count="2" type="stmt"/>
+      <line num="31" count="2" type="stmt"/>
+      <line num="33" count="2" type="stmt"/>
+      <line num="37" count="2" type="stmt"/>
+      <line num="39" count="2" type="stmt"/>
+      <line num="41" count="2" type="stmt"/>
+      <line num="43" count="2" type="stmt"/>
+      <line num="45" count="2" type="stmt"/>
+      <line num="47" count="2" type="stmt"/>
+      <line num="49" count="2" type="stmt"/>
+      <line num="51" count="2" type="stmt"/>
+      <line num="53" count="2" type="stmt"/>
+      <line num="57" count="2" type="stmt"/>
+      <line num="59" count="2" type="stmt"/>
+      <line num="61" count="2" type="stmt"/>
+      <line num="63" count="2" type="stmt"/>
+      <line num="65" count="2" type="stmt"/>
+      <line num="67" count="2" type="stmt"/>
+      <line num="69" count="2" type="stmt"/>
+      <line num="71" count="2" type="stmt"/>
+      <line num="75" count="2" type="stmt"/>
+      <line num="77" count="2" type="stmt"/>
+      <line num="79" count="2" type="stmt"/>
+      <line num="81" count="2" type="stmt"/>
+      <line num="83" count="2" type="stmt"/>
+      <line num="85" count="2" type="stmt"/>
+      <line num="87" count="2" type="stmt"/>
+      <line num="89" count="2" type="stmt"/>
+      <line num="93" count="2" type="stmt"/>
+      <line num="95" count="2" type="stmt"/>
+      <line num="97" count="2" type="stmt"/>
+      <line num="99" count="2" type="stmt"/>
+      <line num="101" count="2" type="stmt"/>
+      <line num="103" count="2" type="stmt"/>
+      <line num="105" count="2" type="stmt"/>
+      <line num="107" count="2" type="stmt"/>
+    </file>
+    <file name="shared.js" path="/home/runner/work/niceties/niceties/ansi/src/shared.js">
+      <metrics statements="5" coveredstatements="5" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+      <line num="11" count="3" type="cond" truecount="1" falsecount="0"/>
+      <line num="12" count="80" type="stmt"/>
+      <line num="13" count="80" type="stmt"/>
+      <line num="15" count="149" type="stmt"/>
+      <line num="16" count="149" type="cond" truecount="2" falsecount="0"/>
+    </file>
+  </project>
+</coverage>
