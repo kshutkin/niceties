@@ -5,7 +5,7 @@ let updateScheduled = false;
 
 const originalWrite = process.stdout.write;
 
-/** @typedef {{ content: string; renderedContent: string }} DraftLine */
+/** @typedef {{ content: string; renderedWidths: number[] }} DraftLine */
 
 /** @type {DraftLine[]} */
 const lines = [];
@@ -39,8 +39,7 @@ process.stdout.write = /** @type {typeof originalWrite} */ (
                 isInternalWrite = true;
                 try {
                     for (let i = startIndex; i < lines.length; i++) {
-                        originalWrite.call(this, `${lines[i].content}\n`);
-                        lines[i].renderedContent = lines[i].content;
+                        renderLine(lines[i], this);
                     }
                     syncEnd();
                 } finally {
@@ -60,17 +59,17 @@ process.stdout.write = /** @type {typeof originalWrite} */ (
  */
 export function draft(text) {
     const wasEmpty = lines.length === 0;
+    /** @type {DraftLine} */
+    const line = { content: text, renderedWidths: [] };
 
     // Write the initial line
     isInternalWrite = true;
     try {
-        process.stdout.write(`${text}\n`);
+        renderLine(line);
     } finally {
         isInternalWrite = false;
     }
 
-    /** @type {DraftLine} */
-    const line = { content: text, renderedContent: text };
     lines.push(line);
 
     if (wasEmpty) {
@@ -86,6 +85,15 @@ export function draft(text) {
     registry.register(updater, line);
 
     return updater;
+}
+
+/**
+ * @param {DraftLine} line
+ * @param {NodeJS.WriteStream} [stream]
+ */
+function renderLine(line, stream = process.stdout) {
+    originalWrite.call(stream, `${line.content}\n`);
+    line.renderedWidths = line.content.split('\n').map(text => stringWidth(text));
 }
 
 /**
@@ -107,7 +115,7 @@ function computeVisibleDraft() {
 
     for (let i = lines.length - 1; i >= 0; i--) {
         // Pending updates have not changed the rows currently on screen.
-        const lineRows = terminalRowsForLine(lines[i].renderedContent);
+        const lineRows = terminalRowsForLine(lines[i].renderedWidths);
         if (rowCount + lineRows > maxRows) {
             break;
         }
@@ -119,16 +127,17 @@ function computeVisibleDraft() {
 }
 
 /**
- * Compute how many terminal rows a single line of text occupies,
- * accounting for wide/CJK characters and ANSI escape codes.
- * @param {string} content
+ * Compute terminal rows from the displayed width of each logical line.
+ * Cached widths account for wide/CJK characters and ANSI escape codes,
+ * and can be rewrapped at the current terminal width after a resize.
+ * @param {number[]} widths
  * @returns {number}
  */
-function terminalRowsForLine(content) {
+function terminalRowsForLine(widths) {
     const columns = process.stdout.columns || 80;
     let rows = 0;
-    for (const line of content.split('\n')) {
-        rows += Math.max(1, Math.ceil(stringWidth(line) / columns));
+    for (const width of widths) {
+        rows += Math.max(1, Math.ceil(width / columns));
     }
     return rows;
 }
@@ -203,8 +212,7 @@ function flushUpdates() {
         originalWrite.call(process.stdout, `\x1B[${rowCount}A\r\x1B[J`);
         // Rewrite each visible line
         for (let i = startIndex; i < lines.length; i++) {
-            originalWrite.call(process.stdout, `${lines[i].content}\n`);
-            lines[i].renderedContent = lines[i].content;
+            renderLine(lines[i]);
         }
         syncEnd();
         // Cursor is now at the line below all drafts, at beginning

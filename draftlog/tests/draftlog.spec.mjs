@@ -248,8 +248,12 @@ describe('draftlog', () => {
             expect(writeMock).toHaveBeenCalledWith(`${'X'.repeat(161)}\n`);
         });
 
-        it('measures the displayed text at the new width when resized with a pending update', async () => {
-            const update = draftlog.draft('X'.repeat(161));
+        it.each([
+            ['wrapped text', 'X'.repeat(161)],
+            ['multiline text with a blank line', `${'X'.repeat(81)}\n\nY`],
+            ['colored wide text', `\x1B[31m${'界'.repeat(81)}\x1B[39m`],
+        ])('measures displayed %s at the new width when resized with a pending update', async (_name, initial) => {
+            const update = draftlog.draft(initial);
             writeMock.mockClear();
 
             update('short');
