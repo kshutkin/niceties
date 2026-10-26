@@ -5,7 +5,9 @@ let updateScheduled = false;
 
 const originalWrite = process.stdout.write;
 
-/** @type {{ content: string }[]} */
+/** @typedef {{ content: string; renderedContent: string }} DraftLine */
+
+/** @type {DraftLine[]} */
 const lines = [];
 
 process.stdout.write = /** @type {typeof originalWrite} */ (
@@ -38,6 +40,7 @@ process.stdout.write = /** @type {typeof originalWrite} */ (
                 try {
                     for (let i = startIndex; i < lines.length; i++) {
                         originalWrite.call(this, `${lines[i].content}\n`);
+                        lines[i].renderedContent = lines[i].content;
                     }
                     syncEnd();
                 } finally {
@@ -66,8 +69,8 @@ export function draft(text) {
         isInternalWrite = false;
     }
 
-    /** @type {{ content: string }} */
-    const line = { content: text };
+    /** @type {DraftLine} */
+    const line = { content: text, renderedContent: text };
     lines.push(line);
 
     if (wasEmpty) {
@@ -103,7 +106,8 @@ function computeVisibleDraft() {
     let startIndex = lines.length;
 
     for (let i = lines.length - 1; i >= 0; i--) {
-        const lineRows = terminalRowsForLine(lines[i].content);
+        // Pending updates have not changed the rows currently on screen.
+        const lineRows = terminalRowsForLine(lines[i].renderedContent);
         if (rowCount + lineRows > maxRows) {
             break;
         }
@@ -122,11 +126,14 @@ function computeVisibleDraft() {
  */
 function terminalRowsForLine(content) {
     const columns = process.stdout.columns || 80;
-    const width = stringWidth(content);
-    return width === 0 ? 1 : Math.ceil(width / columns);
+    let rows = 0;
+    for (const line of content.split('\n')) {
+        rows += Math.max(1, Math.ceil(stringWidth(line) / columns));
+    }
+    return rows;
 }
 
-const registry = new FinalizationRegistry((/** @type {{ content: string }} */ line) => {
+const registry = new FinalizationRegistry((/** @type {DraftLine} */ line) => {
     const index = lines.indexOf(line);
     if (index !== -1) {
         lines.splice(index, 1);
@@ -197,6 +204,7 @@ function flushUpdates() {
         // Rewrite each visible line
         for (let i = startIndex; i < lines.length; i++) {
             originalWrite.call(process.stdout, `${lines[i].content}\n`);
+            lines[i].renderedContent = lines[i].content;
         }
         syncEnd();
         // Cursor is now at the line below all drafts, at beginning

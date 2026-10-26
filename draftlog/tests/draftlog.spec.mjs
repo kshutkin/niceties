@@ -157,6 +157,111 @@ describe('draftlog', () => {
         expect(intermediateWrites).toHaveLength(0);
     });
 
+    describe('draft height changes', () => {
+        let originalColumns;
+        let originalRows;
+
+        beforeEach(() => {
+            originalColumns = process.stdout.columns;
+            originalRows = process.stdout.rows;
+            process.stdout.columns = 80;
+            process.stdout.rows = 24;
+        });
+
+        afterEach(() => {
+            process.stdout.columns = originalColumns;
+            process.stdout.rows = originalRows;
+        });
+
+        it.each([
+            ['growing wrapped text', 'short', 'X'.repeat(161), 1, 3],
+            ['shrinking wrapped text', 'X'.repeat(161), 'short', 3, 1],
+            ['growing multiline text', 'short', 'first\n\nthird\n', 1, 4],
+            ['shrinking multiline text', 'first\n\nthird\n', 'short', 4, 1],
+            ['shrinking colored wide text', `\x1B[31m${'界'.repeat(81)}\x1B[39m`, 'short', 3, 1],
+        ])('clears the previously displayed rows when %s', async (_name, initial, updated, previousRows, nextRows) => {
+            const update = draftlog.draft(initial);
+            writeMock.mockClear();
+
+            update(updated);
+            await flushTicks();
+
+            expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], [`\x1B[${previousRows}A\r\x1B[J`], [`${updated}\n`], [SYNC_DISABLE]]);
+
+            writeMock.mockClear();
+            update('done');
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith(`\x1B[${nextRows}A\r\x1B[J`);
+        });
+
+        it('uses the displayed height when multiple draft updates are batched', async () => {
+            const first = draftlog.draft('first');
+            const second = draftlog.draft('second');
+            writeMock.mockClear();
+
+            first('X'.repeat(801));
+            first('X'.repeat(161));
+            second('Y'.repeat(81));
+            await flushTicks();
+
+            expect(writeMock.mock.calls).toEqual([
+                [SYNC_ENABLE],
+                ['\x1B[2A\r\x1B[J'],
+                [`${'X'.repeat(161)}\n`],
+                [`${'Y'.repeat(81)}\n`],
+                [SYNC_DISABLE],
+            ]);
+
+            writeMock.mockClear();
+            first('done');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[5A\r\x1B[J');
+        });
+
+        it('updates the displayed height when an external write flushes a pending update', async () => {
+            const update = draftlog.draft('short');
+            writeMock.mockClear();
+
+            update('X'.repeat(161));
+            hookedWrite.call(process.stdout, 'external\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
+
+            writeMock.mockClear();
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+
+            writeMock.mockClear();
+            hookedWrite.call(process.stdout, 'another external\n');
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+        });
+
+        it('renders a growing draft even when its new height exceeds the viewport', async () => {
+            process.stdout.rows = 3;
+            const update = draftlog.draft('short');
+            writeMock.mockClear();
+
+            update('X'.repeat(161));
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith(`${'X'.repeat(161)}\n`);
+        });
+
+        it('measures the displayed text at the new width when resized with a pending update', async () => {
+            const update = draftlog.draft('X'.repeat(161));
+            writeMock.mockClear();
+
+            update('short');
+            process.stdout.columns = 40;
+            process.stdout.emit('resize');
+            await flushTicks();
+
+            expect(writeMock).toHaveBeenCalledWith('\x1B[5A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('short\n');
+        });
+    });
+
     it('gc cleanup removes line from tracking', async () => {
         // Create a draft that will be GC'd
         /** @type {any} */
