@@ -26,8 +26,8 @@ export function createDraftlogAppender(spinner, formatter, logAboveSpinners, ide
         checkTimeout();
     };
 
-    function checkTimeout() {
-        const spinning = getModel().spinning;
+    /** @param {number} [spinning] */
+    function checkTimeout(spinning = getModel().spinning) {
         if (spinning && !interval) {
             interval = setInterval(updateSpinners, spinner.interval);
             interval.unref(); // unref immediately just in case
@@ -42,5 +42,6 @@ export function createDraftlogAppender(spinner, formatter, logAboveSpinners, ide
         model.tick++;
         model.tick %= spinner.frames.length;
         renderModel(model);
+        checkTimeout(model.spinning);
     }
 }

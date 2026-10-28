@@ -337,11 +337,81 @@ describe('draftlog appender timer lifecycle', () => {
     afterEach(() => {
         vi.clearAllTimers();
         vi.useRealTimers();
+        vi.restoreAllMocks();
     });
 
     function send(action, inputId, message, parentId) {
         appender({ action, inputId, message, parentId, loglevel: LogLevel.info, ref });
     }
+
+    function sendCollectable(action, inputId, message, parentId) {
+        const taskRef = new WeakRef(testSpinner);
+        const deref = vi.spyOn(taskRef, 'deref');
+        appender({ action, inputId, message, parentId, loglevel: LogLevel.info, ref: taskRef });
+        return () => deref.mockReturnValue(undefined);
+    }
+
+    it('stops on the next tick when the last spinner is collected and can restart later', () => {
+        const collect = sendCollectable(Action.start, 0, 'collected');
+        expect(vi.getTimerCount()).toBe(1);
+
+        collect();
+        vi.advanceTimersByTime(10);
+        expect(vi.getTimerCount()).toBe(0);
+        consoleUpdateMock.mockClear();
+        vi.advanceTimersByTime(100);
+        expect(consoleUpdateMock).not.toHaveBeenCalled();
+
+        send(Action.start, 1, 'restarted');
+        expect(vi.getTimerCount()).toBe(1);
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- restarted');
+        send(Action.finish, 1, 'done');
+        expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('keeps remaining spinners running after collection and stops when they finish', () => {
+        const collect = sendCollectable(Action.start, 0, 'collected');
+        send(Action.start, 1, 'remaining');
+        collect();
+
+        vi.advanceTimersByTime(10);
+        expect(vi.getTimerCount()).toBe(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining');
+        send(Action.finish, 1, 'done');
+        expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it.each([Action.update, Action.finish])('keeps animating after collecting a non-spinning item (action: %s)', action => {
+        const collect = sendCollectable(action, 0, 'static');
+        send(Action.start, 1, 'remaining');
+        collect();
+
+        vi.advanceTimersByTime(10);
+        expect(vi.getTimerCount()).toBe(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining');
+        send(Action.finish, 1, 'done');
+        expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('stops when a spinning parent and child are both collected', () => {
+        const collectParent = sendCollectable(Action.start, 0, 'parent');
+        const collectChild = sendCollectable(Action.start, 1, 'child', 0);
+        collectParent();
+        collectChild();
+
+        vi.advanceTimersByTime(10);
+        expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('stops immediately when a new message cleans up the last collected spinner', () => {
+        const collect = sendCollectable(Action.start, 0, 'collected');
+        collect();
+
+        send(Action.log, 1, 'static message');
+        expect(vi.getTimerCount()).toBe(0);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('static message');
+    });
 
     it('keeps animating across repeated updates and stops after finish', () => {
         send(Action.start, 0, 'task');

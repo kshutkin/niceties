@@ -152,6 +152,7 @@ export function createModel(logAboveSpinners) {
     function cleanupModel() {
         for (const item of model) {
             if (!item.ref?.deref()) {
+                model.spinning -= Number(item.status === ItemStatus.inprogress);
                 model.skipLines += 1;
                 item.inputId != null && delete itemById[item.inputId];
                 remove(item);
