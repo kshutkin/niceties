@@ -1,5 +1,15 @@
 Changelog
 
+## 2.1.2
+
+### Patch Changes
+
+- a8e3ba5: Stop the animation timer when cleanup removes the last collected spinner, even when no further log messages arrive. Keep the active spinner count accurate when collected tasks are removed.
+- 7d2aa6b: Keep spinners animating when task messages are updated, and stop the animation timer when the last task finishes. Count changes in the resulting task status so repeated updates do not corrupt the active spinner count.
+- Updated dependencies [ae7497a]
+- Updated dependencies [862f619]
+  - @niceties/draftlog@1.0.2
+
 ## 2.1.1
 
 ### Patch Changes

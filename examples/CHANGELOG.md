@@ -1,5 +1,13 @@
 # examples
 
+## 1.0.16
+
+### Patch Changes
+
+- Updated dependencies [a8e3ba5]
+- Updated dependencies [7d2aa6b]
+  - @niceties/draftlog-appender@2.1.2
+
 ## 1.0.15
 
 ### Patch Changes
