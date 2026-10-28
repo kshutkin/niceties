@@ -112,10 +112,11 @@ export function createModel(logAboveSpinners) {
                 appendToModel(item, false);
             }
         } else {
-            const statusDiff = (options.status || 0) - (modelItem.status || 0);
+            const wasSpinning = modelItem.status === ItemStatus.inprogress;
             const moveIntoParent = options.parentId != null && modelItem.parentId == null;
             Object.assign(modelItem, options);
-            model.spinning += statusDiff;
+            const isSpinning = modelItem.status === ItemStatus.inprogress;
+            model.spinning += Number(isSpinning) - Number(wasSpinning);
             if (moveIntoParent) {
                 const lastLeaf = getLastLeaf(modelItem);
                 model.spinning -= modelItem.status || 0;

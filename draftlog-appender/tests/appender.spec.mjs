@@ -321,6 +321,88 @@ const testSpinner2 = {
     interval: 10,
 };
 
+describe('draftlog appender timer lifecycle', () => {
+    let appender;
+    let consoleUpdateMock;
+    const ref = new WeakRef(testSpinner);
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+        consoleUpdateMock = vi.fn();
+        draftMock = vi.fn(() => consoleUpdateMock);
+        const formatter = createFormatter(colors, finishedPrefixes, [], tagFactory);
+        appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
+    });
+
+    afterEach(() => {
+        vi.clearAllTimers();
+        vi.useRealTimers();
+    });
+
+    function send(action, inputId, message, parentId) {
+        appender({ action, inputId, message, parentId, loglevel: LogLevel.info, ref });
+    }
+
+    it('keeps animating across repeated updates and stops after finish', () => {
+        send(Action.start, 0, 'task');
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ task');
+
+        send(Action.update, 0, 'updated');
+        expect(vi.getTimerCount()).toBe(1);
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- updated');
+
+        send(Action.update, 0, 'updated again');
+        expect(vi.getTimerCount()).toBe(1);
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ updated again');
+
+        send(Action.finish, 0, 'done');
+        expect(vi.getTimerCount()).toBe(0);
+        consoleUpdateMock.mockClear();
+        vi.advanceTimersByTime(100);
+        expect(consoleUpdateMock).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, 0])('keeps other tasks animating after an updated task finishes (parentId: %s)', parentId => {
+        send(Action.start, 0, 'parent');
+        send(Action.start, 1, 'child', parentId);
+        send(Action.update, 1, 'updated child', parentId);
+        send(Action.update, 1, 'updated child again', parentId);
+        expect(vi.getTimerCount()).toBe(1);
+
+        send(Action.finish, 1, 'child done', parentId);
+        expect(vi.getTimerCount()).toBe(1);
+        consoleUpdateMock.mockClear();
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenCalledWith('+ parent');
+
+        send(Action.finish, 0, 'parent done');
+        expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('handles repeated starts, repeated finishes, and restarting a finished task', () => {
+        send(Action.update, 0, 'static');
+        expect(vi.getTimerCount()).toBe(0);
+        send(Action.start, 0, 'started');
+        send(Action.start, 0, 'started again');
+        expect(vi.getTimerCount()).toBe(1);
+
+        send(Action.finish, 0, 'finished');
+        send(Action.finish, 0, 'finished again');
+        send(Action.update, 0, 'still finished');
+        expect(vi.getTimerCount()).toBe(0);
+
+        send(Action.start, 0, 'restarted');
+        expect(vi.getTimerCount()).toBe(1);
+        vi.advanceTimersByTime(10);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ restarted');
+        send(Action.finish, 0, 'done');
+        expect(vi.getTimerCount()).toBe(0);
+    });
+});
+
 describe('draftlog appender animation', () => {
     /** @type {import('@niceties/logger/types').Appender} */
     let appender;
