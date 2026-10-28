@@ -2,10 +2,11 @@ import stringWidth from 'string-width';
 
 let isInternalWrite = false;
 let updateScheduled = false;
+let activeLines = 0;
 
 const originalWrite = process.stdout.write;
 
-/** @typedef {{ content: string; renderedWidths: number[] }} DraftLine */
+/** @typedef {{ content: string; renderedWidths: number[]; active: boolean }} DraftLine */
 
 /** @type {DraftLine[]} */
 const lines = [];
@@ -42,6 +43,7 @@ process.stdout.write = /** @type {typeof originalWrite} */ (
                         renderLine(lines[i], this);
                     }
                     syncEnd();
+                    computeVisibleDraft();
                 } finally {
                     isInternalWrite = false;
                 }
@@ -58,9 +60,9 @@ process.stdout.write = /** @type {typeof originalWrite} */ (
  * @returns {(text: string) => void}
  */
 export function draft(text) {
-    const wasEmpty = lines.length === 0;
+    const wasEmpty = activeLines === 0;
     /** @type {DraftLine} */
-    const line = { content: text, renderedWidths: [] };
+    const line = { content: text, renderedWidths: [], active: true };
 
     // Write the initial line
     isInternalWrite = true;
@@ -71,6 +73,7 @@ export function draft(text) {
     }
 
     lines.push(line);
+    activeLines++;
 
     if (wasEmpty) {
         hideCursor();
@@ -78,11 +81,15 @@ export function draft(text) {
 
     /** @param {string} newText */
     const updater = newText => {
+        if (!line.active) {
+            return;
+        }
         line.content = newText;
         scheduleUpdate();
     };
 
     registry.register(updater, line);
+    computeVisibleDraft();
 
     return updater;
 }
@@ -102,6 +109,7 @@ function renderLine(line, stream = process.stdout) {
  *
  * Walks backwards from the last line, accumulating row counts,
  * stopping when adding another line would exceed the viewport.
+ * Discards drafts fully above the viewport, retaining a partially visible draft.
  *
  * @returns {{ startIndex: number, rowCount: number }}
  */
@@ -123,7 +131,16 @@ function computeVisibleDraft() {
         startIndex = i;
     }
 
-    return { startIndex, rowCount };
+    const discardCount = rowCount === maxRows ? startIndex : Math.max(0, startIndex - 1);
+    if (discardCount > 0) {
+        for (const line of lines.splice(0, discardCount)) {
+            deactivateLine(line);
+            line.content = '';
+            line.renderedWidths = [];
+        }
+    }
+
+    return { startIndex: startIndex - discardCount, rowCount };
 }
 
 /**
@@ -142,19 +159,22 @@ function terminalRowsForLine(widths) {
     return rows;
 }
 
-const registry = new FinalizationRegistry((/** @type {DraftLine} */ line) => {
-    const index = lines.indexOf(line);
-    if (index !== -1) {
-        lines.splice(index, 1);
-        if (lines.length === 0) {
-            showCursor();
-        }
+/** @param {DraftLine} line */
+function deactivateLine(line) {
+    if (!line.active) {
+        return;
     }
-});
+    line.active = false;
+    if (--activeLines === 0) {
+        showCursor();
+    }
+}
+
+const registry = new FinalizationRegistry(deactivateLine);
 
 process.stdout.on('resize', scheduleUpdate);
 process.on('exit', () => {
-    if (lines.length > 0) {
+    if (activeLines > 0) {
         showCursor();
     }
 });
@@ -215,6 +235,7 @@ function flushUpdates() {
             renderLine(lines[i]);
         }
         syncEnd();
+        computeVisibleDraft();
         // Cursor is now at the line below all drafts, at beginning
     } finally {
         isInternalWrite = false;

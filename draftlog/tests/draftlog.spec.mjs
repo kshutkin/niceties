@@ -266,7 +266,7 @@ describe('draftlog', () => {
         });
     });
 
-    it('gc cleanup removes line from tracking', async () => {
+    it('keeps active drafts updateable after another updater is collected', async () => {
         // Create a draft that will be GC'd
         /** @type {any} */
         let updater = draftlog.draft('temp');
@@ -274,7 +274,6 @@ describe('draftlog', () => {
         const keeper = draftlog.draft('keep');
         writeMock.mockClear();
 
-        // keeper should be at linesUp=0, updater at linesUp=1
         // Drop reference to updater
         void updater;
         updater = undefined;
@@ -643,7 +642,7 @@ describe('draftlog', () => {
     });
 });
 
-describe('draftlog - updateLine after line removed from tracking', () => {
+describe('draftlog - collected drafts', () => {
     /** @type {ReturnType<typeof vi.fn>} */
     let writeMock;
     /** @type {boolean} */
@@ -658,12 +657,18 @@ describe('draftlog - updateLine after line removed from tracking', () => {
     let registeredEntries;
     /** @type {typeof globalThis.FinalizationRegistry} */
     let OriginalFinalizationRegistry;
+    let originalColumns;
+    let originalRows;
 
     beforeEach(async () => {
         vi.resetModules();
         writeMock = vi.fn();
         originalIsTTY = process.stdout.isTTY;
+        originalColumns = process.stdout.columns;
+        originalRows = process.stdout.rows;
         process.stdout.isTTY = true;
+        process.stdout.columns = 80;
+        process.stdout.rows = 24;
         resizeListeners = [];
         registeredEntries = [];
 
@@ -701,54 +706,203 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         }
         vi.restoreAllMocks();
         process.stdout.isTTY = originalIsTTY;
+        process.stdout.columns = originalColumns;
+        process.stdout.rows = originalRows;
     });
 
-    it('updater called after line removed from tracking is a no-op', async () => {
+    /** @param {(text: string) => void} updater */
+    function collect(updater) {
+        const entry = registeredEntries.find(e => e.target === updater);
+        expect(entry).toBeDefined();
+        finalizationCallback(entry.heldValue);
+    }
+
+    it.each([0, 1, 2])('preserves text and row positions when draft %i is collected', async collectedIndex => {
+        const texts = ['first', 'second', 'third'];
+        const updaters = texts.map(text => draftlog.draft(text));
+        collect(updaters[collectedIndex]);
+        writeMock.mockClear();
+
+        const updatedIndex = collectedIndex === 0 ? 1 : 0;
+        updaters[updatedIndex]('UPDATED');
+        texts[updatedIndex] = 'UPDATED';
+        await flushTicks();
+
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[3A\r\x1B[J'], ...texts.map(text => [`${text}\n`]), [SYNC_DISABLE]]);
+    });
+
+    it.each(['X'.repeat(161), 'first\n\nthird'])('reserves all rows occupied by a collected draft: %j', async text => {
+        const update = draftlog.draft('active');
+        const retired = draftlog.draft(text);
+        collect(retired);
+        writeMock.mockClear();
+
+        update('UPDATED');
+        await flushTicks();
+
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[4A\r\x1B[J'], ['UPDATED\n'], [`${text}\n`], [SYNC_DISABLE]]);
+    });
+
+    it('preserves collected rows around active drafts during external writes', () => {
+        draftlog.draft('first');
+        const retired = draftlog.draft('second');
+        draftlog.draft('third');
+        collect(retired);
+        writeMock.mockClear();
+
+        process.stdout.write('external\n');
+
+        expect(writeMock.mock.calls).toEqual([
+            [SYNC_ENABLE],
+            ['\x1B[3A\r\x1B[J'],
+            ['external\n'],
+            ['first\n'],
+            ['second\n'],
+            ['third\n'],
+            [SYNC_DISABLE],
+        ]);
+    });
+
+    it('retains the latest pending text when an updater is collected before the flush', async () => {
+        const update = draftlog.draft('active');
+        const retired = draftlog.draft('old');
+        retired('latest');
+        collect(retired);
+        writeMock.mockClear();
+
+        update('UPDATED');
+        await flushTicks();
+
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[2A\r\x1B[J'], ['UPDATED\n'], ['latest\n'], [SYNC_DISABLE]]);
+    });
+
+    it('does not bring collected drafts back after they scroll off screen', async () => {
+        process.stdout.rows = 3;
+        const retired = draftlog.draft('retired');
+        collect(retired);
+        const first = draftlog.draft('first');
+        draftlog.draft('second');
+        writeMock.mockClear();
+
+        process.stdout.rows = 24;
+        first('UPDATED');
+        await flushTicks();
+
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[2A\r\x1B[J'], ['UPDATED\n'], ['second\n'], [SYNC_DISABLE]]);
+    });
+
+    it('retains partially visible collected drafts until all their rows scroll off screen', async () => {
+        process.stdout.rows = 3;
+        const retired = draftlog.draft('retired\nsecond row');
+        collect(retired);
+        const first = draftlog.draft('first');
+        writeMock.mockClear();
+
+        process.stdout.rows = 24;
+        first('UPDATED');
+        await flushTicks();
+        expect(writeMock.mock.calls).toEqual([
+            [SYNC_ENABLE],
+            ['\x1B[3A\r\x1B[J'],
+            ['retired\nsecond row\n'],
+            ['UPDATED\n'],
+            [SYNC_DISABLE],
+        ]);
+
+        process.stdout.rows = 3;
+        draftlog.draft('second');
+        writeMock.mockClear();
+        process.stdout.rows = 24;
+        first('DONE');
+        await flushTicks();
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[2A\r\x1B[J'], ['DONE\n'], ['second\n'], [SYNC_DISABLE]]);
+    });
+
+    it('discards collected rows pushed off screen by a growing active draft', async () => {
+        process.stdout.rows = 4;
+        const retired = draftlog.draft('retired');
+        collect(retired);
+        const update = draftlog.draft('active');
+        update('X'.repeat(161));
+        await flushTicks();
+        writeMock.mockClear();
+
+        process.stdout.rows = 24;
+        update('done');
+        await flushTicks();
+
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[3A\r\x1B[J'], ['done\n'], [SYNC_DISABLE]]);
+    });
+
+    it('updater called after collection is a no-op', async () => {
         const updater = draftlog.draft('hello');
         writeMock.mockClear();
 
-        // Simulate FinalizationRegistry cleanup: remove the line from internal tracking
+        // Simulate collection while retaining the updater to exercise the guard.
         const entry = registeredEntries.find(e => e.target === updater);
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // showCursor is called because lines is now empty - account for that write
+        // No active drafts remain, so the cursor is restored.
         const showCursorCalls = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg === CURSOR_SHOW);
         expect(showCursorCalls).toHaveLength(1);
 
         writeMock.mockClear();
 
-        // Now call the updater - the line is no longer tracked, so no update is scheduled
+        // Collected drafts retain their text and cannot be updated.
         updater('updated');
         await flushTicks();
 
-        // No writes should have been made since the line is no longer tracked
         expect(writeMock).not.toHaveBeenCalled();
     });
 
-    it('resize after line removed from tracking does not crash', async () => {
+    it('hides the cursor for a new active draft while retaining earlier static text', async () => {
+        const retired = draftlog.draft('retired');
+        collect(retired);
+        writeMock.mockClear();
+
+        const update = draftlog.draft('active');
+        expect(writeMock.mock.calls).toEqual([['active\n'], [CURSOR_HIDE]]);
+        writeMock.mockClear();
+        update('UPDATED');
+        await flushTicks();
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[2A\r\x1B[J'], ['retired\n'], ['UPDATED\n'], [SYNC_DISABLE]]);
+    });
+
+    it('ignores late collection of an offscreen draft when counting active updaters', () => {
+        process.stdout.rows = 2;
+        const offscreen = draftlog.draft('offscreen');
+        const active = draftlog.draft('active');
+        writeMock.mockClear();
+
+        collect(offscreen);
+        expect(writeMock).not.toHaveBeenCalled();
+        collect(active);
+        collect(active);
+        expect(writeMock.mock.calls).toEqual([[CURSOR_SHOW]]);
+    });
+
+    it('resize preserves collected text alongside active drafts', async () => {
         const updater = draftlog.draft('line1');
         draftlog.draft('line2');
         writeMock.mockClear();
 
-        // Simulate cleanup of the first line
+        // Simulate collection of the first line.
         const entry = registeredEntries.find(e => e.target === updater);
         expect(entry).toBeDefined();
         finalizationCallback(entry.heldValue);
 
-        // Trigger a resize - should re-render only the remaining line without crashing
+        // Trigger a resize with both physical rows still on screen.
         writeMock.mockClear();
         for (const listener of resizeListeners) {
             listener();
         }
         await flushTicks();
 
-        // Should have re-rendered the remaining 'line2'
-        const contentWrites = writeMock.mock.calls.filter(([arg]) => typeof arg === 'string' && arg.includes('line2'));
-        expect(contentWrites.length).toBeGreaterThan(0);
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[2A\r\x1B[J'], ['line1\n'], ['line2\n'], [SYNC_DISABLE]]);
     });
 
-    it('shows cursor when last draft line is removed', () => {
+    it('shows cursor when the last active updater is collected', () => {
         const updater = draftlog.draft('only');
         writeMock.mockClear();
 
@@ -760,7 +914,7 @@ describe('draftlog - updateLine after line removed from tracking', () => {
         expect(writeMock).toHaveBeenCalledWith(CURSOR_SHOW);
     });
 
-    it('does not show cursor when non-last draft line is removed', () => {
+    it('does not show cursor while another active updater remains', () => {
         const updater1 = draftlog.draft('line1');
         draftlog.draft('line2');
         writeMock.mockClear();
@@ -906,22 +1060,17 @@ describe('draftlog - viewport overflow', () => {
         process.stdout.rows = originalRows;
     });
 
-    it('external write uses \\r\\x1B[J when rowCount is 0 (all lines scrolled off)', () => {
+    it('external writes pass through when all drafts have scrolled off screen', () => {
         // rows=1 means maxRows=0, so no draft line fits in the viewport
         process.stdout.rows = 1;
 
         draftlog.draft('offscreen');
         writeMock.mockClear();
 
-        // External write - rowCount is 0, so the else branch runs
         hookedWrite.call(process.stdout, 'external\n');
 
         const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
-        // Should use \r\x1B[J (no cursor-up) instead of \x1B[...A\r\x1B[J
-        expect(calls).toContain('\r\x1B[J');
-        expect(calls.some(c => typeof c === 'string' && c.includes('A\r\x1B[J'))).toBe(false);
-        // The external content is still passed through
-        expect(calls).toContain('external\n');
+        expect(calls).toEqual(['external\n']);
     });
 
     it('computeVisibleDraft breaks when lines exceed viewport (only last line rendered)', async () => {
@@ -959,21 +1108,25 @@ describe('draftlog - viewport overflow', () => {
         expect(calls).toHaveLength(0);
     });
 
-    it('computeVisibleDraft partial visibility with updates', async () => {
+    it('offscreen updaters stop redrawing while visible drafts remain updateable', async () => {
         // rows=3 means maxRows=2, so only 2 of 3 lines fit
         process.stdout.rows = 3;
 
         const updater1 = draftlog.draft('a');
-        draftlog.draft('b');
+        const updater2 = draftlog.draft('b');
         draftlog.draft('c');
         writeMock.mockClear();
 
         updater1('A');
         await new Promise(resolve => process.nextTick(resolve));
 
+        expect(writeMock).not.toHaveBeenCalled();
+
+        updater2('B');
+        await flushTicks();
         const calls = writeMock.mock.calls.map(([arg]) => arg).filter(arg => typeof arg === 'string');
         // Only last 2 lines should be rendered (b and c), first line scrolled off
-        expect(calls).toContain('b\n');
+        expect(calls).toContain('B\n');
         expect(calls).toContain('c\n');
         expect(calls).not.toContain('A\n');
         expect(calls).not.toContain('a\n');

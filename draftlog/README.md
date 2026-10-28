@@ -112,7 +112,7 @@ This means output remains clean and readable when redirected.
 
 ### Automatic cleanup
 
-Draft lines are tracked using a [`FinalizationRegistry`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry). When an updater function is garbage-collected, its corresponding line is removed from tracking. If all draft lines are removed, the cursor is shown again automatically.
+Draft lines are tracked using a [`FinalizationRegistry`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry). When an updater function is garbage-collected, its draft becomes static: its text and occupied rows are preserved until it scrolls completely off screen. This keeps other drafts in their correct positions. The cursor is shown again when no active updaters remain.
 
 ## Prior art
 
