@@ -44,4 +44,4 @@ if (!appender()) {
 }
 
 export * from './types.js';
-export { createLogger, appender };
+export { appender, createLogger };

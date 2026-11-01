@@ -12,12 +12,12 @@
         "ci:publish": "changeset publish"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.4.4",
+        "@biomejs/biome": "^2.6.4",
         "@changesets/cli": "^2.29.8",
         "@types/node": "24.x",
-        "@vitest/coverage-v8": "^4.0.18",
-        "dts-buddy": "^0.7.0",
-        "vitest": "^4.0.18",
-        "pkgprn-internal": "^0.8.0"
+        "@vitest/coverage-v8": "^5.0.5",
+        "dts-buddy": "^0.8.3",
+        "vitest": "^5.0.5",
+        "pkgprn-internal": "^0.12.0"
     }
 }

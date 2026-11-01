@@ -1,9 +1,9 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
     "linter": {
         "enabled": true,
         "rules": {
-            "recommended": true
+            "preset": "recommended"
         }
     },
     "assist": {
@@ -15,11 +15,20 @@
                         "groups": [
                             ":NODE:",
                             ":BLANK_LINE:",
-                            { "type": false, "source": [":PACKAGE:", "!@slimlib/**", "!@niceties/**"] },
+                            {
+                                "type": false,
+                                "source": [":PACKAGE:", "!@slimlib/**", "!@niceties/**"]
+                            },
                             ":BLANK_LINE:",
-                            { "type": false, "source": ["@slimlib/**", "@niceties/**"] },
+                            {
+                                "type": false,
+                                "source": ["@slimlib/**", "@niceties/**"]
+                            },
                             ":BLANK_LINE:",
-                            { "type": false, "source": ":PATH:" }
+                            {
+                                "type": false,
+                                "source": ":PATH:"
+                            }
                         ]
                     }
                 }
@@ -58,5 +67,15 @@
         "enabled": true,
         "clientKind": "git",
         "useIgnoreFile": true
+    },
+    "markdown": {
+        "formatter": {
+            "enabled": false
+        }
+    },
+    "yaml": {
+        "formatter": {
+            "enabled": false
+        }
     }
 }

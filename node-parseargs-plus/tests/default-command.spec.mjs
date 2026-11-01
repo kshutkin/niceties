@@ -5,26 +5,23 @@ import { parseArgsPlus } from '../src/index.js';
 import { parameters } from '../src/parameters.js';
 
 describe('implicit default command options', () => {
-    it.each([
-        ['--port', '3000'],
-        ['--port=3000'],
-        ['-p', '3000'],
-        ['-p3000'],
-        ['--verbose', '--port', '3000'],
-    ])('parses default-command flags with the merged schema: %j', (...args) => {
-        const result = parseArgsPlus(
-            {
-                args,
-                defaultCommand: 'serve',
-                options: { verbose: { type: 'boolean' } },
-                commands: { serve: { options: { port: { type: 'string', short: 'p' } } } },
-            },
-            [commands]
-        );
-        expect(result.command).toBe('serve');
-        expect(result.values.port).toBe('3000');
-        if (args.includes('--verbose')) expect(result.values.verbose).toBe(true);
-    });
+    it.each([['--port', '3000'], ['--port=3000'], ['-p', '3000'], ['-p3000'], ['--verbose', '--port', '3000']])(
+        'parses default-command flags with the merged schema: %j',
+        (...args) => {
+            const result = parseArgsPlus(
+                {
+                    args,
+                    defaultCommand: 'serve',
+                    options: { verbose: { type: 'boolean' } },
+                    commands: { serve: { options: { port: { type: 'string', short: 'p' } } } },
+                },
+                [commands]
+            );
+            expect(result.command).toBe('serve');
+            expect(result.values.port).toBe('3000');
+            if (args.includes('--verbose')) expect(result.values.verbose).toBe(true);
+        }
+    );
 
     it('parses command flags before positional parameters and honors command-level negation', () => {
         const result = parseArgsPlus(

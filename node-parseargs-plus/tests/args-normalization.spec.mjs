@@ -8,28 +8,28 @@ describe('argument normalization before middleware', () => {
     const argvDescriptor = Object.getOwnPropertyDescriptor(process, 'argv');
     afterEach(() => Object.defineProperty(process, 'argv', argvDescriptor));
 
-    it.each([
-        {},
-        { args: undefined },
-    ])('supplies default CLI args to the first middleware without changing the caller config: %j', config => {
-        process.argv = ['node', 'cli.js', '--name', 'original'];
-        const original = Object.freeze({ ...config, options: { name: { type: 'string' } } });
-        let received;
-        const middleware = [
-            config => {
-                received = config;
-                // Later middleware and native parsing must use the snapshot,
-                // even if the process arguments change during transformation.
-                process.argv = ['node', 'cli.js', '--name', 'changed'];
-                return config;
-            },
-            result => result,
-        ];
-        const result = parseArgsPlus(original, [middleware]);
-        expect(received.args).toEqual(['--name', 'original']);
-        expect(result.values.name).toBe('original');
-        expect(original.args).toBeUndefined();
-    });
+    it.each([{}, { args: undefined }])(
+        'supplies default CLI args to the first middleware without changing the caller config: %j',
+        config => {
+            process.argv = ['node', 'cli.js', '--name', 'original'];
+            const original = Object.freeze({ ...config, options: { name: { type: 'string' } } });
+            let received;
+            const middleware = [
+                config => {
+                    received = config;
+                    // Later middleware and native parsing must use the snapshot,
+                    // even if the process arguments change during transformation.
+                    process.argv = ['node', 'cli.js', '--name', 'changed'];
+                    return config;
+                },
+                result => result,
+            ];
+            const result = parseArgsPlus(original, [middleware]);
+            expect(received.args).toEqual(['--name', 'original']);
+            expect(result.values.name).toBe('original');
+            expect(original.args).toBeUndefined();
+        }
+    );
 
     it('normalizes defaults once for combined command and optional-value middleware', () => {
         let reads = 0;
