@@ -14,7 +14,7 @@
     "devDependencies": {
         "@biomejs/biome": "^2.6.4",
         "@changesets/cli": "^2.29.8",
-        "@types/node": "24.x",
+        "@types/node": "26.x",
         "@vitest/coverage-v8": "^5.0.5",
         "dts-buddy": "^0.8.3",
         "vitest": "^5.0.5",
