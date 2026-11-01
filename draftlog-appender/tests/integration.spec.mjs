@@ -10,7 +10,8 @@ describe('appender with real draftlog rendering', () => {
     let resizeListeners;
     let exitListeners;
     const owner = {};
-    const ref = new WeakRef(owner);
+    // Rendering tests need a live owner regardless of garbage-collection timing.
+    const ref = { deref: () => owner };
 
     beforeEach(async () => {
         vi.resetModules();
