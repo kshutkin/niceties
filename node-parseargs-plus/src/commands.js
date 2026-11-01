@@ -1,5 +1,7 @@
 import { parseArgs } from 'node:util';
 
+import { kOptionalValue, rewriteOptionalArgs } from './optional-args.js';
+
 /**
  * Symbol used to stash resolved command state on the config object
  * for cross-middleware communication.
@@ -14,14 +16,16 @@ const kCommandState = Symbol.for('parseArgsPlus.commandState');
  * @param {Record<string, import('./types.d.ts').CommandConfig>} commandMap
  * @param {Record<string, import('./types.d.ts').OptionConfig>} globalOptions
  * @param {string | undefined} defaultCommand
+ * @param {boolean} optionalValues
  * @returns {{ commandName: string | undefined; commandConfig: import('./types.d.ts').CommandConfig | undefined; cmdIndex: number }}
  */
-function resolveCommand(args, commandMap, globalOptions, defaultCommand) {
+function resolveCommand(args, commandMap, globalOptions, defaultCommand, optionalValues) {
     // Discovery parse: strict:false so unknown (command-specific) flags don't throw.
     // Global options are declared so that global string options consume their values
     // and don't swallow the command positional.
+    const discoveryArgs = optionalValues ? rewriteOptionalArgs(args, globalOptions) : undefined;
     const discovery = parseArgs({
-        args,
+        args: discoveryArgs?.args ?? args,
         strict: false,
         allowPositionals: true,
         tokens: true,
@@ -34,7 +38,7 @@ function resolveCommand(args, commandMap, globalOptions, defaultCommand) {
         return {
             commandName: firstPositionalToken.value,
             commandConfig: commandMap[firstPositionalToken.value],
-            cmdIndex: firstPositionalToken.index,
+            cmdIndex: discoveryArgs ? discoveryArgs.indexes[firstPositionalToken.index] : firstPositionalToken.index,
         };
     }
 
@@ -84,8 +88,15 @@ function commandsTransformConfig(config) {
 
     const args = config.args ?? process.argv.slice(2);
     const globalOptions = config.options ?? {};
+    const optionalValues = /** @type {any} */ (config)[kOptionalValue] === true;
 
-    const { commandName, commandConfig, cmdIndex } = resolveCommand(args, commandMap, globalOptions, extConfig.defaultCommand);
+    const { commandName, commandConfig, cmdIndex } = resolveCommand(
+        args,
+        commandMap,
+        globalOptions,
+        extConfig.defaultCommand,
+        optionalValues
+    );
 
     /** @type {string[]} */
     let globalArgs;
@@ -106,6 +117,11 @@ function commandsTransformConfig(config) {
         // everything after goes to pass 2 (with merged options)
         globalArgs = args.slice(0, cmdIndex);
         commandArgs = args.slice(cmdIndex + 1);
+    }
+
+    if (optionalValues) {
+        globalArgs = rewriteOptionalArgs(globalArgs, globalOptions).args;
+        commandArgs = rewriteOptionalArgs(commandArgs, { ...globalOptions, ...commandConfig?.options }).args;
     }
 
     // Stash command state for cross-middleware communication
