@@ -117,6 +117,7 @@ function commandsTransformConfig(config) {
         commandName,
         commandArgs,
         commandConfig,
+        tokensRequested: config.tokens ?? false,
     };
 
     // Rewrite config for pass 1: global args only
@@ -124,6 +125,8 @@ function commandsTransformConfig(config) {
         ...config,
         args: globalArgs,
         allowPositionals: false,
+        // Tokens distinguish explicit flags from defaults during the merge.
+        tokens: commandName ? true : config.tokens,
     };
 }
 commandsTransformConfig.order = 10;
@@ -162,15 +165,22 @@ function commandsTransformResult(result, config) {
 
     const pass2 = parseArgs({
         args: commandArgs,
+        tokens: true,
         strict: config.strict ?? true,
         allowPositionals,
         allowNegative,
         options: /** @type {any} */ (mergedOptions),
     });
 
-    // Merge values: pass 1 (global) + pass 2 (command)
-    // Pass 2 values win on overlap (the flag appeared in command scope)
+    // Defaults lose to explicit flags on either side of the command. When both
+    // passes supply an explicit value, the later command-scope value wins.
     const mergedValues = { ...result.values, ...pass2.values };
+    const explicitAfter = new Set(pass2.tokens.filter(token => token.kind === 'option').map(token => token.name));
+    for (const token of result.tokens ?? []) {
+        if (token.kind === 'option' && !explicitAfter.has(token.name)) {
+            mergedValues[token.name] = result.values[token.name];
+        }
+    }
 
     return {
         values: mergedValues,
