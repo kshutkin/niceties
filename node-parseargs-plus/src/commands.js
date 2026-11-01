@@ -79,7 +79,7 @@ function resolveCommand(args, commandMap, globalOptions, defaultCommand, optiona
  * @type {import('./types.d.ts').Middleware<import('./types.d.ts').CommandsOptionExtension, import('./types.d.ts').CommandsConfigExtension>}
  */
 
-/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
+/** @param {import('./types.d.ts').ParseArgsPlusConfig & { args: string[] }} config */
 function commandsTransformConfig(config) {
     const extConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig & import('./types.d.ts').CommandsConfigExtension} */ (config);
     const commandMap = extConfig.commands;
@@ -87,7 +87,7 @@ function commandsTransformConfig(config) {
         return config;
     }
 
-    const args = config.args ?? process.argv.slice(2);
+    const { args } = config;
     const globalOptions = config.options ?? {};
     const optionalValues = /** @type {any} */ (config)[kOptionalValue] === true;
 

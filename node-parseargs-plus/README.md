@@ -79,6 +79,8 @@ Parses command-line arguments using Node.js `util.parseArgs` under the hood, wit
 | `args`             | `string[]`                     | Arguments to parse. Defaults to `process.argv.slice(2)`.                        |
 | `tokens`           | `boolean`                      | When `true`, includes a `tokens` array in the result.                           |
 
+`parseArgsPlus` resolves the `args` default before running middleware, so middleware receives a prepared argument list. An explicitly supplied empty array remains empty.
+
 Each option in `options` follows the `OptionConfig` shape:
 
 | Property   | Type                                         | Description                                                               |

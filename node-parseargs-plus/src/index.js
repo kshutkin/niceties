@@ -16,7 +16,10 @@ export function parseArgsPlus(config, middlewares = []) {
     const resultSorted = [...middlewares].sort((a, b) => (a[1].order ?? a.resultOrder ?? 0) - (b[1].order ?? b.resultOrder ?? 0));
 
     // Let middlewares transform the config before calling parseArgs
-    let transformedConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ (config);
+    let transformedConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ ({
+        ...config,
+        args: config.args ?? process.argv.slice(2),
+    });
     for (const mw of configSorted) {
         transformedConfig = mw[0](transformedConfig);
     }

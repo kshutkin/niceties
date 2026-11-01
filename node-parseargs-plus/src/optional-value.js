@@ -26,13 +26,13 @@
 import { kOptionalValue, rewriteOptionalArgs } from './optional-args.js';
 import { kTokenState, remapTokens } from './tokens.js';
 
-/** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
+/** @param {import('./types.d.ts').ParseArgsPlusConfig & { args: string[] }} config */
 function optionalValueTransformConfig(config) {
     if (/** @type {any} */ (config).commands) {
         // Command discovery and both parse scopes must use their own schema.
         return { ...config, [kOptionalValue]: true };
     }
-    const args = config.args ?? process.argv.slice(2);
+    const { args } = config;
     const rewritten = rewriteOptionalArgs(args, config.options);
     return { ...config, args: rewritten.args, [kTokenState]: { args, indexes: rewritten.indexes } };
 }
