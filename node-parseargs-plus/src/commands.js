@@ -43,7 +43,7 @@ function resolveCommand(args, commandMap, globalOptions, defaultCommand) {
             commandName: defaultCommand,
             commandConfig: commandMap[defaultCommand],
             // -1 signals "no explicit command positional to skip"
-            cmdIndex: firstPositionalToken ? firstPositionalToken.index : -1,
+            cmdIndex: -1,
         };
     }
 
@@ -97,19 +97,15 @@ function commandsTransformConfig(config) {
         globalArgs = args;
         commandArgs = [];
     } else if (cmdIndex === -1) {
-        // Default command, no explicit command positional
-        // No positionals at all — everything is global
-        globalArgs = args;
-        commandArgs = [];
+        // An implicit command owns the entire argument list, including flags
+        // before its first positional. Parse it with the merged option schema.
+        globalArgs = [];
+        commandArgs = args;
     } else {
-        // Check if the command positional is the actual command name
-        // or the start of default command's positionals
-        const isExplicitCommand = args[cmdIndex] === commandName;
-
         // Split at the command boundary: everything before goes to pass 1,
         // everything after goes to pass 2 (with merged options)
         globalArgs = args.slice(0, cmdIndex);
-        commandArgs = isExplicitCommand ? args.slice(cmdIndex + 1) : args.slice(cmdIndex);
+        commandArgs = args.slice(cmdIndex + 1);
     }
 
     // Stash command state for cross-middleware communication
