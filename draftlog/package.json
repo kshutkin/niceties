@@ -45,6 +45,7 @@
         "test": "vitest run --coverage --config ../vitest.config.js"
     },
     "dependencies": {
+        "ansi-regex": "^6.2.2",
         "string-width": "^8.2.0"
     }
 }

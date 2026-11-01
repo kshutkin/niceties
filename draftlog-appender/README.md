@@ -33,6 +33,12 @@ import "@niceties/draftlog-appender";
 
 It is better to do it before other imports so that the default appender in `'@niceties/logger'` is not installed.
 
+## Custom formatting
+
+The formatter passed to `createDraftlogAppender()` follows the [logger formatter contract](../logger/README.md#formatter-api). It receives the complete message and an indentation count in spaces, and must preserve literal string prefixes, including whitespace.
+
+Each item uses one draft updater. The formatter adds a prefix only on the first row; draftlog handles explicit newlines and terminal wrapping. In a TTY, subsequent rows receive an absolute margin of `indentation + 2` spaces, matching the built-in one-column prefix and its separator. Tags and custom prefix widths do not change this margin. If nesting changes, both the formatted text and continuation margin are updated. Non-TTY output leaves subsequent rows as supplied.
+
 ## Sub-packages
 
 Default sub-package `'@niceties/draftlog-appender'` exports nothing.

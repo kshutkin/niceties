@@ -8,8 +8,6 @@
 import { draft } from '@niceties/draftlog';
 import { Action } from '@niceties/logger/types';
 
-import splitByLines from './split-by-lines.js';
-
 /**
  * @param {Spinner} spinner
  * @param {Formatter} formatter
@@ -17,7 +15,7 @@ import splitByLines from './split-by-lines.js';
  * @returns {(model: Model, dirty?: boolean) => void}
  */
 export function createCanvas(spinner, formatter, ident) {
-    /** @type {Array<(text: string) => void>} */
+    /** @type {Array<import('@niceties/draftlog').DraftUpdater>} */
     const updaters = [];
 
     return modelFn;
@@ -35,41 +33,35 @@ export function createCanvas(spinner, formatter, ident) {
         /** @type {(ModelItem | null)[]} */
         const stack = [];
         for (const item of model) {
-            if (dirty || item.dirty || item.status) {
-                let prefix = getPrefix(/** @type {number} */ (item.status), model.tick);
-                let prefixUpdated = false;
-                const subitems = splitByLines(item.message);
-                for (const message of subitems) {
-                    let updater = updaters[key++];
-                    if (!updater) {
-                        updater = draft('');
-                        updaters.push(updater);
-                    }
-                    updater(
-                        formatter(
-                            {
-                                loglevel: item.loglevel,
-                                message,
-                                context: item.context,
-                                action: /** @type {3} */ (item.status === undefined ? Action.log : undefined),
-                                tag: item.tag,
-                            },
-                            prefix,
-                            ident * stack.length
-                        )
-                    );
-                    if (subitems.length > 1 && typeof prefix === 'string' && !prefixUpdated) {
-                        prefix = prefix.replaceAll(/./g, ' ');
-                        prefixUpdated = true;
-                    }
+            if (dirty || item.dirty || item.status || !updaters[key]) {
+                const prefix = getPrefix(/** @type {number} */ (item.status), model.tick);
+                const indentation = ident * stack.length;
+                let updater = updaters[key++];
+                if (!updater) {
+                    updater = draft('');
+                    updaters.push(updater);
                 }
+                updater(
+                    formatter(
+                        {
+                            loglevel: item.loglevel,
+                            message: item.message,
+                            context: item.context,
+                            action: /** @type {3} */ (item.status === undefined ? Action.log : undefined),
+                            tag: item.tag,
+                        },
+                        prefix,
+                        indentation
+                    ),
+                    { continuationIndent: indentation + 2 }
+                );
                 if (item.dirty) {
                     item.dirty = false;
                     dirty = true;
                 }
             } else {
                 // iterate
-                key += splitByLines(item.message).length;
+                key++;
             }
             if (stack[stack.length - 1] === item) {
                 stack[stack.length - 1] = null;

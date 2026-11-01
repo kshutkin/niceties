@@ -74,12 +74,15 @@ export const Action = /** @type {const} */ ({
  */
 
 /**
+ * Formats text for an appender without writing output. Appenders may call this
+ * repeatedly for spinner frames or changes to a message or its indentation.
  * @template [ErrorContext=Error]
  * @callback Formatter
  * @param {LogMessage<ErrorContext>} message
- * @param {string | boolean} [usePrefix]
- * @param {number} [indentation]
- * @returns {string}
+ * @param {string | boolean} [usePrefix] - A literal prefix (preserve whitespace), true for a status prefix,
+ * or false/undefined for normal log-prefix selection. Follow a selected prefix with one separator space.
+ * @param {number} [indentation] - Leading spaces before the prefix, not a nesting level; defaults to 0.
+ * @returns {string} Formatted text without an added output newline. The appender owns output and rendering.
  */
 
 /**

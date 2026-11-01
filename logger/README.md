@@ -131,6 +131,49 @@ logger.appender(someFancyAppender);
 
 Sets a different appender for the specific instance of the logger.
 
+## Formatter API
+
+Appenders use a formatter to turn a log message into a string:
+
+```typescript
+type Formatter<ErrorContext = Error> = (
+    message: LogMessage<ErrorContext>,
+    usePrefix?: string | boolean,
+    indentation?: number,
+) => string;
+```
+
+Return the formatted text without appending an output newline or writing to stdout. The appender owns output and rendering. A formatter can be called repeatedly for the same event, for example when a spinner advances to its next frame.
+
+`indentation` is a count of leading **spaces before the prefix**, defaulting to `0`. It is not a nesting level and does not include the width of the prefix or tag. The draftlog appender calculates this count from the current nesting depth before calling the formatter.
+
+Custom formatters should honor these prefix arguments:
+
+| `usePrefix` | Meaning |
+| --- | --- |
+| A string | Use the supplied prefix literally, including any whitespace, followed by one separator space. |
+| `true` | Choose a configured status prefix for the message's log level, followed by one separator space. |
+| `false` or omitted | Use normal log-prefix selection: static messages (`Action.log`) can receive a log prefix; task messages receive no status prefix. |
+
+Do not trim a supplied string prefix. The draftlog appender passes a spinner frame for a running task and formats each complete message before draftlog handles wrapping and continuation indentation. Appenders may invoke the formatter again when an item changes, its nesting changes, or a spinner advances.
+
+The built-in `createFormatter(colors, prefixes, logPrefixes, tagFactory)` implements this contract. Its color, status-prefix, and log-prefix maps are indexed by log level. It includes the formatted tag for verbose static logs and appends non-null context after the message.
+
+```javascript
+import { createFormatter } from '@niceties/logger/format-utils';
+import { Action, LogLevel } from '@niceties/logger/types';
+
+const format = createFormatter({}, { 1: '✓' }, { 1: 'ℹ' }, tag => `[${tag}]`);
+const message = { action: Action.log, loglevel: LogLevel.info, message: 'Building' };
+
+format(message, '⠋', 2);  // '  ⠋ Building'
+format(message, ' ', 2);  // '    Building'
+format(message, true, 2); // '  ✓ Building'
+format(message, false, 2); // '  ℹ Building'
+```
+
+With two leading spaces and a one-column prefix plus its separator, the message body starts four columns from the left. Prefixes and tags can have other visible widths; the formatter API does not require a fixed prefix width or return continuation-alignment metadata.
+
 ## Appender API
 
 Appenders can expose additional methods to the logger instance via the `api` property. When an appender with an `api` property is set on a logger, the `api` object is installed into the logger's prototype chain. This means the methods are accessible directly on the logger instance:

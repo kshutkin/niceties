@@ -41,7 +41,7 @@ describe('draftlog appender', () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
-        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
+        const formatter = createFormatter(colors, finishedPrefixes, [], tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, false, 2);
         consoleUpdateMock = vi.fn();
         draftMock = vi.fn().mockImplementation(
@@ -73,7 +73,7 @@ describe('draftlog appender', () => {
     it('start a new spinner', () => {
         appender({ loglevel: LogLevel.info, message: 'test1', action: Action.start, inputId: 0, ref });
         expect(draftMock).toBeCalledWith('');
-        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('- test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on success (without start)', () => {
@@ -81,7 +81,7 @@ describe('draftlog appender', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('ok test1');
+        expect(consoleUpdateMock).toBeCalledWith('ok test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on success (with start)', () => {
@@ -91,7 +91,7 @@ describe('draftlog appender', () => {
         expect(draftMock).toBeCalledWith('');
         expect(draftMock).toBeCalledTimes(1);
 
-        expect(consoleUpdateMock).toBeCalledWith('ok test1');
+        expect(consoleUpdateMock).toBeCalledWith('ok test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on fail (without start)', () => {
@@ -99,7 +99,7 @@ describe('draftlog appender', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('error test1');
+        expect(consoleUpdateMock).toBeCalledWith('error test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on fail (with start)', () => {
@@ -109,7 +109,7 @@ describe('draftlog appender', () => {
         expect(draftMock).toBeCalledWith('');
         expect(draftMock).toBeCalledTimes(1);
 
-        expect(consoleUpdateMock).toBeCalledWith('error test1');
+        expect(consoleUpdateMock).toBeCalledWith('error test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on update (without start)', () => {
@@ -117,7 +117,7 @@ describe('draftlog appender', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('test1');
+        expect(consoleUpdateMock).toBeCalledWith('test1', { continuationIndent: 2 });
     });
 
     it('finish spinner on update (with start)', () => {
@@ -127,7 +127,7 @@ describe('draftlog appender', () => {
         expect(draftMock).toBeCalledWith('');
         expect(draftMock).toBeCalledTimes(1);
 
-        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('- test1', { continuationIndent: 2 });
     });
 
     it('log static text', () => {
@@ -135,31 +135,66 @@ describe('draftlog appender', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('test1');
+        expect(consoleUpdateMock).toBeCalledWith('test1', { continuationIndent: 2 });
     });
 
-    it('multiline log', () => {
+    it('uses one updater for a complete multiline log', () => {
         appender({ loglevel: LogLevel.verbose, message: 'test1'.padEnd(200, '.'), action: Action.log, inputId: 0, ref });
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(draftMock).toBeCalledTimes(3);
+        expect(draftMock).toBeCalledTimes(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('test1'.padEnd(200, '.'), { continuationIndent: 2 });
     });
 
-    it('multiline spinner', () => {
+    it('uses one updater for a complete multiline spinner', () => {
         appender({ loglevel: LogLevel.info, message: 'test1'.padEnd(200, '.'), action: Action.start, inputId: 0, ref });
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(draftMock).toBeCalledTimes(3);
+        expect(draftMock).toBeCalledTimes(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith(`- ${'test1'.padEnd(200, '.')}`, { continuationIndent: 2 });
     });
 
-    it('multiline clean excess lines', () => {
+    it('reuses the same updater when a multiline spinner shrinks', () => {
         appender({ loglevel: LogLevel.info, message: 'test1'.padEnd(200, '.'), action: Action.start, inputId: 0, ref });
         appender({ loglevel: LogLevel.info, message: 'test1', action: Action.finish, inputId: 0, ref });
 
-        expect(draftMock).toBeCalledTimes(3);
-        expect(consoleUpdateMock).toBeCalledWith('');
+        expect(draftMock).toBeCalledTimes(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('ok test1', { continuationIndent: 2 });
+    });
+
+    it('passes all newlines and ANSI/Unicode content through one formatter invocation', () => {
+        const formatter = vi.fn(createFormatter(colors, finishedPrefixes, ['i'], tag => `[${tag}]`));
+        appender = createDraftlogAppender(testSpinner, formatter, false, 2);
+        const message = '\x1B[31m界👩‍💻\x1B[39m\n\nlast\n';
+        appender({ loglevel: LogLevel.verbose, message, action: Action.log, tag: 'build', context: 'context', ref });
+
+        expect(formatter).toHaveBeenCalledTimes(1);
+        expect(formatter).toHaveBeenCalledWith(expect.objectContaining({ message, tag: 'build', context: 'context' }), false, 0);
+        expect(draftMock).toHaveBeenCalledTimes(1);
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith(`i [build] ${message} context`, { continuationIndent: 2 });
+    });
+
+    it('retains a collected multiline item and gives the next item its own updater', () => {
+        draftMock = vi.fn(() => vi.fn());
+        appender({ loglevel: LogLevel.info, message: 'first\nsecond', action: Action.log });
+        const first = draftMock.mock.results[0].value;
+        appender({ loglevel: LogLevel.info, message: 'next', action: Action.update, inputId: 1, ref });
+
+        expect(draftMock).toHaveBeenCalledTimes(2);
+        expect(first.mock.calls).toEqual([['first\nsecond', { continuationIndent: 2 }]]);
+        expect(draftMock.mock.results[1].value).toHaveBeenLastCalledWith('next', { continuationIndent: 2 });
+    });
+
+    it('recomputes the first-line and continuation indentation when a parent gains a parent', () => {
+        appender({ loglevel: LogLevel.info, message: 'child\ncontinued', action: Action.finish, inputId: 1, parentId: 0, ref });
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('  ok child\ncontinued', { continuationIndent: 4 });
+        consoleUpdateMock.mockClear();
+
+        appender({ loglevel: LogLevel.info, message: 'parent', action: Action.finish, inputId: 0, parentId: 2, ref });
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('    ok child\ncontinued', { continuationIndent: 6 });
+        expect(draftMock).toHaveBeenCalledTimes(3);
     });
 
     it('gc test', async () => {
@@ -173,7 +208,7 @@ describe('draftlog appender', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('- test1', { continuationIndent: 2 });
 
         await waitFor(50);
 
@@ -183,7 +218,7 @@ describe('draftlog appender', () => {
 
         appender({ loglevel: LogLevel.verbose, message: 'test2', action: Action.update, inputId: 1, ref });
 
-        expect(consoleUpdateMock).toBeCalledWith('test2');
+        expect(consoleUpdateMock).toBeCalledWith('test2', { continuationIndent: 2 });
 
         expect(draftMock).toBeCalledTimes(2);
     });
@@ -365,7 +400,7 @@ describe('draftlog appender timer lifecycle', () => {
         send(Action.start, 1, 'restarted');
         expect(vi.getTimerCount()).toBe(1);
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- restarted');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- restarted', { continuationIndent: 2 });
         send(Action.finish, 1, 'done');
         expect(vi.getTimerCount()).toBe(0);
     });
@@ -377,7 +412,7 @@ describe('draftlog appender timer lifecycle', () => {
 
         vi.advanceTimersByTime(10);
         expect(vi.getTimerCount()).toBe(1);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining', { continuationIndent: 2 });
         send(Action.finish, 1, 'done');
         expect(vi.getTimerCount()).toBe(0);
     });
@@ -389,7 +424,7 @@ describe('draftlog appender timer lifecycle', () => {
 
         vi.advanceTimersByTime(10);
         expect(vi.getTimerCount()).toBe(1);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ remaining', { continuationIndent: 2 });
         send(Action.finish, 1, 'done');
         expect(vi.getTimerCount()).toBe(0);
     });
@@ -410,23 +445,23 @@ describe('draftlog appender timer lifecycle', () => {
 
         send(Action.log, 1, 'static message');
         expect(vi.getTimerCount()).toBe(0);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('static message');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('static message', { continuationIndent: 2 });
     });
 
     it('keeps animating across repeated updates and stops after finish', () => {
         send(Action.start, 0, 'task');
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ task');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ task', { continuationIndent: 2 });
 
         send(Action.update, 0, 'updated');
         expect(vi.getTimerCount()).toBe(1);
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- updated');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('- updated', { continuationIndent: 2 });
 
         send(Action.update, 0, 'updated again');
         expect(vi.getTimerCount()).toBe(1);
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ updated again');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ updated again', { continuationIndent: 2 });
 
         send(Action.finish, 0, 'done');
         expect(vi.getTimerCount()).toBe(0);
@@ -446,7 +481,7 @@ describe('draftlog appender timer lifecycle', () => {
         expect(vi.getTimerCount()).toBe(1);
         consoleUpdateMock.mockClear();
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenCalledWith('+ parent');
+        expect(consoleUpdateMock).toHaveBeenCalledWith('+ parent', { continuationIndent: 2 });
 
         send(Action.finish, 0, 'parent done');
         expect(vi.getTimerCount()).toBe(0);
@@ -467,7 +502,7 @@ describe('draftlog appender timer lifecycle', () => {
         send(Action.start, 0, 'restarted');
         expect(vi.getTimerCount()).toBe(1);
         vi.advanceTimersByTime(10);
-        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ restarted');
+        expect(consoleUpdateMock).toHaveBeenLastCalledWith('+ restarted', { continuationIndent: 2 });
         send(Action.finish, 0, 'done');
         expect(vi.getTimerCount()).toBe(0);
     });
@@ -482,7 +517,7 @@ describe('draftlog appender animation', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
+        const formatter = createFormatter(colors, finishedPrefixes, [], tagFactory);
         appender = createDraftlogAppender(testSpinner2, formatter, false, 2);
         consoleUpdateMock = vi.fn();
         draftMock = vi.fn().mockImplementation(
@@ -497,11 +532,11 @@ describe('draftlog appender animation', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('- test1');
+        expect(consoleUpdateMock).toBeCalledWith('- test1', { continuationIndent: 2 });
 
         await waitFor(100);
 
-        expect(consoleUpdateMock).toBeCalledWith('+ test1');
+        expect(consoleUpdateMock).toBeCalledWith('+ test1', { continuationIndent: 2 });
     });
 });
 
@@ -514,7 +549,7 @@ describe('prepend config', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        const formatter = createFormatter(colors, finishedPrefixes, tagFactory);
+        const formatter = createFormatter(colors, finishedPrefixes, [], tagFactory);
         appender = createDraftlogAppender(testSpinner, formatter, true, 2);
         consoleUpdateMock = vi.fn();
         draftMock = vi.fn().mockImplementation(
@@ -529,6 +564,6 @@ describe('prepend config', () => {
 
         expect(draftMock).toBeCalledWith('');
 
-        expect(consoleUpdateMock).toBeCalledWith('test1');
+        expect(consoleUpdateMock).toBeCalledWith('test1', { continuationIndent: 2 });
     });
 });

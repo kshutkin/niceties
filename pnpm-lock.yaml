@@ -34,6 +34,9 @@ importers:
 
   draftlog:
     dependencies:
+      ansi-regex:
+        specifier: ^6.2.2
+        version: 6.2.2
       string-width:
         specifier: ^8.2.0
         version: 8.2.0

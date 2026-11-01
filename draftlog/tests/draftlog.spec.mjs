@@ -186,7 +186,8 @@ describe('draftlog', () => {
             update(updated);
             await flushTicks();
 
-            expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], [`\x1B[${previousRows}A\r\x1B[J`], [`${updated}\n`], [SYNC_DISABLE]]);
+            const rendered = updated === 'X'.repeat(161) ? `${'X'.repeat(80)}\n${'X'.repeat(80)}\nX` : updated;
+            expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], [`\x1B[${previousRows}A\r\x1B[J`], [`${rendered}\n`], [SYNC_DISABLE]]);
 
             writeMock.mockClear();
             update('done');
@@ -208,8 +209,8 @@ describe('draftlog', () => {
             expect(writeMock.mock.calls).toEqual([
                 [SYNC_ENABLE],
                 ['\x1B[2A\r\x1B[J'],
-                [`${'X'.repeat(161)}\n`],
-                [`${'Y'.repeat(81)}\n`],
+                [`${'X'.repeat(80)}\n${'X'.repeat(80)}\nX\n`],
+                [`${'Y'.repeat(80)}\nY\n`],
                 [SYNC_DISABLE],
             ]);
 
@@ -245,7 +246,7 @@ describe('draftlog', () => {
             await flushTicks();
 
             expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
-            expect(writeMock).toHaveBeenCalledWith(`${'X'.repeat(161)}\n`);
+            expect(writeMock).toHaveBeenCalledWith(`${'X'.repeat(80)}\n${'X'.repeat(80)}\nX\n`);
         });
 
         it.each([
@@ -263,6 +264,188 @@ describe('draftlog', () => {
 
             expect(writeMock).toHaveBeenCalledWith('\x1B[5A\r\x1B[J');
             expect(writeMock).toHaveBeenCalledWith('short\n');
+        });
+    });
+
+    describe('continuation indentation', () => {
+        let originalColumns;
+        let originalRows;
+
+        beforeEach(() => {
+            originalColumns = process.stdout.columns;
+            originalRows = process.stdout.rows;
+            process.stdout.columns = 8;
+            process.stdout.rows = 24;
+        });
+
+        afterEach(() => {
+            process.stdout.columns = originalColumns;
+            process.stdout.rows = originalRows;
+        });
+
+        it('indents explicit newlines and wraps, retaining empty and trailing rows without padding', () => {
+            draftlog.draft('abcdefghijk\n\nlast\n', { continuationIndent: 2 });
+            expect(writeMock).toHaveBeenCalledWith('abcdefgh\n  ijk\n\n  last\n\n');
+        });
+
+        it('wraps at terminal columns rather than word boundaries', () => {
+            draftlog.draft('one two three', { continuationIndent: 2 });
+            expect(writeMock).toHaveBeenCalledWith('one two \n  three\n');
+        });
+
+        it('preserves ANSI sequences, wide characters, combining marks, and emoji graphemes', () => {
+            process.stdout.columns = 6;
+            draftlog.draft('\x1B[31mabcd👩‍💻e\u0301界xy\x1B[39m', { continuationIndent: 2 });
+            expect(writeMock).toHaveBeenCalledWith('\x1B[31mabcd👩‍💻\n  e\u0301界x\n  y\x1B[39m\n');
+        });
+
+        it('keeps a grapheme together even when it contains a formatting change', () => {
+            process.stdout.columns = 5;
+            draftlog.draft('abcde\x1B[31m\u0301f\x1B[39m', { continuationIndent: 2 });
+            expect(writeMock).toHaveBeenCalledWith('abcde\x1B[31m\u0301\n  f\x1B[39m\n');
+        });
+
+        it('copies the factory option and keeps it across updates that omit it', async () => {
+            const options = { continuationIndent: 2 };
+            const update = draftlog.draft('first\nsecond', options);
+            options.continuationIndent = 4;
+            writeMock.mockClear();
+            update('new\nvalue', {});
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('new\n  value\n');
+
+            update('next\nvalue');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('next\n  value\n');
+        });
+
+        it('updates the persistent margin and clears the old layout before applying an explicit zero', async () => {
+            const update = draftlog.draft('12345678ABCDEFG', { continuationIndent: 2 });
+            writeMock.mockClear();
+            update('12345678ABCDEFG', { continuationIndent: 0 });
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('12345678\nABCDEFG\n');
+
+            writeMock.mockClear();
+            const options = { continuationIndent: 4 };
+            update('first\nlast', options);
+            options.continuationIndent = 6;
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[2A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('first\n    last\n');
+
+            update('next\nlast');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('next\n    last\n');
+        });
+
+        it.each([-1, 1.5, NaN, Infinity, -Infinity, '2', null, undefined])('uses zero for an invalid supplied margin: %s', async value => {
+            const options = { continuationIndent: value };
+            draftlog.draft('a\nb', options);
+            expect(writeMock).toHaveBeenCalledWith('a\nb\n');
+
+            const update = draftlog.draft('a\nb', { continuationIndent: 2 });
+            writeMock.mockClear();
+            update('c\nd', options);
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('c\nd\n');
+            update('e\nf');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('e\nf\n');
+        });
+
+        it('temporarily uses zero when the margin does not fit and restores it after widening', async () => {
+            const update = draftlog.draft('first\nlast', { continuationIndent: 8 });
+            expect(writeMock).toHaveBeenCalledWith('first\nlast\n');
+            process.stdout.columns = 12;
+            process.stdout.emit('resize');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('first\n        last\n');
+
+            process.stdout.columns = 6;
+            process.stdout.emit('resize');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('first\nlast\n');
+            process.stdout.columns = 12;
+            process.stdout.emit('resize');
+            await flushTicks();
+            expect(writeMock).toHaveBeenLastCalledWith(SYNC_DISABLE);
+            expect(writeMock.mock.calls.at(-2)).toEqual(['first\n        last\n']);
+            void update;
+        });
+
+        it('does not split a wide character when only one column remains after indentation', () => {
+            draftlog.draft('first\n界', { continuationIndent: 7 });
+            expect(writeMock).toHaveBeenCalledWith('first\n界\n');
+        });
+
+        it('wraps mixed-width text correctly with the default zero margin', async () => {
+            process.stdout.columns = 5;
+            const update = draftlog.draft('aaaa界aaaa');
+            expect(writeMock).toHaveBeenCalledWith('aaaa\n界aaa\na\n');
+            writeMock.mockClear();
+            update('done');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+        });
+
+        it.each([
+            ['界界界界', 4],
+            ['aa界aa', 3],
+        ])('measures wide graphemes in the old output after resizing to an odd column count: %s', async (text, rows) => {
+            const update = draftlog.draft(text);
+            writeMock.mockClear();
+            process.stdout.columns = 3;
+            process.stdout.emit('resize');
+            update('new');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith(`\x1B[${rows}A\r\x1B[J`);
+            expect(writeMock).toHaveBeenCalledWith('new\n');
+        });
+
+        it('redraws only the visible bottom of a tall draft and restores its ANSI styling', async () => {
+            process.stdout.rows = 4;
+            const update = draftlog.draft('\x1B[31mtop\nfirst\nsecond\nthird\nlast\x1B[39m', { continuationIndent: 2 });
+            writeMock.mockClear();
+            update('\x1B[31mHIDDEN\nFIRST\nSECOND\nTHIRD\nLAST\x1B[39m');
+            await flushTicks();
+            expect(writeMock.mock.calls).toEqual([
+                [SYNC_ENABLE],
+                ['\x1B[3A\r\x1B[J'],
+                ['\x1B[31m  SECOND\n  THIRD\n  LAST\x1B[39m\n'],
+                [SYNC_DISABLE],
+            ]);
+
+            writeMock.mockClear();
+            update('short');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            expect(writeMock).toHaveBeenCalledWith('short\n');
+            writeMock.mockClear();
+            update('done');
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[1A\r\x1B[J');
+        });
+
+        it('keeps the visible tail of a tall draft aligned above another draft during external writes', async () => {
+            process.stdout.rows = 4;
+            const update = draftlog.draft('top\nfirst\nsecond\nlast', { continuationIndent: 2 });
+            const next = draftlog.draft('next');
+            writeMock.mockClear();
+            update('HIDDEN\nFIRST\nSECOND\nLAST');
+            hookedWrite.call(process.stdout, 'external\n');
+            expect(writeMock.mock.calls).toEqual([
+                [SYNC_ENABLE],
+                ['\x1B[3A\r\x1B[J'],
+                ['external\n'],
+                ['  SECOND\n  LAST\n'],
+                ['next\n'],
+                [SYNC_DISABLE],
+            ]);
+            await flushTicks();
+            expect(writeMock).toHaveBeenCalledWith('\x1B[3A\r\x1B[J');
+            void next;
         });
     });
 
@@ -731,7 +914,10 @@ describe('draftlog - collected drafts', () => {
         expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[3A\r\x1B[J'], ...texts.map(text => [`${text}\n`]), [SYNC_DISABLE]]);
     });
 
-    it.each(['X'.repeat(161), 'first\n\nthird'])('reserves all rows occupied by a collected draft: %j', async text => {
+    it.each([
+        ['X'.repeat(161), `${'X'.repeat(80)}\n${'X'.repeat(80)}\nX`],
+        ['first\n\nthird', 'first\n\nthird'],
+    ])('reserves all rows occupied by a collected draft: %j', async (text, rendered) => {
         const update = draftlog.draft('active');
         const retired = draftlog.draft(text);
         collect(retired);
@@ -740,7 +926,7 @@ describe('draftlog - collected drafts', () => {
         update('UPDATED');
         await flushTicks();
 
-        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[4A\r\x1B[J'], ['UPDATED\n'], [`${text}\n`], [SYNC_DISABLE]]);
+        expect(writeMock.mock.calls).toEqual([[SYNC_ENABLE], ['\x1B[4A\r\x1B[J'], ['UPDATED\n'], [`${rendered}\n`], [SYNC_DISABLE]]);
     });
 
     it('preserves collected rows around active drafts during external writes', () => {
@@ -972,6 +1158,17 @@ describe('draftlog - non-TTY', () => {
 
         updater('updated');
         expect(writeMock).toHaveBeenCalledWith('updated\n');
+    });
+
+    it('ignores options entirely without inspecting them', () => {
+        const options = {
+            get continuationIndent() {
+                throw new Error('Non-TTY output must not read options');
+            },
+        };
+        const update = draftlog.draft('first\nsecond', options);
+        update('next\nlast', options);
+        expect(writeMock.mock.calls).toEqual([['first\nsecond\n'], ['next\nlast\n']]);
     });
 
     it('does not emit any ANSI escape sequences', () => {
