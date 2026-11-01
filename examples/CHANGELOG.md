@@ -1,5 +1,21 @@
 # examples
 
+## 1.0.16
+
+### Patch Changes
+
+- Updated dependencies [7324d5f]
+- Updated dependencies [a8e3ba5]
+- Updated dependencies [33a7a93]
+- Updated dependencies [fc9c7cc]
+- Updated dependencies [3e33ec3]
+- Updated dependencies [9fd4bf4]
+- Updated dependencies [6119f99]
+- Updated dependencies [7d2aa6b]
+- Updated dependencies [449175a]
+  - @niceties/node-parseargs-plus@0.6.1
+  - @niceties/draftlog-appender@2.2.0
+
 ## 1.0.15
 
 ### Patch Changes
