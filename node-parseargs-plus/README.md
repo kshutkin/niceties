@@ -96,6 +96,10 @@ Returns an object with:
 - **`positionals`** - array of positional arguments (when `allowPositionals` is `true`).
 - **`tokens`** - raw token array (when `tokens` is `true`).
 
+With the `commands` middleware, tokens cover global flags, the explicit command (as a positional token), and command arguments. Token indexes refer to the original `args` array. An implicit default command does not add a token.
+
+Optional-value rewriting preserves original indexes and flag spelling. A bare optional flag has an empty-string token value and `inlineValue: false`; an explicit `--option=` retains `inlineValue: true`. Token values remain raw strings before custom conversion, and token names retain their CLI form before camelCase conversion.
+
 ### `help` middleware
 
 ```js

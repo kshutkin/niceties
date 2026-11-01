@@ -19,10 +19,12 @@
  * been replaced with `'string'` by customValue (so `optionalValue` can
  * recognise them), and the rewritten args are visible to the commands
  * middleware's discovery parse.
- * Has `transformResult.order = 0` (default), as no result transformation is needed.
+ * Has `transformResult.order = 0` (default), restoring original token indexes
+ * before commands merges tokens from both parse scopes.
  */
 
 import { kOptionalValue, rewriteOptionalArgs } from './optional-args.js';
+import { kTokenState, remapTokens } from './tokens.js';
 
 /** @param {import('./types.d.ts').ParseArgsPlusConfig} config */
 function optionalValueTransformConfig(config) {
@@ -30,16 +32,21 @@ function optionalValueTransformConfig(config) {
         // Command discovery and both parse scopes must use their own schema.
         return { ...config, [kOptionalValue]: true };
     }
-    const rewritten = rewriteOptionalArgs(config.args ?? process.argv.slice(2), config.options);
-    return { ...config, args: rewritten.args };
+    const args = config.args ?? process.argv.slice(2);
+    const rewritten = rewriteOptionalArgs(args, config.options);
+    return { ...config, args: rewritten.args, [kTokenState]: { args, indexes: rewritten.indexes } };
 }
 optionalValueTransformConfig.order = 7;
 
 /**
  * @param {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }} result
- * @param {import('./types.d.ts').ParseArgsPlusConfig} _config
+ * @param {import('./types.d.ts').ParseArgsPlusConfig} config
  */
-function optionalValueTransformResult(result, _config) {
+function optionalValueTransformResult(result, config) {
+    const state = /** @type {{ args: string[]; indexes: number[] } | undefined} */ (/** @type {any} */ (config)[kTokenState]);
+    if (result.tokens && state) {
+        return { ...result, tokens: remapTokens(result.tokens, state.args, state.indexes) };
+    }
     return result;
 }
 

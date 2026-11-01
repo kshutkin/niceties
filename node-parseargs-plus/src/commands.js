@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 
 import { kOptionalValue, rewriteOptionalArgs } from './optional-args.js';
+import { kTokenState, remapTokens } from './tokens.js';
 
 /**
  * Symbol used to stash resolved command state on the config object
@@ -119,10 +120,12 @@ function commandsTransformConfig(config) {
         commandArgs = args.slice(cmdIndex + 1);
     }
 
-    if (optionalValues) {
-        globalArgs = rewriteOptionalArgs(globalArgs, globalOptions).args;
-        commandArgs = rewriteOptionalArgs(commandArgs, { ...globalOptions, ...commandConfig?.options }).args;
-    }
+    const originalGlobalArgs = globalArgs;
+    const originalCommandArgs = commandArgs;
+    const rewrittenGlobal = optionalValues ? rewriteOptionalArgs(globalArgs, globalOptions) : undefined;
+    const rewrittenCommand = optionalValues ? rewriteOptionalArgs(commandArgs, { ...globalOptions, ...commandConfig?.options }) : undefined;
+    globalArgs = rewrittenGlobal?.args ?? globalArgs;
+    commandArgs = rewrittenCommand?.args ?? commandArgs;
 
     // Stash command state for cross-middleware communication
     /** @type {any} */ (config)[kCommandState] = {
@@ -130,6 +133,9 @@ function commandsTransformConfig(config) {
         commandArgs,
         commandConfig,
         tokensRequested: config.tokens ?? false,
+        cmdIndex,
+        originalCommandArgs,
+        commandIndexes: rewrittenCommand?.indexes,
     };
 
     // Rewrite config for pass 1: global args only
@@ -139,6 +145,7 @@ function commandsTransformConfig(config) {
         allowPositionals: false,
         // Tokens distinguish explicit flags from defaults during the merge.
         tokens: commandName ? true : config.tokens,
+        [kTokenState]: { args: originalGlobalArgs, indexes: rewrittenGlobal?.indexes },
     };
 }
 commandsTransformConfig.order = 10;
@@ -153,7 +160,7 @@ function commandsTransformResult(result, config) {
         return result;
     }
 
-    const { commandName, commandArgs, commandConfig } = state;
+    const { commandName, commandArgs, commandConfig, tokensRequested, cmdIndex, originalCommandArgs, commandIndexes } = state;
 
     // If no command was resolved, pass through
     if (!commandName || !commandConfig) {
@@ -198,6 +205,15 @@ function commandsTransformResult(result, config) {
         values: mergedValues,
         positionals: pass2.positionals,
         command: commandName,
+        ...(tokensRequested
+            ? {
+                  tokens: [
+                      ...(result.tokens ?? []),
+                      ...(cmdIndex >= 0 ? [{ kind: 'positional', index: cmdIndex, value: commandName }] : []),
+                      ...remapTokens(pass2.tokens, originalCommandArgs, commandIndexes, cmdIndex < 0 ? 0 : cmdIndex + 1),
+                  ],
+              }
+            : {}),
     };
 }
 commandsTransformResult.order = 10;

@@ -29,6 +29,14 @@ export interface CommandState {
     commandArgs: string[];
     /** The matched command's config, or undefined if no command matched. */
     commandConfig: CommandConfig | undefined;
+    /** Whether the caller requested tokens (parsers may also use them internally). */
+    tokensRequested: boolean;
+    /** Explicit command positional index, or -1 for an implicit/no command. */
+    cmdIndex: number;
+    /** Command args before optional-value rewriting. */
+    originalCommandArgs: string[];
+    /** Rewritten command-arg indexes mapped to original scope indexes. */
+    commandIndexes?: number[];
 }
 
 // Shape of a single option in the config
