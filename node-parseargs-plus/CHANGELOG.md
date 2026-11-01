@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.1
+
+### Patch Changes
+
+- 7324d5f: Resolve omitted CLI arguments once in `parseArgsPlus` before running middleware. Command and optional-value middleware now use the prepared argument list rather than providing their own process argv fallback.
+- 33a7a93: Return requested tokens for global flags, the explicit command positional, and command arguments. Preserve original indexes and inline-value spelling across command slicing and optional-value rewriting, while keeping token values unconverted.
+- fc9c7cc: Parse an implicit default command's complete argument list with its merged global and command option schema, so command options before positional arguments are accepted.
+- 3e33ec3: Preserve explicit global option values before a command instead of replacing them with defaults from the command parse. Explicit flags after the command retain precedence over earlier flags.
+- 9fd4bf4: Keep custom value converters scoped to their command. Apply global converters plus the selected command's overrides, without invoking converters from inactive commands.
+- 6119f99: Scope optional-value argument rewriting to global options before a command and the selected command's merged options afterward. Required options and aliases are no longer made optional by inactive commands or shadowed global rules.
+
 ## 0.6.0
 
 ### Minor Changes
