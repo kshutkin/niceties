@@ -39,6 +39,7 @@
  * for cross-phase communication.
  */
 const kCustomValueMap = Symbol.for('parseArgsPlus.customValueMap');
+const kCommandState = Symbol.for('parseArgsPlus.commandState');
 
 /**
  * Scan an options record, extract function-typed `type` entries, replace them
@@ -82,6 +83,8 @@ function customValueTransformConfig(config) {
 
     // Convert command-level options when commands middleware is active
     const commands = /** @type {any} */ (config).commands;
+    /** @type {Map<string, Map<string, Function>>} */
+    const commandMaps = new Map();
     /** @type {Record<string, any> | undefined} */
     let newCommands;
     if (commands) {
@@ -90,7 +93,9 @@ function customValueTransformConfig(config) {
         const convertedCommands = {};
         for (const [cmdName, cmdConfig] of Object.entries(commands)) {
             const cmd = /** @type {import('./types.d.ts').CommandConfig} */ (cmdConfig);
-            const convertedOpts = convertOptions(cmd.options, map);
+            const commandMap = new Map();
+            const convertedOpts = convertOptions(cmd.options, commandMap);
+            if (commandMap.size > 0) commandMaps.set(cmdName, commandMap);
             if (convertedOpts !== cmd.options) {
                 convertedCommands[cmdName] = { ...cmd, options: convertedOpts };
                 commandsChanged = true;
@@ -104,12 +109,12 @@ function customValueTransformConfig(config) {
     }
 
     // Nothing to transform
-    if (map.size === 0) {
+    if (map.size === 0 && commandMaps.size === 0) {
         return config;
     }
 
     // Stash the map on the config for the result transform phase
-    /** @type {any} */ (config)[kCustomValueMap] = map;
+    /** @type {any} */ (config)[kCustomValueMap] = { global: map, commands: commandMaps };
 
     const newConfig = /** @type {import('./types.d.ts').ParseArgsPlusConfig} */ ({
         ...config,
@@ -138,10 +143,20 @@ customValueTransformConfig.order = 6;
  * @returns {{ values: Record<string, any>; positionals: string[]; tokens?: import('./types.d.ts').Token[] }}
  */
 function customValueTransformResult(result, config) {
-    /** @type {Map<string, Function> | undefined} */
-    const map = /** @type {any} */ (config)[kCustomValueMap];
+    /** @type {{ global: Map<string, Function>; commands: Map<string, Map<string, Function>> } | undefined} */
+    const maps = /** @type {any} */ (config)[kCustomValueMap];
+    if (!maps) return result;
 
-    if (!map || map.size === 0) {
+    const map = new Map(maps.global);
+    const commandState = /** @type {import('./types.d.ts').CommandState | undefined} */ (/** @type {any} */ (config)[kCommandState]);
+    if (commandState?.commandName) {
+        // Every command option shadows the global definition, even when it has
+        // no converter. Only converters from the selected command are active.
+        for (const name of Object.keys(commandState.commandConfig?.options ?? {})) map.delete(name);
+        for (const [name, fn] of maps.commands.get(commandState.commandName) ?? []) map.set(name, fn);
+    }
+
+    if (map.size === 0) {
         return result;
     }
 
