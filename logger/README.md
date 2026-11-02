@@ -1,5 +1,7 @@
 # @niceties/logger
 
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/logger/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/logger/coverage)
+
 Logger that can handle async tasks.
 
 - Provides a normal logging API: log level, tagged logger instance, custom log data

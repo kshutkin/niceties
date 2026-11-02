@@ -1,5 +1,7 @@
 # @niceties/draftlog-appender
 
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/draftlog-appender/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/draftlog-appender/coverage)
+
 Appender for [`@niceties/logger`](../logger/README.md) implemented using the @niceties/draftlog package.
 
 - Uses animation in the console to display log messages

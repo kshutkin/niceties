@@ -1,5 +1,7 @@
 # @niceties/ansi
 
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/ansi/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/ansi/coverage)
+
 Minimalistic ANSI colors library for terminal output.
 
 ## Why & Acknowledgments

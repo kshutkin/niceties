@@ -1,5 +1,7 @@
 # @niceties/draftlog
 
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/draftlog/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/draftlog/coverage)
+
 Create mutable log lines in the terminal.
 
 This is a simplified and improved version of the [draftlog](https://github.com/ivanseidel/node-draftlog) package by [ivanseidel](https://github.com/ivanseidel).

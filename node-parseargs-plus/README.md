@@ -1,5 +1,7 @@
 # @niceties/node-parseargs-plus
 
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/node-parseargs-plus/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/node-parseargs-plus/coverage)
+
 Enhanced wrapper around Node.js built-in [`util.parseArgs`](https://nodejs.org/api/util.html#utilparseargsconfig) with typed results, a middleware system, and built-in help/version/commands/parameters support.
 
 ## Installation
