@@ -4,6 +4,8 @@
 
 import { formatter } from './shared.js';
 
+export { link } from './shared.js';
+
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
 const BOLD_DIM_CLOSE = '\x1b[22m';

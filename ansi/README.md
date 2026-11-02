@@ -2,7 +2,7 @@
 
 [![Branch coverage](https://raw.githubusercontent.com/kshutkin/niceties/coverage/ansi/badge.svg)](https://github.com/kshutkin/niceties/tree/coverage/ansi/coverage)
 
-Minimalistic ANSI colors library for terminal output.
+Minimalistic ANSI colors and hyperlinks library for terminal output.
 
 ## Why & Acknowledgments
 
@@ -14,8 +14,9 @@ It is not the fastest library!
 
 - **Tree-shakeable** - only the formatters you import end up in your bundle
 - **Correct nesting** - inner close codes are replaced so outer colors restore properly
-- **Auto-detection** - colors are enabled or disabled based on `process.stdout.hasColors()`
-- **Browser entry point** - colors are always enabled via the `browser` export condition
+- **Auto-detection** - colors and hyperlinks are enabled or disabled based on `process.stdout.hasColors()`
+- **Browser entry point** - colors and hyperlinks are always enabled via the `browser` export condition
+- **Terminal hyperlinks** - OSC 8 links with custom anchor text, without separate hyperlink detection
 
 ## Installation
 
@@ -45,7 +46,7 @@ console.log(red("Hello " + blue("world") + "!"));
 // => \x1b[31mHello \x1b[34mworld\x1b[31m!\x1b[39m
 ```
 
-When colors are not supported, every formatter becomes an identity function that converts input to a string without adding any escape codes.
+When colors are not supported, color and modifier formatters become identity functions that convert input to a string without adding any escape codes. Hyperlinks return only the anchor text, converted to a string.
 
 ## API
 
@@ -78,13 +79,32 @@ When colors are not supported, every formatter becomes an identity function that
 
 `bgBlackBright` · `bgRedBright` · `bgGreenBright` · `bgYellowBright` · `bgBlueBright` · `bgMagentaBright` · `bgCyanBright` · `bgWhiteBright`
 
-Every formatter has the signature:
+Every color and modifier formatter has the signature:
 
 ```ts
 (input: string | number) => string;
 ```
 
 Numbers are automatically converted to strings.
+
+### Hyperlinks
+
+```ts
+link(text: string | number, url: string): string;
+```
+
+Wrap anchor text in [OSC 8 hyperlink sequences](https://iterm2.com/feature-reporting/Hyperlinks_in_Terminal_Emulators.html):
+
+```js
+import { link, underline, blue } from "@niceties/ansi";
+
+console.log(link("Documentation", "https://example.com/docs"));
+console.log(link(underline(blue("Documentation")), "https://example.com/docs"));
+```
+
+Links work only in terminals that support OSC 8 hyperlinks. Other terminals display the anchor text without a clickable link. The library does not separately detect hyperlink support: `link` follows the same color detection as modifiers such as `underline`. When colors are disabled, it returns only the anchor text without escape sequences.
+
+Pass a URI-encoded target, including its scheme (such as `https://`, `file://`, or `mailto:`). The target is used as supplied. Colors and modifiers can wrap a link or its anchor text, and nested links restore the outer target after each inner link.
 
 ## Color detection
 
@@ -94,7 +114,7 @@ This requires Node.js ≥ 10.16.0 and only recently fixed in Deno.
 
 ## Browser support
 
-The package exposes a `browser` export condition in `package.json`. Bundlers that respect this condition (Vite, webpack, esbuild, Rollup, etc.) will resolve to the browser entry point where all formatters always emit ANSI codes. This is useful for browser-based terminals and consoles that render ANSI escape sequences.
+The package exposes a `browser` export condition in `package.json`. Bundlers that respect this condition (Vite, webpack, esbuild, Rollup, etc.) will resolve to the browser entry point where all formatters and hyperlinks always emit escape sequences. This is useful for browser-based terminals and consoles that render ANSI escape sequences.
 
 ## Benchmarks
 

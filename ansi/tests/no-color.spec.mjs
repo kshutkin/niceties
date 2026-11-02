@@ -4,6 +4,7 @@ vi.hoisted(() => {
     process.stdout.hasColors = () => false;
 });
 
+import { link as browserLink } from '../src/browser.js';
 import {
     bgBlack,
     bgBlackBright,
@@ -35,6 +36,7 @@ import {
     hidden,
     inverse,
     italic,
+    link,
     magenta,
     magentaBright,
     red,
@@ -49,6 +51,18 @@ import {
 } from '../src/index.js';
 
 describe('no-color mode (hasColors returns false)', () => {
+    it('should return only hyperlink anchor text when colors are disabled', () => {
+        expect(link(red('docs'), 'https://example.com')).toBe('docs');
+    });
+
+    it.each(['', 0, 123])('should coerce hyperlink anchor text %j without escape codes', input => {
+        expect(link(input, 'https://example.com')).toBe(String(input));
+    });
+
+    it('should keep browser hyperlinks enabled like browser colors', () => {
+        expect(browserLink('docs', 'https://example.com')).toBe('\x1b]8;;https://example.com\x1b\\docs\x1b]8;;\x1b\\');
+    });
+
     it('should return plain strings without ANSI codes for modifiers', () => {
         expect(reset('hello')).toBe('hello');
         expect(bold('hello')).toBe('hello');

@@ -3,7 +3,7 @@
  */
 import process from 'node:process';
 
-import { formatter } from './shared.js';
+import { formatter, link as linkFormatter } from './shared.js';
 
 const FG_CLOSE = '\x1b[39m';
 const BG_CLOSE = '\x1b[49m';
@@ -13,6 +13,9 @@ const hasColors = process.stdout?.hasColors?.();
 // biome-ignore lint/style/useTemplate: optimization
 const noColorsFormatter = /** @type {Formatter} */ (input => '' + input);
 const f = hasColors ? formatter : () => noColorsFormatter;
+
+/** @type {typeof linkFormatter} */
+export const link = hasColors ? linkFormatter : noColorsFormatter;
 
 // modifiers
 /** @type {Formatter} */
