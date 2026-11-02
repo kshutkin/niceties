@@ -7,11 +7,11 @@ const segmenter = new Intl.Segmenter();
  * Lay out physical rows without splitting escape sequences or graphemes.
  * `prefix` restores formatting when rendering starts partway through a draft.
  * @param {string} text
- * @param {number} indentation
+ * @param {number} indent
  * @param {number} columns
  * @returns {{ text: string; widths: number[]; width: number; prefix: string }[]}
  */
-export function layout(text, indentation, columns) {
+export function layout(text, indent, columns) {
     /** @type {{ index: number; text: string }[]} */
     const escapes = [];
     let removed = 0;
@@ -20,7 +20,6 @@ export function layout(text, indentation, columns) {
         removed += sequence.length;
         return '';
     });
-    const indent = indentation < columns ? indentation : 0;
     let formatting = '';
     let escapeIndex = 0;
     let row = { text: '', widths: /** @type {number[]} */ ([]), width: 0, prefix: '' };
