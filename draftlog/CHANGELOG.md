@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+### Patch Changes
+
+- ba0efc6: Remove the redundant indentation fallback from terminal layout; continuation indentation is already normalized by the caller.
+
 ## 1.1.0
 
 ### Minor Changes
