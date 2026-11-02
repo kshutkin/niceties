@@ -19,14 +19,14 @@
         {
             "description": "Disable regular dts-buddy updates except minor releases",
             "matchPackageNames": ["dts-buddy"],
-            "enabled": false
+            "enabled": false,
+            "rangeStrategy": "bump"
         },
         {
             "description": "Update dts-buddy when a new minor version is released",
             "matchPackageNames": ["dts-buddy"],
             "matchUpdateTypes": ["minor"],
-            "enabled": true,
-            "rangeStrategy": "bump"
+            "enabled": true
         },
         {
             "description": "Update Slimlib packages and string-width only when a release falls outside the declared range",
