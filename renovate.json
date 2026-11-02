@@ -1,4 +1,44 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": ["config:base"]
+    "extends": ["config:recommended"],
+    "vulnerabilityAlerts": {
+        "enabled": true
+    },
+    "packageRules": [
+        {
+            "description": "Keep Node.js declarations on the latest 24.x release",
+            "matchPackageNames": ["@types/node"],
+            "allowedVersions": "24.x",
+            "rangeStrategy": "update-lockfile"
+        },
+        {
+            "description": "Update Changesets, Vitest, and Biome only to fix vulnerabilities",
+            "matchPackageNames": ["@changesets/**", "vitest", "@vitest/**", "@biomejs/biome"],
+            "enabled": false
+        },
+        {
+            "description": "Disable regular dts-buddy updates except minor releases",
+            "matchPackageNames": ["dts-buddy"],
+            "enabled": false
+        },
+        {
+            "description": "Update dts-buddy when a new minor version is released",
+            "matchPackageNames": ["dts-buddy"],
+            "matchUpdateTypes": ["minor"],
+            "enabled": true,
+            "rangeStrategy": "bump"
+        },
+        {
+            "description": "Update Slimlib packages and string-width only when a release falls outside the declared range",
+            "matchPackageNames": ["@slimlib/**", "string-width"],
+            "rangeStrategy": "replace"
+        },
+        {
+            "description": "Keep performance and size comparison libraries at their chosen baseline versions",
+            "matchManagers": ["npm"],
+            "matchFileNames": ["ansi/benchmarks/package.json"],
+            "matchPackageNames": ["picocolors", "colorette", "kleur", "chalk", "ansi-colors", "nanocolors", "cli-color", "yoctocolors"],
+            "enabled": false
+        }
+    ]
 }
