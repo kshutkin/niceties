@@ -46,6 +46,6 @@
     },
     "dependencies": {
         "ansi-regex": "^6.2.2",
-        "string-width": "^8.2.0"
+        "string-width": "^9.0.0"
     }
 }
