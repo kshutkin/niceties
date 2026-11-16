@@ -25,7 +25,7 @@ importers:
         version: 0.8.3(typescript@5.9.3)
       pkgprn-internal:
         specifier: ^0.12.0
-        version: 0.12.0
+        version: 0.12.1
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1))
@@ -797,8 +797,8 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
-  pkgprn-internal@0.12.0:
-    resolution: {integrity: sha512-juWddO8zIQ5Y473NUlurOH9rpBa4ipBmijPlJYRSNQmWnpkaqF2Cpj2aEDc2NnbcIxOjbeFzjYpv7mmvEWj9Mw==}
+  pkgprn-internal@0.12.1:
+    resolution: {integrity: sha512-4ngHrLWd31lP0ce4NXw8bTa/5G27jIjY+hpgN4yhZ94nPPIrOh++ZWocyGPHkbkX0JL80LzdM91XwMUn9Y6Uaw==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
     hasBin: true
 
@@ -1570,7 +1570,7 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  pkgprn-internal@0.12.0:
+  pkgprn-internal@0.12.1:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       ignore-walk: 9.0.0
